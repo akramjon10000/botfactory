@@ -7,9 +7,22 @@ import requests
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from app import db
+from app import db, csrf
 from models import User, Payment
 from utils import generate_transaction_id, format_currency
+from rate_limiter import rate_limiter, get_client_ip
+from payment_security import (
+    build_click_signature_payload,
+    extract_click_order_id,
+    extract_payme_order_id,
+    extract_uzum_order_id,
+    normalize_md5_signature,
+    normalize_sha1_signature,
+    normalize_sha256_signature,
+    validate_click_payload,
+    validate_payme_payload,
+    validate_uzum_payload,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,13 +73,22 @@ class PaymeAPI:
     def verify_webhook(self, data, signature):
         """Webhook ni tasdiqlash"""
         try:
+            if not self.secret_key:
+                logger.error("Payme secret key configured emas")
+                return False
+
+            normalized_signature = normalize_sha1_signature(signature)
+            if not normalized_signature:
+                logger.error("Payme signature formati noto'g'ri")
+                return False
+
             calculated_signature = hmac.new(
-                self.secret_key.encode(),
-                data.encode(),
+                self.secret_key.encode('utf-8'),
+                data.encode('utf-8'),
                 hashlib.sha1
-            ).hexdigest()
+            ).hexdigest().lower()
             
-            return hmac.compare_digest(signature, calculated_signature)
+            return hmac.compare_digest(normalized_signature, calculated_signature)
         except Exception as e:
             logger.error(f"Payme webhook tasdiqlashda xato: {str(e)}")
             return False
@@ -112,8 +134,14 @@ class ClickAPI:
     
     def _create_signature(self, params):
         """Click imzo yaratish"""
-        sign_string = f"{params['service_id']}{params['merchant_id']}{params['amount']}{params['transaction_param']}{self.secret_key}"
-        return hashlib.md5(sign_string.encode()).hexdigest()
+        sign_string = (
+            f"{str(params.get('service_id', '')).strip()}"
+            f"{str(params.get('merchant_id', '')).strip()}"
+            f"{str(params.get('amount', '')).strip()}"
+            f"{str(params.get('transaction_param', '')).strip()}"
+            f"{self.secret_key}"
+        )
+        return hashlib.md5(sign_string.encode('utf-8')).hexdigest().lower()
     
     def _build_query_string(self, params):
         """Query string yaratish"""
@@ -122,8 +150,17 @@ class ClickAPI:
     def verify_signature(self, params):
         """Imzoni tasdiqlash"""
         try:
-            received_sign = params.pop('sign', '')
-            calculated_sign = self._create_signature(params)
+            if not self.secret_key:
+                logger.error("Click secret key configured emas")
+                return False
+
+            received_sign = normalize_md5_signature(params.pop('sign', ''))
+            if not received_sign:
+                logger.error("Click signature formati noto'g'ri")
+                return False
+
+            signature_payload = build_click_signature_payload(params)
+            calculated_sign = self._create_signature(signature_payload)
             return hmac.compare_digest(received_sign, calculated_sign)
         except Exception as e:
             logger.error(f"Click imzo tasdiqlashda xato: {str(e)}")
@@ -184,12 +221,29 @@ class UzumAPI:
         # Bu yerda OAuth2 access token olish logikasi bo'ladi
         return os.environ.get('UZUM_ACCESS_TOKEN', '')
     
-    def verify_callback(self, data):
-        """Callback ni tasdiqlash"""
+    def verify_callback(self, raw_payload: str, signature: str):
+        """Callback signature ni tasdiqlash (HMAC-SHA256)."""
         try:
-            signature = data.get('signature', '')
-            # Signature verification logic
-            return True  # Placeholder
+            if not self.secret_key:
+                logger.error("Uzum secret key configured emas")
+                return False
+
+            normalized_signature = normalize_sha256_signature(signature)
+            if not normalized_signature:
+                logger.error("Uzum callback signature formati noto'g'ri")
+                return False
+
+            if raw_payload is None:
+                logger.error("Uzum callback payload topilmadi")
+                return False
+
+            expected_signature = hmac.new(
+                self.secret_key.encode('utf-8'),
+                raw_payload.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest().lower()
+
+            return hmac.compare_digest(normalized_signature, expected_signature)
         except Exception as e:
             logger.error(f"Uzum callback tasdiqlashda xato: {str(e)}")
             return False
@@ -269,6 +323,13 @@ class PaymentProcessor:
             payment = Payment.query.get(payment_id)
             if not payment:
                 return {'success': False, 'error': 'To\'lov topilmadi'}
+
+            # Idempotency: already confirmed payments must not extend subscription again
+            if payment.status == 'completed':
+                return {'success': True, 'payment': payment, 'already_processed': True}
+
+            if payment.status not in ['pending']:
+                return {'success': False, 'error': f"To'lov holati noto'g'ri: {payment.status}"}
             
             # To'lovni tasdiqlash
             payment.status = 'completed'
@@ -347,12 +408,18 @@ def create_payment():
 def payment_success(payment_id):
     """To'lov muvaffaqiyatli yakunlanganda"""
     try:
-        result = processor.confirm_payment(payment_id)
-        
-        if result['success']:
-            flash('To\'lov muvaffaqiyatli amalga oshirildi!', 'success')
+        payment = Payment.query.get(payment_id)
+        if not payment:
+            flash('To\'lov topilmadi!', 'error')
+            return redirect(url_for('main.subscription'))
+
+        # Security: never confirm payment from redirect URL; webhook must confirm it
+        if payment.status == 'completed':
+            flash('To\'lov muvaffaqiyatli tasdiqlandi!', 'success')
+        elif payment.status == 'pending':
+            flash('To\'lov qabul qilindi. To\'lov tizimidan tasdiq kutilmoqda.', 'info')
         else:
-            flash('To\'lovni tasdiqlashda xato!', 'error')
+            flash(f"To'lov holati: {payment.status}", 'warning')
             
     except Exception as e:
         logger.error(f"Payment success error: {str(e)}")
@@ -361,9 +428,19 @@ def payment_success(payment_id):
     return redirect(url_for('main.dashboard'))
 
 @payment_bp.route('/webhook/payme', methods=['POST'])
+@csrf.exempt
 def payme_webhook():
     """Payme webhook handler"""
     try:
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"payme_webhook:{client_ip}",
+            limit=360,
+            window_seconds=60
+        )
+        if not allowed:
+            return jsonify({'error': 'Rate limited', 'retry_after': retry_after}), 429
+
         data = request.get_data(as_text=True)
         signature = request.headers.get('X-PaycomSignature', '')
         
@@ -371,43 +448,62 @@ def payme_webhook():
             return jsonify({'error': 'Invalid signature'}), 400
         
         webhook_data = json.loads(data)
+        if not validate_payme_payload(webhook_data):
+            return jsonify({'error': 'Invalid payload format'}), 400
         
         # Webhook ni qayta ishlash
-        if webhook_data.get('method') == 'CheckTransaction':
+        method = webhook_data.get('method')
+        if method == 'CheckTransaction':
             # To'lovni tekshirish
             pass
-        elif webhook_data.get('method') == 'CreateTransaction':
+        elif method == 'CreateTransaction':
             # To'lovni yaratish
             pass
-        elif webhook_data.get('method') == 'PerformTransaction':
+        elif method == 'PerformTransaction':
             # To'lovni amalga oshirish
-            order_id = webhook_data.get('params', {}).get('account', {}).get('order_id')
-            if order_id:
-                processor.confirm_payment(int(order_id), webhook_data)
+            order_id = extract_payme_order_id(webhook_data)
+            if order_id is None:
+                return jsonify({'error': 'Invalid order_id'}), 400
+            processor.confirm_payment(order_id, webhook_data)
         
         return jsonify({'result': {'success': True}})
         
+    except json.JSONDecodeError:
+        return jsonify({'error': 'Invalid JSON payload'}), 400
     except Exception as e:
         logger.error(f"Payme webhook error: {str(e)}")
         return jsonify({'error': 'Internal error'}), 500
 
 @payment_bp.route('/webhook/click', methods=['POST'])
+@csrf.exempt
 def click_webhook():
     """Click webhook handler"""
     try:
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"click_webhook:{client_ip}",
+            limit=360,
+            window_seconds=60
+        )
+        if not allowed:
+            return jsonify({'error': -1, 'error_note': 'Rate limited', 'retry_after': retry_after}), 429
+
         params = request.form.to_dict()
+        if not validate_click_payload(params, processor.click.service_id, processor.click.merchant_id):
+            return jsonify({'error': -1, 'error_note': 'Invalid payload format'})
         
         if not processor.click.verify_signature(params.copy()):
             return jsonify({'error': -1, 'error_note': 'Invalid signature'})
         
-        action = params.get('action')
+        action = str(params.get('action', '')).strip()
         
         if action == '1':  # To'lovni tasdiqash
-            order_id = params.get('merchant_trans_id')
-            if order_id:
-                result = processor.confirm_payment(int(order_id), params)
-                if result['success']:
-                    return jsonify({'error': 0, 'error_note': 'Success'})
+            order_id = extract_click_order_id(params)
+            if order_id is None:
+                return jsonify({'error': -1, 'error_note': 'Invalid order_id'})
+            result = processor.confirm_payment(order_id, params)
+            if result['success']:
+                return jsonify({'error': 0, 'error_note': 'Success'})
         
         return jsonify({'error': -1, 'error_note': 'Unknown action'})
         
@@ -416,21 +512,49 @@ def click_webhook():
         return jsonify({'error': -1, 'error_note': 'Internal error'})
 
 @payment_bp.route('/webhook/uzum', methods=['POST'])
+@csrf.exempt
 def uzum_callback():
     """Uzum callback handler"""
     try:
-        data = request.get_json()
-        
-        if not processor.uzum.verify_callback(data):
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"uzum_webhook:{client_ip}",
+            limit=360,
+            window_seconds=60
+        )
+        if not allowed:
+            return jsonify({'status': 'error', 'message': 'Rate limited', 'retry_after': retry_after}), 429
+
+        raw_payload = request.get_data(as_text=True)
+        signature = (
+            request.headers.get('X-Uzum-Signature') or
+            request.headers.get('X-Signature') or
+            request.headers.get('Signature') or
+            ''
+        )
+
+        if not processor.uzum.verify_callback(raw_payload, signature):
             return jsonify({'status': 'error', 'message': 'Invalid signature'}), 400
+
+        data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({'status': 'error', 'message': 'Invalid JSON payload'}), 400
+
+        if not validate_uzum_payload(data):
+            return jsonify({'status': 'error', 'message': 'Invalid payload format'}), 400
         
-        order_id = data.get('order_id')
-        status = data.get('status')
+        order_id = extract_uzum_order_id(data)
+        status = str(data.get('status', '')).strip().lower()
         
-        if order_id and status == 'success':
+        if status == 'success':
             result = processor.confirm_payment(int(order_id), data)
             if result['success']:
                 return jsonify({'status': 'ok'})
+            return jsonify({'status': 'error'})
+
+        # failed/pending/cancelled callbacklar ham qabul qilinadi (ack)
+        if status in {'failed', 'pending', 'cancelled'}:
+            return jsonify({'status': 'ok'})
         
         return jsonify({'status': 'error'})
         

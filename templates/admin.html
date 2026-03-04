@@ -662,48 +662,69 @@
 <!-- Change Subscription Modal -->
 <div class="modal fade" id="changeSubscriptionModal" tabindex="-1" aria-labelledby="changeSubscriptionModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="changeSubscriptionModalLabel">
-                    <i class="fas fa-crown me-2"></i>Obuna ta'rifini o'zgartirish
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0"
+            style="border-radius: 1.5rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header border-bottom-0 pb-0"
+                style="background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));">
+                <h5 class="modal-title fw-bold" id="changeSubscriptionModalLabel" style="color: var(--text-color);">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3"
+                            style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #ffd700, #fdb931); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(253, 185, 49, 0.4);">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        Obuna ta'rifini o'zgartirish
+                    </div>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="filter: var(--close-btn-filter);"></button>
             </div>
             <form method="POST" action="{{ url_for('main.change_user_subscription') }}">
-                <div class="modal-body">
+                <div class="modal-body pt-4">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="user_id" id="modal_user_id">
 
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Foydalanuvchi:</strong></label>
-                        <p class="text-muted" id="modal_user_name"></p>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4"
+                                style="background: var(--bg-hover); border: 1px solid var(--border-color);">
+                                <label class="form-label text-muted mb-1"
+                                    style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Foydalanuvchi</label>
+                                <p class="mb-0 fw-bold fs-5" id="modal_user_name" style="color: var(--text-color);"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4"
+                                style="background: var(--bg-hover); border: 1px solid var(--border-color);">
+                                <label class="form-label text-muted mb-1"
+                                    style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Joriy
+                                    obuna</label>
+                                <p class="mb-0 fw-bold fs-5 text-primary" id="modal_current_subscription"></p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Joriy obuna:</strong></label>
-                        <p id="modal_current_subscription"></p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="subscription_type" class="form-label">Yangi obuna ta'rifi</label>
-                        <select class="form-select" name="subscription_type" required>
-                            <option value="">Obuna ta'rifini tanlang</option>
+                    <div class="mb-4">
+                        <label for="subscription_type" class="form-label fw-semibold"
+                            style="color: var(--text-color);">Yangi obuna ta'rifi</label>
+                        <select class="form-select form-select-lg premium-input" name="subscription_type" required>
+                            <option value="">Tanlang...</option>
                             <option value="free">Bepul (cheklangan)</option>
                             <option value="trial_14">🎁 14 kun test (bepul sinov)</option>
                             <option value="starter">Starter (165,000 so'm/oy)</option>
                             <option value="basic">Basic (290,000 so'm/oy)</option>
                             <option value="premium">Premium (590,000 so'm/oy)</option>
                         </select>
-                        <div class="form-text">
-                            <small class="text-muted">14 kun test - bepul sinov davri, barcha imkoniyatlar
-                                ochiq.</small>
+                        <div class="form-text mt-2" style="color: var(--text-muted);">
+                            <i class="fas fa-info-circle me-1"></i> 14 kun test barcha imkoniyatlarni ochiq holda taqdim
+                            etadi.
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="subscription_duration" class="form-label">Obuna muddati (kunlarda)</label>
-                        <select class="form-select" name="subscription_duration">
+                    <div class="mb-4">
+                        <label for="subscription_duration" class="form-label fw-semibold"
+                            style="color: var(--text-color);">Obuna muddati</label>
+                        <select class="form-select form-select-lg premium-input" name="subscription_duration">
                             <option value="30">30 kun (1 oy)</option>
                             <option value="90">90 kun (3 oy)</option>
                             <option value="180">180 kun (6 oy)</option>
@@ -711,16 +732,22 @@
                         </select>
                     </div>
 
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Eslatma:</strong> Bu o'zgarish avtomatik ravishda to'lov tarixi ro'yxatiga "Admin" usuli
-                        bilan qo'shiladi.
+                    <div class="alert custom-alert info-alert d-flex align-items-center mb-0" role="alert"
+                        style="border-radius: 12px;">
+                        <i class="fas fa-shield-alt fs-4 me-3 text-info"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1 fw-bold">Admin Harakati</h6>
+                            <p class="mb-0 small">Ushbu o'zgarish <strong>"Admin tasdiqladi"</strong> yorlig'i ostida
+                                to'lovlar tarixida yozib olinadi.</p>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-save me-2"></i>O'zgarishni saqlash
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal"
+                        style="font-weight: 500;">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm"
+                        style="background: linear-gradient(135deg, #ffd700, #fdb931); border: none; color: #000; font-weight: 600;">
+                        <i class="fas fa-check-circle me-2"></i>O'zgarishni saqlash
                     </button>
                 </div>
             </form>

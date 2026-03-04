@@ -5,10 +5,12 @@ import requests
 from typing import Dict, List, Optional, Any, Union, Tuple
 from datetime import datetime
 from flask import Blueprint, request, jsonify, url_for
+from flask_login import login_required, current_user
 from app import db, app
 from models import User, Bot, ChatHistory, BotCustomer
 from ai import get_ai_response, process_knowledge_base
 from audio_processor import download_and_process_audio
+from rate_limiter import rate_limiter, get_client_ip
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +26,7 @@ class WhatsAppBot:
         self.phone_number_id = phone_number_id
         self.bot_id = bot_id
         self.base_url = "https://graph.facebook.com/v18.0"
-        self.verify_token = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'botfactory_whatsapp_2024')
+        self.verify_token = os.environ.get('WHATSAPP_VERIFY_TOKEN', '')
     
     def send_message(self, to_number: str, message_text: str) -> bool:
         """WhatsApp xabar yuborish"""
@@ -551,6 +553,15 @@ def whatsapp_webhook(bot_id):
                 return 'Verification failed', 403
         
         elif request.method == 'POST':
+            client_ip = get_client_ip(request)
+            allowed, retry_after = rate_limiter.is_allowed(
+                key=f"whatsapp_webhook:{bot_id}:{client_ip}",
+                limit=180,
+                window_seconds=60
+            )
+            if not allowed:
+                return jsonify({'error': 'Rate limited', 'retry_after': retry_after}), 429
+
             # Message processing
             data = request.get_json()
             
@@ -651,63 +662,71 @@ def _mark_message_as_read(bot, message_id):
         logger.error(f"Mark as read error: {str(e)}")
 
 @whatsapp_bp.route('/start/<int:bot_id>', methods=['POST'])
+@login_required
 def start_whatsapp_bot(bot_id):
     """WhatsApp botni ishga tushirish"""
     try:
-        with app.app_context():
-            bot = Bot.query.get_or_404(bot_id)
-            
-            if not bot.whatsapp_token or not bot.whatsapp_phone_id:
-                return jsonify({'success': False, 'error': 'WhatsApp token yoki telefon ID topilmadi'})
-            
-            success = whatsapp_manager.start_bot(bot_id, bot.whatsapp_token, bot.whatsapp_phone_id)
-            
-            if success:
-                bot.is_active = True
-                db.session.commit()
-                return jsonify({'success': True, 'message': 'WhatsApp bot ishga tushdi'})
-            else:
-                return jsonify({'success': False, 'error': 'Botni ishga tushirishda xato'})
+        bot = Bot.query.get_or_404(bot_id)
+
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'success': False, 'error': "Ruxsat yo'q"}), 403
+
+        if not bot.whatsapp_token or not bot.whatsapp_phone_id:
+            return jsonify({'success': False, 'error': 'WhatsApp token yoki telefon ID topilmadi'})
+
+        success = whatsapp_manager.start_bot(bot_id, bot.whatsapp_token, bot.whatsapp_phone_id)
+
+        if success:
+            bot.is_active = True
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'WhatsApp bot ishga tushdi'})
+        else:
+            return jsonify({'success': False, 'error': 'Botni ishga tushirishda xato'})
     
     except Exception as e:
         logger.error(f"Start WhatsApp bot error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
 
 @whatsapp_bp.route('/stop/<int:bot_id>', methods=['POST'])
+@login_required
 def stop_whatsapp_bot(bot_id):
     """WhatsApp botni to'xtatish"""
     try:
-        with app.app_context():
-            bot = Bot.query.get_or_404(bot_id)
-            
-            success = whatsapp_manager.stop_bot(bot_id)
-            
-            if success:
-                bot.is_active = False
-                db.session.commit()
-                return jsonify({'success': True, 'message': 'WhatsApp bot to\'xtatildi'})
-            else:
-                return jsonify({'success': False, 'error': 'Botni to\'xtatishda xato'})
+        bot = Bot.query.get_or_404(bot_id)
+
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'success': False, 'error': "Ruxsat yo'q"}), 403
+
+        success = whatsapp_manager.stop_bot(bot_id)
+
+        if success:
+            bot.is_active = False
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'WhatsApp bot to\'xtatildi'})
+        else:
+            return jsonify({'success': False, 'error': 'Botni to\'xtatishda xato'})
     
     except Exception as e:
         logger.error(f"Stop WhatsApp bot error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
 
 @whatsapp_bp.route('/status/<int:bot_id>')
+@login_required
 def whatsapp_bot_status(bot_id):
     """WhatsApp bot holatini tekshirish"""
     try:
         is_running = bot_id in whatsapp_manager.running_bots
-        
-        with app.app_context():
-            bot = Bot.query.get(bot_id)
-            
-            return jsonify({
-                'bot_id': bot_id,
-                'is_running': is_running,
-                'is_active': bot.is_active if bot else False,
-                'platform': 'WhatsApp'
-            })
+
+        bot = Bot.query.get_or_404(bot_id)
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'error': "Ruxsat yo'q"}), 403
+
+        return jsonify({
+            'bot_id': bot_id,
+            'is_running': is_running,
+            'is_active': bot.is_active if bot else False,
+            'platform': 'WhatsApp'
+        })
     
     except Exception as e:
         logger.error(f"WhatsApp status error: {str(e)}")

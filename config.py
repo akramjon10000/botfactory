@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class Config:
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///botfactory.db')
@@ -11,7 +14,7 @@ class Config:
     }
     
     # Security
-    SECRET_KEY = os.environ.get('SESSION_SECRET', 'botfactory-secret-key-2024')
+    SECRET_KEY = os.environ.get('SESSION_SECRET')
     WTF_CSRF_ENABLED = True
     
     # Session
@@ -24,24 +27,29 @@ class Config:
     ALLOWED_EXTENSIONS = {'txt', 'docx', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'webp'}
     
     # AI
-    GEMINI_API_KEY = os.environ.get('GOOGLE_API_KEY', 'default_key')
+    GEMINI_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
     
     # Telegram
     TELEGRAM_API_URL = 'https://api.telegram.org/bot'
     
     # Instagram Bot API
     INSTAGRAM_ACCESS_TOKEN = os.environ.get('INSTAGRAM_ACCESS_TOKEN', '')
-    INSTAGRAM_VERIFY_TOKEN = os.environ.get('INSTAGRAM_VERIFY_TOKEN', 'botfactory_verify_token')
+    INSTAGRAM_VERIFY_TOKEN = os.environ.get('INSTAGRAM_VERIFY_TOKEN', '')
     
     # WhatsApp Business API
     WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN', '')
-    WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'botfactory_verify_token')
+    WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', '')
     WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '')
     
     # Payment
     PAYME_MERCHANT_ID = os.environ.get('PAYME_MERCHANT_ID', '')
     CLICK_MERCHANT_ID = os.environ.get('CLICK_MERCHANT_ID', '')
     UZUM_MERCHANT_ID = os.environ.get('UZUM_MERCHANT_ID', '')
+    
+    # Cloudinary
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
     
     # Subscription prices (in UZS)
     SUBSCRIPTION_PRICES = {

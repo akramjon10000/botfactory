@@ -182,7 +182,7 @@ def process_audio(self, audio_file_path: str, chat_id: int, user_id: int) -> Dic
         
         # Import here to avoid circular imports
         try:
-            from audio_processing import transcribe_audio
+            from audio_processor import transcribe_audio
             # Transcribe audio
             transcript = transcribe_audio(audio_file_path)
         except ImportError:

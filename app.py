@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 from datetime import datetime
 from flask import Flask, request
@@ -104,17 +104,18 @@ def after_request(response):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache" 
         response.headers["Expires"] = "0"
-        
-        # Add CORS headers for Replit iframe
-        response.headers["X-Frame-Options"] = "ALLOWALL"
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+        # Dev-only CORS/iframe overrides (must be explicitly enabled)
+        if os.environ.get("ALLOW_DEV_CORS") == "1":
+            response.headers["X-Frame-Options"] = "ALLOWALL"
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     
     return response
 
 # Preflight Database Configuration - Test connection before initialization
-logger.info("🔍 Starting preflight database selection...")
+logger.info("рџ”Ќ Starting preflight database selection...")
 
 # Detect production environment (Render.com)
 is_production = os.environ.get('RENDER') or os.environ.get('DATABASE_URL', '').startswith('postgres')
@@ -122,12 +123,12 @@ database_url = os.environ.get("DATABASE_URL")
 
 # Test PostgreSQL connection if available
 if database_url and not database_url.startswith('sqlite'):
-    logger.info(f"🔌 Testing PostgreSQL connection...")
+    logger.info(f"рџ”Њ Testing PostgreSQL connection...")
     connection_success, result = test_database_connection(database_url, timeout=10)
     
     if connection_success:
         # PostgreSQL connection successful - configure for PostgreSQL
-        logger.info("✅ PostgreSQL connection test successful")
+        logger.info("вњ… PostgreSQL connection test successful")
         
         if is_production:
             # Production settings for Render.com - optimized for stability
@@ -143,7 +144,7 @@ if database_url and not database_url.startswith('sqlite'):
                     "application_name": "chatbot_factory_production",
                 }
             }
-            logger.info("🐘 Using PostgreSQL with production-optimized connection pooling (Render.com)")
+            logger.info("рџђ Using PostgreSQL with production-optimized connection pooling (Render.com)")
         else:
             # Development settings for Replit
             app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -154,31 +155,31 @@ if database_url and not database_url.startswith('sqlite'):
                 "pool_pre_ping": True,    # Verify connections before use
                 "echo": False
             }
-            logger.info("🐘 Using PostgreSQL with development connection pooling (Replit)")
+            logger.info("рџђ Using PostgreSQL with development connection pooling (Replit)")
         
         app.config["SQLALCHEMY_DATABASE_URI"] = result
         
     else:
         # PostgreSQL connection failed - fall back to SQLite
-        logger.warning(f"❌ PostgreSQL connection failed: {result}")
+        logger.warning(f"вќЊ PostgreSQL connection failed: {result}")
         if is_production:
-            logger.error("🚨 PRODUCTION: PostgreSQL unavailable - using SQLite fallback")
-            logger.error("⚠️ WARNING: SQLite in production may cause data loss on ephemeral storage")
+            logger.error("рџљЁ PRODUCTION: PostgreSQL unavailable - using SQLite fallback")
+            logger.error("вљ пёЏ WARNING: SQLite in production may cause data loss on ephemeral storage")
         else:
-            logger.info("🔄 Development: PostgreSQL unavailable - using SQLite fallback")
+            logger.info("рџ”„ Development: PostgreSQL unavailable - using SQLite fallback")
         
         sqlite_url, sqlite_config = get_fallback_sqlite_config()
         app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_url
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = sqlite_config
-        logger.info("💾 SQLite database configured successfully")
+        logger.info("рџ’ѕ SQLite database configured successfully")
         
 else:
     # No PostgreSQL URL provided - use SQLite directly
-    logger.info("🔧 No PostgreSQL URL provided - using SQLite database")
+    logger.info("рџ”§ No PostgreSQL URL provided - using SQLite database")
     sqlite_url, sqlite_config = get_fallback_sqlite_config()
     app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_url
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = sqlite_config
-    logger.info("💾 SQLite database configured for development")
+    logger.info("рџ’ѕ SQLite database configured for development")
 
 # Add required Flask-SQLAlchemy configuration
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -308,48 +309,51 @@ with app.app_context():
             
     except Exception as e:
         # Database operations failed after successful preflight test - this should be rare
-        logger.error(f"💥 Database operations failed after successful connection test: {e}")
+        logger.error(f"рџ’Ґ Database operations failed after successful connection test: {e}")
         
         if is_production:
-            logger.error("🚨 PRODUCTION CRITICAL: Database operations failed after preflight success")
-            logger.error("💡 Check: Table creation permissions, Storage space, Connection limits")
+            logger.error("рџљЁ PRODUCTION CRITICAL: Database operations failed after preflight success")
+            logger.error("рџ’Ў Check: Table creation permissions, Storage space, Connection limits")
             # In production, fail fast - don't attempt runtime fallback after preflight success
             raise
         else:
-            logger.warning("⚠️ DEVELOPMENT: Database operations failed - attempting emergency fallback")
+            logger.warning("вљ пёЏ DEVELOPMENT: Database operations failed - attempting emergency fallback")
             # In development only, try a simple retry
             try:
                 db.create_all()
-                logger.info("✅ Database operations retry successful")
+                logger.info("вњ… Database operations retry successful")
             except Exception as retry_error:
-                logger.error(f"❌ Emergency fallback also failed: {retry_error}")
+                logger.error(f"вќЊ Emergency fallback also failed: {retry_error}")
                 raise
     
     # Initialize Bot Manager - Start all active bots polling in background
-    try:
-        logger.info("🤖 Initializing BotFactory AI Bot Manager...")
-        from bot_manager import initialize_bot_manager
-        
-        if is_production:
-            # Production: Check API keys before initializing bot manager
-            api_keys_present = {
-                'GOOGLE_API_KEY': bool(os.environ.get('GOOGLE_API_KEY')),
-                'TELEGRAM_BOT_TOKEN': bool(os.environ.get('TELEGRAM_BOT_TOKEN'))
-            }
-            missing_apis = [k for k, v in api_keys_present.items() if not v]
-            if missing_apis:
-                logger.warning(f"⚠️ Missing API keys in production: {missing_apis}")
-                logger.warning("⚠️ Bot functionality will be limited until API keys are added to Render.com")
-        
-        global_bot_manager = initialize_bot_manager()
-        
-        if global_bot_manager:
-            logger.info("✅ Bot manager successfully initialized - all active bots will start polling!")
-        else:
-            logger.warning("⚠️ Bot manager initialization failed - bots will not auto-start")
-            
-    except Exception as bot_manager_error:
-        logger.error(f"❌ Critical error initializing bot manager: {bot_manager_error}")
-        if is_production:
-            logger.error("🔥 PRODUCTION: Bot manager failed - check Render.com logs and environment variables")
-        logger.warning("⚠️ Application will continue without bot polling - bots will not respond to messages!")
+    if os.environ.get("TESTING") == "1":
+        logger.info("TESTING=1 detected, skipping bot manager initialization")
+    else:
+        try:
+            logger.info("🤖 Initializing BotFactory AI Bot Manager...")
+            from bot_manager import initialize_bot_manager
+
+            if is_production:
+                # Production: Check API keys before initializing bot manager
+                api_keys_present = {
+                    'GOOGLE_API_KEY': bool(os.environ.get('GOOGLE_API_KEY')),
+                    'TELEGRAM_BOT_TOKEN': bool(os.environ.get('TELEGRAM_BOT_TOKEN'))
+                }
+                missing_apis = [k for k, v in api_keys_present.items() if not v]
+                if missing_apis:
+                    logger.warning(f"⚠️ Missing API keys in production: {missing_apis}")
+                    logger.warning("⚠️ Bot functionality will be limited until API keys are added to Render.com")
+
+            global_bot_manager = initialize_bot_manager()
+
+            if global_bot_manager:
+                logger.info("✅ Bot manager successfully initialized - all active bots will start polling!")
+            else:
+                logger.warning("⚠️ Bot manager initialization failed - bots will not auto-start")
+
+        except Exception as bot_manager_error:
+            logger.error(f"❌ Critical error initializing bot manager: {bot_manager_error}")
+            if is_production:
+                logger.error("🔥 PRODUCTION: Bot manager failed - check Render.com logs and environment variables")
+            logger.warning("⚠️ Application will continue without bot polling - bots will not respond to messages!")

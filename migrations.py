@@ -25,7 +25,9 @@ def add_performance_indices():
                 
                 # Bot table indices
                 "CREATE INDEX IF NOT EXISTS idx_bot_user_id ON bot(user_id)",
-                "CREATE INDEX IF NOT EXISTS idx_bot_token ON bot(token)",
+                "CREATE INDEX IF NOT EXISTS idx_bot_telegram_token ON bot(telegram_token)",
+                "CREATE INDEX IF NOT EXISTS idx_bot_instagram_token ON bot(instagram_token)",
+                "CREATE INDEX IF NOT EXISTS idx_bot_whatsapp_token ON bot(whatsapp_token)",
                 "CREATE INDEX IF NOT EXISTS idx_bot_active ON bot(is_active)",
                 
                 # Chat history indices (most critical for performance)

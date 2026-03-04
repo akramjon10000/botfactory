@@ -5,10 +5,12 @@ import requests
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime
 from flask import Blueprint, request, jsonify, url_for
+from flask_login import login_required, current_user
 from app import db, app, csrf
 from models import User, Bot, ChatHistory, BotCustomer
 from ai import get_ai_response, process_knowledge_base
 from audio_processor import download_and_process_audio
+from rate_limiter import rate_limiter, get_client_ip
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +25,7 @@ class InstagramBot:
         self.access_token = access_token
         self.bot_id = bot_id
         self.base_url = "https://graph.facebook.com/v18.0"
-        self.verify_token = os.environ.get('INSTAGRAM_VERIFY_TOKEN', 'botfactory_instagram_2024')
+        self.verify_token = os.environ.get('INSTAGRAM_VERIFY_TOKEN', '')
     
     def send_message(self, recipient_id: str, message_text: str) -> bool:
         """Instagram Direct Message yuborish"""
@@ -439,6 +441,15 @@ def instagram_webhook(bot_id):
                 return 'Verification failed', 403
         
         elif request.method == 'POST':
+            client_ip = get_client_ip(request)
+            allowed, retry_after = rate_limiter.is_allowed(
+                key=f"instagram_webhook:{bot_id}:{client_ip}",
+                limit=180,
+                window_seconds=60
+            )
+            if not allowed:
+                return jsonify({'error': 'Rate limited', 'retry_after': retry_after}), 429
+
             # Message processing
             data = request.get_json()
             
@@ -469,23 +480,26 @@ def instagram_webhook(bot_id):
 
 @instagram_bp.route('/start/<int:bot_id>', methods=['POST'])
 @csrf.exempt
+@login_required
 def start_instagram_bot(bot_id):
     """Instagram botni ishga tushirish"""
     try:
-        with app.app_context():
-            bot = Bot.query.get_or_404(bot_id)
-            
-            if not bot.instagram_token:
-                return jsonify({'success': False, 'error': 'Instagram token topilmadi'})
-            
-            success = instagram_manager.start_bot(bot_id, bot.instagram_token)
-            
-            if success:
-                bot.is_active = True
-                db.session.commit()
-                return jsonify({'success': True, 'message': 'Instagram bot ishga tushdi'})
-            else:
-                return jsonify({'success': False, 'error': 'Botni ishga tushirishda xato'})
+        bot = Bot.query.get_or_404(bot_id)
+
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'success': False, 'error': "Ruxsat yo'q"}), 403
+
+        if not bot.instagram_token:
+            return jsonify({'success': False, 'error': 'Instagram token topilmadi'})
+
+        success = instagram_manager.start_bot(bot_id, bot.instagram_token)
+
+        if success:
+            bot.is_active = True
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Instagram bot ishga tushdi'})
+        else:
+            return jsonify({'success': False, 'error': 'Botni ishga tushirishda xato'})
     
     except Exception as e:
         logger.error(f"Start Instagram bot error: {str(e)}")
@@ -493,40 +507,45 @@ def start_instagram_bot(bot_id):
 
 @instagram_bp.route('/stop/<int:bot_id>', methods=['POST'])
 @csrf.exempt
+@login_required
 def stop_instagram_bot(bot_id):
     """Instagram botni to'xtatish"""
     try:
-        with app.app_context():
-            bot = Bot.query.get_or_404(bot_id)
-            
-            success = instagram_manager.stop_bot(bot_id)
-            
-            if success:
-                bot.is_active = False
-                db.session.commit()
-                return jsonify({'success': True, 'message': 'Instagram bot to\'xtatildi'})
-            else:
-                return jsonify({'success': False, 'error': 'Botni to\'xtatishda xato'})
+        bot = Bot.query.get_or_404(bot_id)
+
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'success': False, 'error': "Ruxsat yo'q"}), 403
+
+        success = instagram_manager.stop_bot(bot_id)
+
+        if success:
+            bot.is_active = False
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Instagram bot to\'xtatildi'})
+        else:
+            return jsonify({'success': False, 'error': 'Botni to\'xtatishda xato'})
     
     except Exception as e:
         logger.error(f"Stop Instagram bot error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
 
 @instagram_bp.route('/status/<int:bot_id>')
+@login_required
 def instagram_bot_status(bot_id):
     """Instagram bot holatini tekshirish"""
     try:
         is_running = bot_id in instagram_manager.running_bots
-        
-        with app.app_context():
-            bot = Bot.query.get(bot_id)
-            
-            return jsonify({
-                'bot_id': bot_id,
-                'is_running': is_running,
-                'is_active': bot.is_active if bot else False,
-                'platform': 'Instagram'
-            })
+
+        bot = Bot.query.get_or_404(bot_id)
+        if bot.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'error': "Ruxsat yo'q"}), 403
+
+        return jsonify({
+            'bot_id': bot_id,
+            'is_running': is_running,
+            'is_active': bot.is_active if bot else False,
+            'platform': 'Instagram'
+        })
     
     except Exception as e:
         logger.error(f"Instagram status error: {str(e)}")

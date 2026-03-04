@@ -5,6 +5,7 @@ from app import db
 from models import User
 from datetime import datetime, timedelta
 import logging
+from rate_limiter import rate_limiter, get_client_ip
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -14,6 +15,16 @@ def login():
         return redirect(url_for('main.dashboard'))
     
     if request.method == 'POST':
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"auth_login:{client_ip}",
+            limit=10,
+            window_seconds=60
+        )
+        if not allowed:
+            flash(f'Juda ko\'p urinish. {retry_after} soniyadan keyin qayta urinib ko\'ring.', 'error')
+            return render_template('login.html'), 429
+
         username = request.form.get('username')
         password = request.form.get('password')
         

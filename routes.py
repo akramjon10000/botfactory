@@ -7,23 +7,41 @@ from werkzeug.utils import secure_filename
 import os
 import logging
 import requests
-from datetime import datetime, timedelta
+import re
+import html as html_lib
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 import docx
 import pandas as pd
 from io import BytesIO
-from flask import send_file
+from sqlalchemy import text
+from rate_limiter import rate_limiter, get_client_ip
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html')
+    latest_posts = load_blog_posts()[:3]
+    return render_template('index.html', latest_posts=latest_posts)
 
 @main_bp.route('/api/webchat', methods=['POST'])
 @csrf.exempt
 def api_webchat():
     """Frontend web chat endpoint. Returns AI reply as JSON."""
     try:
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"webchat:{client_ip}",
+            limit=30,
+            window_seconds=60
+        )
+        if not allowed:
+            return jsonify({
+                "ok": False,
+                "error": "rate_limited",
+                "retry_after": retry_after
+            }), 429
+
         data = request.get_json(silent=True) or {}
         message = (data.get('message') or '').strip()
         if not message:
@@ -66,14 +84,18 @@ def healthz():
     try:
         # Optional: lightweight DB check
         from app import db
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         return jsonify({"status": "ok", "db": "ok"}), 200
     except Exception:
         return jsonify({"status": "ok", "db": "degraded"}), 200
 
-@main_bp.route('/enable-miniapp')
+@main_bp.route('/enable-miniapp', methods=['POST'])
+@login_required
 def enable_miniapp():
-    """Enable Mini App for all bots - use this endpoint after deployment"""
+    """Enable Mini App for all bots (admin-only maintenance endpoint)"""
+    if not current_user.is_admin:
+        return jsonify({"status": "error", "error": "Forbidden"}), 403
+
     try:
         bots = Bot.query.all()
         enabled_count = 0
@@ -198,83 +220,340 @@ Sitemap: {base}/sitemap.xml
     return Response(content, mimetype='text/plain')
 
 # ===================== Blog =====================
-import os
-
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'content', 'blog')
 
+def _slug_to_title(slug: str) -> str:
+    return re.sub(r'[-_]+', ' ', (slug or '')).strip().title()
+
+def _safe_iso_z(dt_obj: datetime | None) -> str | None:
+    if not dt_obj:
+        return None
+    if dt_obj.tzinfo:
+        dt_obj = dt_obj.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt_obj.replace(microsecond=0).isoformat() + 'Z'
+
+def _parse_datetime(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    raw = raw.strip()
+    if not raw:
+        return None
+
+    candidates = [raw]
+    if raw.endswith('Z'):
+        candidates.append(raw[:-1] + '+00:00')
+        candidates.append(raw[:-1])
+
+    for c in candidates:
+        try:
+            dt_obj = datetime.fromisoformat(c)
+            if dt_obj.tzinfo:
+                dt_obj = dt_obj.astimezone(timezone.utc).replace(tzinfo=None)
+            return dt_obj
+        except Exception:
+            pass
+
+    for fmt in ('%Y-%m-%d', '%Y/%m/%d', '%d.%m.%Y', '%d-%m-%Y'):
+        try:
+            return datetime.strptime(raw, fmt)
+        except Exception:
+            pass
+
+    return None
+
+def _parse_front_matter(raw_text: str) -> tuple[dict, str]:
+    """
+    Parse minimal YAML-like front matter:
+    ---
+    title: ...
+    description: ...
+    date: 2026-03-04
+    tags: ai, telegram
+    ---
+    markdown body...
+    """
+    lines = raw_text.splitlines()
+    if not lines or lines[0].strip() != '---':
+        return {}, raw_text
+
+    end_idx = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == '---':
+            end_idx = i
+            break
+
+    if end_idx is None:
+        return {}, raw_text
+
+    metadata = {}
+    for line in lines[1:end_idx]:
+        cleaned = line.strip()
+        if not cleaned or cleaned.startswith('#') or ':' not in cleaned:
+            continue
+        key, value = cleaned.split(':', 1)
+        metadata[key.strip().lower()] = value.strip().strip('"').strip("'")
+
+    body = '\n'.join(lines[end_idx + 1:]).lstrip('\n')
+    return metadata, body
+
+def _parse_tags(raw_tags: str | None) -> list[str]:
+    if not raw_tags:
+        return []
+    text = raw_tags.strip()
+    if text.startswith('[') and text.endswith(']'):
+        text = text[1:-1]
+    tags = [t.strip().strip('"').strip("'") for t in text.split(',')]
+    return [t for t in tags if t]
+
+def _strip_markdown(md_text: str) -> str:
+    text = md_text or ''
+    text = re.sub(r'```.*?```', ' ', text, flags=re.S)
+    text = re.sub(r'`([^`]*)`', r'\1', text)
+    text = re.sub(r'!\[[^\]]*\]\([^)]+\)', ' ', text)
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r'^\s{0,3}#{1,6}\s*', '', text, flags=re.M)
+    text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.M)
+    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.M)
+    text = re.sub(r'[>#*_~`]', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def _truncate_text(text: str, limit: int) -> str:
+    text = (text or '').strip()
+    if len(text) <= limit:
+        return text
+    short = text[:limit].rsplit(' ', 1)[0].strip()
+    return (short or text[:limit]).strip() + '...'
+
+def _extract_first_heading(md_text: str) -> str:
+    for line in (md_text or '').splitlines():
+        m = re.match(r'^\s{0,3}#{1,6}\s+(.+)$', line)
+        if m:
+            return m.group(1).strip()
+    return ''
+
+def _estimate_reading_minutes(text: str) -> int:
+    words = len((text or '').split())
+    return max(1, (words + 179) // 180)
+
+def _render_inline_markdown(text: str) -> str:
+    escaped = html_lib.escape(text or '')
+
+    escaped = re.sub(
+        r'`([^`]+)`',
+        lambda m: f"<code>{m.group(1)}</code>",
+        escaped
+    )
+    escaped = re.sub(
+        r'\[([^\]]+)\]\((https?://[^\s)]+)\)',
+        lambda m: (
+            f'<a href="{m.group(2)}" target="_blank" rel="noopener noreferrer">'
+            f'{m.group(1)}</a>'
+        ),
+        escaped
+    )
+    escaped = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', escaped)
+    escaped = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'<em>\1</em>', escaped)
+    escaped = re.sub(r'(?<!_)_([^_]+)_(?!_)', r'<em>\1</em>', escaped)
+    return escaped
+
 def load_blog_posts():
-    """Load blog posts from content/blog. Simple format:
-    First line: Title
-    Second line: Short description
-    Remaining: Body (markdown-ish)
-    Filename is slug + .md
+    """
+    Blog post loader.
+
+    Supports:
+    1) Front matter markdown format
+       ---
+       title: ...
+       description: ...
+       date: 2026-03-04
+       author: ...
+       tags: ai, telegram
+       published: true
+       ---
+       # Body
+    2) Legacy format (first line title, second line description, rest body)
     """
     posts = []
     try:
         if not os.path.isdir(BLOG_DIR):
             return posts
-        for name in sorted(os.listdir(BLOG_DIR)):
+
+        for name in os.listdir(BLOG_DIR):
             if not name.endswith('.md'):
                 continue
+
             slug = name[:-3]
             path = os.path.join(BLOG_DIR, name)
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    lines = f.read().splitlines()
-                title = lines[0].strip() if lines else slug.replace('-', ' ').title()
-                description = lines[1].strip() if len(lines) > 1 else ''
-                body = '\n'.join(lines[2:]) if len(lines) > 2 else ''
+                    raw_text = f.read()
+
+                metadata, body = _parse_front_matter(raw_text)
+                lines = raw_text.splitlines()
+
+                if metadata:
+                    title = metadata.get('title') or _extract_first_heading(body) or _slug_to_title(slug)
+                    description = metadata.get('description') or metadata.get('excerpt') or ''
+                else:
+                    title = lines[0].strip() if lines else _slug_to_title(slug)
+                    description = lines[1].strip() if len(lines) > 1 else ''
+                    body = '\n'.join(lines[2:]) if len(lines) > 2 else ''
+
+                published_raw = metadata.get('published')
+                if published_raw is not None and str(published_raw).strip().lower() in {'0', 'false', 'no', 'off'}:
+                    continue
+
+                plain_text = _strip_markdown(body)
+                if not description:
+                    description = _truncate_text(plain_text, 165)
+
+                excerpt = _truncate_text(plain_text, 220)
+
                 try:
-                    mtime = datetime.utcfromtimestamp(os.path.getmtime(path)).isoformat() + 'Z'
+                    file_mtime = datetime.utcfromtimestamp(os.path.getmtime(path))
                 except Exception:
-                    mtime = None
+                    file_mtime = datetime.utcnow()
+
+                published_dt = _parse_datetime(metadata.get('date') or metadata.get('published_at')) or file_mtime
+                modified_dt = _parse_datetime(metadata.get('lastmod') or metadata.get('updated_at')) or file_mtime
+                reading_minutes = _estimate_reading_minutes(plain_text)
+
                 posts.append({
                     'slug': slug,
                     'title': title,
                     'description': description,
+                    'excerpt': excerpt,
                     'body': body,
-                    'lastmod': mtime
+                    'author': metadata.get('author') or 'BotFactory Team',
+                    'tags': _parse_tags(metadata.get('tags')),
+                    'cover': metadata.get('cover') or '',
+                    'published_at': _safe_iso_z(published_dt),
+                    'published_human': published_dt.strftime('%d.%m.%Y'),
+                    'lastmod': _safe_iso_z(modified_dt),
+                    'reading_minutes': reading_minutes,
+                    '_sort_date': published_dt
                 })
             except Exception as e:
                 logging.error(f"Error reading blog post {name}: {e}")
+
     except Exception as e:
         logging.error(f"Error loading blog posts: {e}")
-    # Latest first
-    posts.sort(key=lambda p: p['slug'], reverse=True)
+
+    posts.sort(
+        key=lambda p: ((p.get('_sort_date') or datetime.min), p.get('slug', '')),
+        reverse=True
+    )
+    for p in posts:
+        p.pop('_sort_date', None)
     return posts
 
 def markdown_to_html(md: str) -> str:
-    """Very naive markdown to HTML converter for paragraphs and headers."""
-    parts = []
-    for line in md.split('\n'):
-        s = line.strip()
-        if not s:
+    """Markdown -> HTML converter for blog rendering (safe subset)."""
+    if not md:
+        return ''
+
+    lines = md.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+    blocks = []
+    paragraph_lines = []
+    code_lines = []
+    in_ul = False
+    in_ol = False
+    in_code = False
+
+    def close_lists():
+        nonlocal in_ul, in_ol
+        if in_ul:
+            blocks.append('</ul>')
+            in_ul = False
+        if in_ol:
+            blocks.append('</ol>')
+            in_ol = False
+
+    def flush_paragraph():
+        nonlocal paragraph_lines
+        if paragraph_lines:
+            paragraph_text = ' '.join(paragraph_lines).strip()
+            if paragraph_text:
+                blocks.append(f"<p>{_render_inline_markdown(paragraph_text)}</p>")
+            paragraph_lines = []
+
+    for raw_line in lines:
+        line = raw_line.rstrip()
+        stripped = line.strip()
+
+        if stripped.startswith('```'):
+            flush_paragraph()
+            close_lists()
+            if in_code:
+                code_block = html_lib.escape("\n".join(code_lines))
+                blocks.append(f"<pre><code>{code_block}</code></pre>")
+                code_lines = []
+                in_code = False
+            else:
+                in_code = True
             continue
-        if s.startswith('# '):
-            parts.append(f"<h2>{s[2:]}</h2>")
-        elif s.startswith('## '):
-            parts.append(f"<h3>{s[3:]}</h3>")
-        elif s.startswith('- '):
-            parts.append(f"<li>{s[2:]}</li>")
-        else:
-            parts.append(f"<p>{s}</p>")
-    # Wrap list items if any
-    html = []
-    in_list = False
-    for p in parts:
-        if p.startswith('<li>'):
-            if not in_list:
-                html.append('<ul>')
-                in_list = True
-            html.append(p)
-        else:
-            if in_list:
-                html.append('</ul>')
-                in_list = False
-            html.append(p)
-    if in_list:
-        html.append('</ul>')
-    return '\n'.join(html)
+
+        if in_code:
+            code_lines.append(line)
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            close_lists()
+            continue
+
+        header_match = re.match(r'^\s{0,3}(#{1,6})\s+(.+)$', line)
+        if header_match:
+            flush_paragraph()
+            close_lists()
+            level = len(header_match.group(1))
+            title = _render_inline_markdown(header_match.group(2).strip())
+            blocks.append(f"<h{level}>{title}</h{level}>")
+            continue
+
+        quote_match = re.match(r'^\s{0,3}>\s+(.+)$', line)
+        if quote_match:
+            flush_paragraph()
+            close_lists()
+            blocks.append(f"<blockquote>{_render_inline_markdown(quote_match.group(1).strip())}</blockquote>")
+            continue
+
+        ul_match = re.match(r'^\s{0,3}[-*+]\s+(.+)$', line)
+        if ul_match:
+            flush_paragraph()
+            if in_ol:
+                blocks.append('</ol>')
+                in_ol = False
+            if not in_ul:
+                blocks.append('<ul>')
+                in_ul = True
+            blocks.append(f"<li>{_render_inline_markdown(ul_match.group(1).strip())}</li>")
+            continue
+
+        ol_match = re.match(r'^\s{0,3}\d+\.\s+(.+)$', line)
+        if ol_match:
+            flush_paragraph()
+            if in_ul:
+                blocks.append('</ul>')
+                in_ul = False
+            if not in_ol:
+                blocks.append('<ol>')
+                in_ol = True
+            blocks.append(f"<li>{_render_inline_markdown(ol_match.group(1).strip())}</li>")
+            continue
+
+        close_lists()
+        paragraph_lines.append(stripped)
+
+    flush_paragraph()
+    close_lists()
+
+    if in_code and code_lines:
+        code_block = html_lib.escape("\n".join(code_lines))
+        blocks.append(f"<pre><code>{code_block}</code></pre>")
+
+    return '\n'.join(blocks)
 
 @main_bp.route('/blog')
 def blog_index():
@@ -288,32 +567,54 @@ def blog_post(slug):
     if not post:
         return redirect(url_for('main.blog_index'))
     post_html = markdown_to_html(post['body'])
-    # Compute publish/modified dates
-    published = post.get('lastmod') or datetime.utcnow().isoformat() + 'Z'
+
+    published = post.get('published_at') or _safe_iso_z(datetime.utcnow())
     modified = post.get('lastmod') or published
-    # Simple related posts by title word overlap, fallback by recency
+
+    # Related posts: tags overlap + title overlap, fallback by recency
     def score(other):
         if other['slug'] == post['slug']:
             return -1
-        a = set((post.get('title') or '').lower().split())
-        b = set((other.get('title') or '').lower().split())
-        return len(a.intersection(b))
-    sorted_posts = sorted([p for p in posts if p['slug'] != post['slug']], key=lambda x: (score(x), x.get('lastmod') or ''), reverse=True)
+        title_a = set((post.get('title') or '').lower().split())
+        title_b = set((other.get('title') or '').lower().split())
+        tags_a = set([t.lower() for t in post.get('tags') or []])
+        tags_b = set([t.lower() for t in other.get('tags') or []])
+        title_overlap = len(title_a.intersection(title_b))
+        tags_overlap = len(tags_a.intersection(tags_b))
+        return (tags_overlap * 3) + title_overlap
+
+    sorted_posts = sorted(
+        [p for p in posts if p['slug'] != post['slug']],
+        key=lambda x: (score(x), x.get('published_at') or x.get('lastmod') or ''),
+        reverse=True
+    )
     related = sorted_posts[:4]
-    return render_template('blog_post.html', post=post, post_html=post_html, related=related, published=published, modified=modified)
+    return render_template(
+        'blog_post.html',
+        post=post,
+        post_html=post_html,
+        related=related,
+        published=published,
+        modified=modified
+    )
 
 @main_bp.route('/blog/rss.xml')
 def blog_rss():
-    """Simple RSS feed for the blog"""
+    """Simple RSS feed for the blog."""
     from flask import Response
+    from xml.sax.saxutils import escape as xml_escape
+
     base = request.url_root.rstrip('/')
     posts = load_blog_posts()
     items = []
     for p in posts[:30]:
         link = f"{base}/blog/{p['slug']}"
-        title = p['title']
-        desc = p.get('description','')
-        pubdate = p.get('lastmod') or datetime.utcnow().isoformat() + 'Z'
+        title = xml_escape(p['title'])
+        desc = xml_escape(p.get('description', ''))
+        raw_date = p.get('published_at') or p.get('lastmod')
+        pub_dt = _parse_datetime(raw_date) or datetime.utcnow()
+        pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+        pubdate = format_datetime(pub_dt)
         items.append(f"""
         <item>
           <title>{title}</title>
@@ -452,6 +753,7 @@ def admin_delete_user(user_id):
         flash('O\'chirishda xatolik', 'error')
 
     return redirect(url_for('main.dashboard'))
+
 
 @main_bp.route('/admin/test_message', methods=['POST'])
 @login_required
@@ -909,9 +1211,9 @@ def change_user_subscription():
     # Handle trial_14 as a special case
     if subscription_type == 'trial_14':
         user.subscription_type = 'basic'  # Give basic features during trial
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=14)
-        subscription_name = '14 kun test'
-        duration_text = '14 kun'
+        user.subscription_end_date = datetime.utcnow() + timedelta(days=7)
+        subscription_name = '7 kun test'
+        duration_text = '7 kun'
     elif subscription_type == 'free':
         user.subscription_type = 'free'
         user.subscription_end_date = None
@@ -924,8 +1226,8 @@ def change_user_subscription():
         days = int(subscription_duration)
         user.subscription_end_date = datetime.utcnow() + timedelta(days=days)
         subscription_names = {
-            'starter': 'Starter',
-            'basic': 'Basic',
+            'starter': 'Standart',
+            'basic': 'Standart',
             'premium': 'Premium'
         }
         subscription_name = subscription_names.get(subscription_type, subscription_type)
@@ -1231,24 +1533,29 @@ def upload_knowledge(bot_id):
         try:
             # Check if it's an image file
             if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-                # Save image to static folder
-                import uuid
-                from datetime import datetime
-                
-                # Generate unique filename
-                file_extension = filename.split('.')[-1].lower()
-                unique_filename = f"kb_{bot_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
-                file_path = os.path.join('static', 'uploads', unique_filename)
-                
-                # Create directory if it doesn't exist
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                
-                # Save the file
-                file.save(file_path)
-                
-                # Store the URL path for the AI to use
-                content = f"/static/uploads/{unique_filename}"
-                content_type = "image"
+                try:
+                    import cloudinary
+                    import cloudinary.uploader
+                    from config import Config
+                    
+                    if not cloudinary.config().cloud_name:
+                        cloudinary.config(
+                            cloud_name=Config.CLOUDINARY_CLOUD_NAME,
+                            api_key=Config.CLOUDINARY_API_KEY,
+                            api_secret=Config.CLOUDINARY_API_SECRET
+                        )
+                        
+                    upload_result = cloudinary.uploader.upload(
+                        file,
+                        folder=f"botfactory/kb_{bot_id}"
+                    )
+                    
+                    # Store the secure URL returned by Cloudinary
+                    content = upload_result.get('secure_url')
+                    content_type = "image"
+                except Exception as e:
+                    logging.error(f"Cloudinary upload error in general KB: {e}")
+                    raise Exception("Faylni Cloudinary xizmatiga yuklashda xatolik yuz berdi. API kalitlarni tekshiring.")
                 
             elif filename.lower().endswith(('.xlsx', '.xls')):
                 # Handle Excel files for bulk product import directly
@@ -1434,7 +1741,80 @@ def add_text_knowledge(bot_id):
         except:
             pass
         flash(error_msg, 'error')
+    return redirect(url_for('main.edit_bot', bot_id=bot_id))
+
+@main_bp.route('/bot/<int:bot_id>/knowledge/<int:kb_id>/delete', methods=['DELETE'])
+@login_required
+def delete_knowledge(bot_id, kb_id):
+    bot = Bot.query.get_or_404(bot_id)
     
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'success': False, 'error': "Huquq yo'q"}), 403
+    
+    knowledge = KnowledgeBase.query.filter_by(id=kb_id, bot_id=bot_id).first_or_404()
+    
+    try:
+        db.session.delete(knowledge)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@main_bp.route('/bot/<int:bot_id>/knowledge/<int:kb_id>/edit', methods=['POST'])
+@login_required
+def edit_knowledge(bot_id, kb_id):
+    bot = Bot.query.get_or_404(bot_id)
+    
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        flash("Sizda axborotni o'zgartirish huquqi yo'q", 'error')
+        return redirect(url_for('main.edit_bot', bot_id=bot_id))
+        
+    knowledge = KnowledgeBase.query.filter_by(id=kb_id, bot_id=bot_id).first_or_404()
+    
+    try:
+        if knowledge.content_type == 'product':
+            product_name = request.form.get('product_name', '').strip()
+            product_price = request.form.get('product_price', '').strip()
+            product_description = request.form.get('product_description', '').strip()
+            
+            if not product_name:
+                flash("Mahsulot nomi kiritilishi shart!", 'error')
+                return redirect(url_for('main.edit_bot', bot_id=bot_id))
+                
+            content_parts = [f"Mahsulot: {product_name}"]
+            if product_price: content_parts.append(f"Narx: {product_price}")
+            if product_description: content_parts.append(f"Tavsif: {product_description}")
+            
+            # Preserve existing image if any
+            image_url_line = [line for line in knowledge.content.split('\\n') if line.startswith('Rasm:')]
+            if image_url_line:
+                content_parts.append(image_url_line[0])
+                
+            knowledge.source_name = product_name
+            knowledge.content = "\\n".join(content_parts)
+            
+        elif knowledge.content_type == 'text':
+            new_title = request.form.get('source_name', '').strip()
+            new_content = request.form.get('content', '').strip()
+            
+            if not new_content:
+                flash("Matn bo'sh bo'lishi mumkin emas", 'error')
+                return redirect(url_for('main.edit_bot', bot_id=bot_id))
+                
+            knowledge.source_name = new_title or knowledge.source_name
+            knowledge.content = new_content
+            
+        elif knowledge.content_type in ['file', 'image']:
+            new_title = request.form.get('source_name', '').strip()
+            if new_title:
+                knowledge.source_name = new_title
+                knowledge.filename = new_title # Overwrite display name
+        
+        db.session.commit()
+        flash("Ma'lumot muvaffaqiyatli tahrirlandi!", 'success')
+    except Exception as e:
+        flash(f"Tahrirlashda xatolik: {str(e)}", 'error')
+        
     return redirect(url_for('main.edit_bot', bot_id=bot_id))
 
 @main_bp.route('/bot/<int:bot_id>/knowledge/image', methods=['POST'])
@@ -1574,6 +1954,31 @@ def add_product_knowledge(bot_id):
     product_price = request.form.get('product_price', '').strip()
     product_description = request.form.get('product_description', '').strip()
     product_image_url = request.form.get('product_image_url', '').strip()
+    product_image_file = request.files.get('product_image_file')
+
+    # Cloudinary ga rasmni yuklash
+    if product_image_file and product_image_file.filename != '':
+        try:
+            import cloudinary
+            import cloudinary.uploader
+            from config import Config
+            
+            if not cloudinary.config().cloud_name:
+                cloudinary.config(
+                    cloud_name=Config.CLOUDINARY_CLOUD_NAME,
+                    api_key=Config.CLOUDINARY_API_KEY,
+                    api_secret=Config.CLOUDINARY_API_SECRET
+                )
+                
+            upload_result = cloudinary.uploader.upload(
+                product_image_file,
+                folder=f"botfactory/product_{bot_id}"
+            )
+            product_image_url = upload_result.get('secure_url')
+        except Exception as e:
+            logging.error(f"Cloudinary upload error in product addition: {e}")
+            flash('Rasmni yuklashda xatolik yuz berdi (Cloudinary API sozlamasini tekshiring).', 'error')
+            return redirect(url_for('main.edit_bot', bot_id=bot_id))
     
     if not product_name:
         flash('Mahsulot nomi kiritilishi shart!', 'error')
@@ -1776,6 +2181,21 @@ def download_template():
 def telegram_webhook(bot_id):
     """Telegram webhook endpoint for production"""
     try:
+        webhook_secret = (os.environ.get('TELEGRAM_WEBHOOK_SECRET') or '').strip()
+        if webhook_secret:
+            provided_secret = (request.headers.get('X-Telegram-Bot-Api-Secret-Token') or '').strip()
+            if provided_secret != webhook_secret:
+                return jsonify({'error': 'Invalid webhook secret'}), 403
+
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(
+            key=f"telegram_webhook:{bot_id}:{client_ip}",
+            limit=240,
+            window_seconds=60
+        )
+        if not allowed:
+            return jsonify({'error': 'Rate limited', 'retry_after': retry_after}), 429
+
         # Bot mavjudligini tekshirish
         bot = Bot.query.get_or_404(bot_id)
         

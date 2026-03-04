@@ -4,207 +4,330 @@
 
 {% block content %}
 <style>
+    /* Premium UI Custom Styles for Subscription */
     .pricing-section {
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
         min-height: 100vh;
-        padding: 80px 0;
-        color: white;
+        padding: 40px 0;
+        position: relative;
+    }
+
+    /* Decorative background blobs */
+    .blob {
+        position: absolute;
+        filter: blur(80px);
+        z-index: -1;
+        opacity: 0.5;
+        border-radius: 50%;
+        animation: float 10s ease-in-out infinite;
+    }
+
+    .blob-1 {
+        top: 0;
+        left: 0;
+        width: 400px;
+        height: 400px;
+        background: rgba(14, 165, 233, 0.3);
+        /* Primary Sky Blue */
+    }
+
+    .blob-2 {
+        bottom: 0;
+        right: 0;
+        width: 500px;
+        height: 500px;
+        background: rgba(16, 185, 129, 0.2);
+        /* Success Emerald */
+        animation-delay: -5s;
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-20px) scale(1.05);
+        }
     }
 
     .pricing-card {
-        background: rgba(40, 40, 40, 0.9);
-        border-radius: 20px;
+        background: linear-gradient(135deg, var(--bs-body-bg), rgba(var(--bs-primary-rgb), 0.05));
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 1.5rem;
         padding: 40px 30px;
         margin: 20px 0;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         height: 100%;
         position: relative;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
     }
 
-    .pricing-card.test {
-        border-color: #6c757d;
-        background: linear-gradient(135deg, rgba(108, 117, 125, 0.2) 0%, rgba(108, 117, 125, 0.1) 100%);
+    [data-bs-theme="dark"] .pricing-card {
+        background: linear-gradient(135deg, rgba(30, 30, 30, 0.7), rgba(40, 40, 40, 0.8));
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    .pricing-card.basic {
-        border-color: #007bff;
-        background: linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 123, 255, 0.1) 100%);
-    }
-
-    .pricing-card.premium {
-        border-color: #ffc107;
-        background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
-        transform: scale(1.05);
+    /* Glow effect on hover */
+    .pricing-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 1.5rem;
+        padding: 2px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+        /* Prevents this glow layer from blocking button clicks */
     }
 
     .pricing-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 20px 40px rgba(var(--bs-primary-rgb), 0.15);
+    }
+
+    [data-bs-theme="dark"] .pricing-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .pricing-card:hover::before {
+        opacity: 1;
+    }
+
+    /* Specific Card Styles */
+    .pricing-card.test {
+        border-top: 4px solid var(--bs-secondary);
+    }
+
+    .pricing-card.basic {
+        border-top: 4px solid var(--bs-primary);
+    }
+
+    .pricing-card.premium {
+        border-top: 4px solid var(--bs-warning);
+        transform: scale(1.05);
+        z-index: 10;
+        box-shadow: 0 15px 35px rgba(var(--bs-warning-rgb), 0.15);
+    }
+
+    [data-bs-theme="dark"] .pricing-card.premium {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 193, 7, 0.1);
     }
 
     .pricing-card.premium:hover {
         transform: scale(1.05) translateY(-10px);
-    }
-
-    .plan-header {
-        text-align: center;
-        margin-bottom: 30px;
+        box-shadow: 0 25px 50px rgba(var(--bs-warning-rgb), 0.2);
     }
 
     .plan-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 2rem;
+        margin: 0 auto 25px;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .plan-icon::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 20px;
+        background: inherit;
+        filter: blur(10px);
+        z-index: -1;
+        opacity: 0.6;
     }
 
     .plan-icon.test {
-        background: linear-gradient(135deg, #6c757d, #495057);
+        background: linear-gradient(135deg, #6c757d, #adb5bd);
+        color: white;
     }
 
     .plan-icon.basic {
-        background: linear-gradient(135deg, #007bff, #0056b3);
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        color: white;
     }
 
     .plan-icon.premium {
-        background: linear-gradient(135deg, #ffc107, #e0a800);
-    }
-
-    .plan-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 10px;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
     }
 
     .plan-price {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 800;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
+        background: linear-gradient(135deg, var(--bs-body-color), var(--bs-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    .plan-duration {
-        font-size: 1rem;
-        opacity: 0.8;
-        margin-bottom: 30px;
+    [data-bs-theme="dark"] .plan-price {
+        background: linear-gradient(135deg, #fff, #adb5bd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .feature-list {
         list-style: none;
         padding: 0;
         margin: 30px 0;
+        text-align: left;
     }
 
     .feature-list li {
         padding: 12px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px dashed rgba(var(--bs-body-color-rgb), 0.1);
         display: flex;
         align-items: center;
+        font-weight: 500;
     }
 
     .feature-list li:last-child {
         border-bottom: none;
     }
 
-    .feature-icon {
+    .feature-icon-wrapper {
         width: 24px;
         height: 24px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 15px;
-        font-size: 12px;
+        margin-right: 12px;
+        font-size: 10px;
+        flex-shrink: 0;
     }
 
-    .feature-icon.check {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
+    .feature-icon-wrapper.check {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
     }
 
     .plan-button {
         width: 100%;
-        padding: 15px;
-        border-radius: 12px;
-        font-weight: 600;
+        padding: 12px;
+        border-radius: 50rem;
+        font-weight: bold;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         border: none;
-        cursor: pointer;
         transition: all 0.3s ease;
-        margin-top: 20px;
+        margin-top: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .plan-button.test {
-        background: linear-gradient(135deg, #6c757d, #495057);
+        background: var(--bs-secondary);
         color: white;
     }
 
     .plan-button.basic {
-        background: linear-gradient(135deg, #007bff, #0056b3);
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
         color: white;
     }
 
     .plan-button.premium {
-        background: linear-gradient(135deg, #ffc107, #e0a800);
-        color: #000;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
     }
 
-    .plan-button:hover {
+    .plan-button:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
     }
 
-    .main-title {
-        text-align: center;
-        margin-bottom: 60px;
+    .plan-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
 
     .main-title h1 {
         font-size: 3rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        background: linear-gradient(135deg, #ffc107, #007bff);
+        font-weight: 800;
+        background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .crown-icon {
-        color: #ffc107;
-        font-size: 2.5rem;
-        margin-right: 15px;
+        margin-bottom: 15px;
     }
 
     .current-plan-badge {
         position: absolute;
-        top: -10px;
-        right: 20px;
-        background: linear-gradient(135deg, #28a745, #20c997);
+        top: 15px;
+        right: -35px;
+        background: linear-gradient(135deg, #10b981, #059669);
         color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
+        padding: 5px 40px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Modern Modal Styling */
+    .glass-modal .modal-content {
+        background: var(--bs-body-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 1.5rem;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    [data-bs-theme="dark"] .glass-modal .modal-content {
+        background: rgba(30, 30, 30, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-nav-pills .nav-link {
+        border-radius: 50rem;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .custom-nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 </style>
 
-<div class="pricing-section">
-    <div class="container">
-        <div class="main-title">
-            <h1><i class="fas fa-crown crown-icon"></i>Tariflar</h1>
-            <p class="lead">O'zingizga mos tarifni tanlang va AI botlar olamiga qadaṃ qo'ying</p>
+<div class="pricing-section position-relative overflow-hidden">
+    <!-- Background Blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container pb-5">
+        <div class="text-center main-title mb-5" data-aos="fade-down">
+            <h1>Tariflar</h1>
+            <p class="lead text-muted fw-medium">O'zingizga mos tarifni tanlang va AI botlar olamiga qadam qo'ying</p>
         </div>
 
-        <div class="row justify-content-center">
+        <div class="row justify-content-center align-items-center g-4">
             <!-- Test Plan -->
-            <div class="col-lg-3 col-md-6">
-                <div class="pricing-card test">
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="pricing-card test text-center">
                     {% if current_user.subscription_type == 'free' %}
                     <div class="current-plan-badge">Joriy tarif</div>
                     {% endif %}
@@ -213,50 +336,43 @@
                         <div class="plan-icon test">
                             <i class="fas fa-gift"></i>
                         </div>
-                        <h3 class="plan-title">Test</h3>
+                        <h3 class="fw-bold mb-1">Test</h3>
                         <div class="plan-price">Bepul</div>
-                        <div class="plan-duration">/14 kun</div>
+                        <div class="text-muted small fw-medium">/7 kun</div>
                     </div>
 
                     <ul class="feature-list">
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div>
                             1 ta bot
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div>
                             Faqat Telegram
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div>
                             Faqat o'zbek tili
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div>
                             Bilim bazasi
                         </li>
                     </ul>
 
                     {% if current_user.subscription_type == 'free' %}
-                    <button class="plan-button test" disabled>Faol tarif</button>
+                    <button class="plan-button test w-100" disabled><i class="fas fa-check-circle me-1"></i>Faol
+                        tarif</button>
                     {% else %}
-                    <button class="plan-button test" disabled>Test rejimi</button>
+                    <button class="plan-button test w-100" disabled>Test rejimi</button>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Starter Plan -->
-            <div class="col-lg-3 col-md-6">
-                <div class="pricing-card basic">
-                    {% if current_user.subscription_type == 'starter' %}
+            <!-- Starter / Basic Plan Combination -->
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="pricing-card basic text-center">
+                    {% if current_user.subscription_type == 'starter' or current_user.subscription_type == 'basic' %}
                     <div class="current-plan-badge">Joriy tarif</div>
                     {% endif %}
 
@@ -264,124 +380,51 @@
                         <div class="plan-icon basic">
                             <i class="fas fa-rocket"></i>
                         </div>
-                        <h3 class="plan-title">Starter</h3>
-                        <div class="plan-price">165,000 so'm</div>
-                        <div class="plan-duration">/oy</div>
+                        <h3 class="fw-bold mb-1">Standart</h3>
+                        <div class="plan-price">165,000</div>
+                        <div class="text-muted small fw-medium">so'm / oy</div>
                     </div>
 
                     <ul class="feature-list">
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            1 ta bot
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> 1 ta uzluksiz bot
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Faqat Telegram
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Faqat Telegram
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            3 ta til (uz/ru/en)
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> 3 ta til
+                            (uz/ru/en)
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Bilim bazasi
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Keng ko'lamli
+                            bilim bazasi
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Kengaytirilgan AI
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Kengaytirilgan AI
+                            (GPT)
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Texnik yordam
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Texnik yordam
                         </li>
                     </ul>
 
-                    {% if current_user.subscription_type == 'starter' %}
-                    <button class="plan-button basic" disabled>Faol tarif</button>
-                    {% elif current_user.subscription_type in ['basic', 'premium', 'admin'] %}
-                    <button class="plan-button basic" disabled>Yuqori tarif faol</button>
-                    {% else %}
-                    <button class="plan-button basic" data-bs-toggle="modal" data-bs-target="#contactModal"
-                        data-subscription="starter" data-amount="165000">Bog'lanish</button>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Basic Plan -->
-            <div class="col-lg-3 col-md-6">
-                <div class="pricing-card basic">
-                    {% if current_user.subscription_type == 'basic' %}
-                    <div class="current-plan-badge">Joriy tarif</div>
-                    {% endif %}
-
-                    <div class="plan-header">
-                        <div class="plan-icon basic">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="plan-title">Basic</h3>
-                        <div class="plan-price">290,000 so'm</div>
-                        <div class="plan-duration">/oy</div>
-                    </div>
-
-                    <ul class="feature-list">
-                        <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            1 ta bot
-                        </li>
-                        <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Telegram Bot
-                        </li>
-                        <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            3 ta til (uz/ru/en)
-                        </li>
-                        <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Bilim bazasi
-                        </li>
-                        <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Texnik yordam
-                        </li>
-                    </ul>
-
-                    {% if current_user.subscription_type == 'basic' %}
-                    <button class="plan-button basic" disabled>Faol tarif</button>
+                    {% if current_user.subscription_type == 'starter' or current_user.subscription_type == 'basic' %}
+                    <button class="plan-button basic w-100" disabled><i class="fas fa-check-circle me-1"></i>Faol
+                        tarif</button>
                     {% elif current_user.subscription_type in ['premium', 'admin'] %}
-                    <button class="plan-button basic" disabled>Yuqori tarif faol</button>
+                    <button class="plan-button basic w-100" disabled>Yuqori tarif faol</button>
                     {% else %}
-                    <button class="plan-button basic" data-bs-toggle="modal" data-bs-target="#contactModal"
-                        data-subscription="basic" data-amount="290000">Bog'lanish</button>
+                    <button class="plan-button basic w-100" data-bs-toggle="modal" data-bs-target="#contactModal"
+                        data-subscription="basic" data-amount="165000"><i
+                            class="fas fa-bolt me-1"></i>Bog'lanish</button>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Premium Plan -->
-            <div class="col-lg-3 col-md-6">
-                <div class="pricing-card premium">
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="pricing-card premium text-center">
                     {% if current_user.subscription_type == 'premium' %}
                     <div class="current-plan-badge">Joriy tarif</div>
                     {% endif %}
@@ -390,191 +433,149 @@
                         <div class="plan-icon premium">
                             <i class="fas fa-crown"></i>
                         </div>
-                        <h3 class="plan-title">Premium</h3>
-                        <div class="plan-price">590,000 so'm</div>
-                        <div class="plan-duration">/oy</div>
+                        <h3 class="fw-bold mb-1">Premium</h3>
+                        <div class="plan-price">590,000</div>
+                        <div class="text-muted small fw-medium">so'm / oy</div>
                     </div>
 
                     <ul class="feature-list">
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            5 ta bot
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> O'ta
+                            kengaytirilgan (3 ta botgacha)
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Telegram Bot
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Texnik Ko'mak
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            3 ta til (uz/ru/en)
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Keng ko'lamli
+                            bilim bazasi
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Bilim bazasi
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Admin Panel
+                            monitoringi
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Prioritet yordam
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Kengaytirilgan
+                            analitika
                         </li>
                         <li>
-                            <div class="feature-icon check">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            Kengaytirilgan analitika
+                            <div class="feature-icon-wrapper check"><i class="fas fa-check"></i></div> Haftalik
+                            hisobot
                         </li>
                     </ul>
 
                     {% if current_user.subscription_type == 'premium' %}
-                    <button class="plan-button premium" disabled>Faol tarif</button>
+                    <button class="plan-button premium w-100" disabled><i class="fas fa-check-circle me-1"></i>Faol
+                        tarif</button>
                     {% elif current_user.subscription_type == 'admin' %}
-                    <button class="plan-button premium" disabled>Admin tarif faol</button>
+                    <button class="plan-button premium w-100" disabled>Admin tarif faol</button>
                     {% else %}
-                    <button class="plan-button premium" data-bs-toggle="modal" data-bs-target="#contactModal"
-                        data-subscription="premium" data-amount="590000">Bog'lanish</button>
+                    <button class="plan-button premium w-100 fw-bold" data-bs-toggle="modal"
+                        data-bs-target="#contactModal" data-subscription="premium" data-amount="590000"><i
+                            class="fas fa-crown me-1"></i>Bog'lanish</button>
                     {% endif %}
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- Contact Modal -->
-<div class="modal fade" id="contactModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="background: #2d2d2d; color: white;">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fab fa-telegram-plane me-2"></i>Tarif almashish uchun bog'laning
+<!-- Premium Contact Modal -->
+<div class="modal fade glass-modal" id="contactModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="fab fa-telegram text-primary fs-4 align-middle me-2"></i> Tarif almashish
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <div id="contactDetails" class="alert alert-info">
-                    <h6 class="mb-3">Tanlangan tarif: <span id="selectedPlan"></span></h6>
-                    <p class="mb-3">Narxi: <span id="selectedAmount"></span> so'm/oy</p>
+            <div class="modal-body p-4 text-center">
+                <div class="alert bg-primary bg-opacity-10 border-0 rounded-4 text-primary mb-4 p-3 shadow-sm">
+                    <h6 class="mb-2 fw-bold text-body">Siz tanlagan tarif: <span id="selectedPlan"
+                            class="text-primary"></span></h6>
+                    <p class="mb-0 fw-medium">Narxi: <strong id="selectedAmount" class="fs-5"></strong> so'm/oy</p>
                 </div>
 
-                <!-- Payment Section -->
-                <div class="payment-section mb-4">
-                    <h5 class="mb-3"><i class="fas fa-wallet me-2"></i>To'lov usullaridan birini tanlang:</h5>
+                <h5 class="fw-bold mb-3 fs-6 text-start px-2"><i class="fas fa-wallet text-secondary me-2"></i>To'lov
+                    usulini tanlang:</h5>
 
-                    <!-- Payment Options Tabs -->
-                    <ul class="nav nav-pills nav-fill mb-3" id="paymentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="xazna-tab" data-bs-toggle="pill" data-bs-target="#xazna"
-                                type="button" role="tab">
-                                <i class="fas fa-qrcode me-1"></i>Xazna (tavsiya)
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="paynet-tab" data-bs-toggle="pill" data-bs-target="#paynet"
-                                type="button" role="tab">
-                                <i class="fas fa-credit-card me-1"></i>Paynet
-                            </button>
-                        </li>
-                    </ul>
+                <ul class="nav custom-nav-pills nav-fill mb-4 bg-secondary bg-opacity-10 p-1 rounded-pill"
+                    id="paymentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="xazna-tab" data-bs-toggle="pill" data-bs-target="#xazna"
+                            type="button" role="tab">
+                            <i class="fas fa-qrcode me-1"></i>Xazna
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="paynet-tab" data-bs-toggle="pill" data-bs-target="#paynet"
+                            type="button" role="tab">
+                            <i class="fas fa-credit-card me-1"></i>Paycheck / Karta
+                        </button>
+                    </li>
+                </ul>
 
-                    <div class="tab-content" id="paymentTabsContent">
-                        <!-- Xazna Payment -->
-                        <div class="tab-pane fade show active" id="xazna" role="tabpanel">
-                            <div class="card" style="background: #1a1a1a; border: 2px solid #28a745;">
-                                <div class="card-header bg-success text-white text-center">
-                                    <h5><i class="fas fa-bolt me-2"></i>Xazna - Tez va qulay to'lov</h5>
-                                </div>
-                                <div class="card-body text-center">
-                                    <img src="/static/images/xazna_qr.png" alt="Xazna QR Code" class="img-fluid mb-3"
-                                        style="max-width: 200px; border-radius: 10px;">
-                                    <p class="text-success mb-3">
-                                        <strong>QR kodni skanerlang yoki tugmani bosing:</strong>
-                                    </p>
-                                    <a href="https://pay.xazna.uz/p2p/0ed3d14c-f661-4ff3-beda-ea2be0784abe"
-                                        target="_blank" class="btn btn-success btn-lg mb-3">
-                                        <i class="fas fa-external-link-alt me-2"></i>Xazna orqali to'lash
-                                    </a>
-                                    <p class="text-muted small">
-                                        <i class="fas fa-shield-alt me-1"></i>Xavfsiz P2P to'lov tizimi
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Paynet Payment -->
-                        <div class="tab-pane fade" id="paynet" role="tabpanel">
-                            <div class="card" style="background: #1a1a1a; border: 2px solid #00bcd4;">
-                                <div class="card-header bg-primary text-white text-center">
-                                    <h5><i class="fas fa-credit-card me-2"></i>Paynet to'lov</h5>
-                                </div>
-                                <div class="card-body text-center">
-                                    <img src="/static/images/paynet_qr.png" alt="Paynet QR Code" class="img-fluid mb-3"
-                                        style="max-width: 200px;">
-                                    <p class="text-info mb-2">
-                                        <strong>Karta raqami:</strong><br>
-                                        <code>7777 0120 2883 9786</code>
-                                    </p>
-                                    <p class="text-muted small">
-                                        QR kodni skanerlang yoki karta raqamiga to'lov qiling
-                                    </p>
-                                </div>
+                <div class="tab-content" id="paymentTabsContent">
+                    <!-- Xazna -->
+                    <div class="tab-pane fade show active" id="xazna" role="tabpanel">
+                        <div
+                            class="card bg-transparent border-success border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
+                            <div class="card-body p-4 text-center">
+                                <img src="/static/images/xazna_qr.png" alt="Xazna QR Code"
+                                    class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;">
+                                <p class="text-success fw-medium small mb-3">QR kodni skanerlang yoki quyidagi tugmani
+                                    bosing</p>
+                                <a href="https://pay.xazna.uz/p2p/0ed3d14c-f661-4ff3-beda-ea2be0784abe" target="_blank"
+                                    class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+                                    <i class="fas fa-external-link-alt me-2"></i>Xazna orqali to'lash
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Send receipt -->
-                    <div class="card mt-3" style="background: #1a1a1a; border: 2px solid #ffc107;">
-                        <div class="card-header bg-warning text-dark text-center">
-                            <h5><i class="fab fa-telegram-plane me-2"></i>2-qadam: Chekni yuboring</h5>
-                        </div>
-                        <div class="card-body text-center">
-                            <p class="text-muted mb-3">
-                                To'lov qilgandan keyin chek rasmini admin Telegramiga yuboring:
-                            </p>
-                            <a href="https://t.me/akramjon0011" target="_blank" class="btn btn-primary btn-lg">
-                                <i class="fab fa-telegram-plane me-2"></i>@akramjon0011
-                            </a>
-                            <p class="text-warning small mt-3">
-                                <i class="fas fa-clock me-1"></i>Admin 24 soat ichida dostup beradi
-                            </p>
+                    <!-- Paynet -->
+                    <div class="tab-pane fade" id="paynet" role="tabpanel">
+                        <div
+                            class="card bg-transparent border-primary border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
+                            <div class="card-body p-4 text-center">
+                                <img src="/static/images/paynet_qr.png" alt="Paynet QR Code"
+                                    class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;">
+                                <p class="text-body fw-medium small mb-3">Paynet orqali to'lash uchun quyidagi tugmani
+                                    bosing:</p>
+                                <a href="https://app.paynet.uz/?m=49156&i=4805742d-d76c-4b39-8c02-8ddf1c450f33&branchId=&actTypeId="
+                                    target="_blank" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold"
+                                    style="background: linear-gradient(135deg, #6366f1, #3b82f6); border: none;">
+                                    <i class="fas fa-credit-card me-2"></i>Paynet orqali to'lash
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="contact-instructions mt-4">
-                    <div class="alert alert-warning">
-                        <h6><i class="fas fa-info-circle me-2"></i>Xabar yuborishda quyidagilarni ko'rsating:</h6>
-                        <ul class="list-unstyled text-start mt-3">
-                            <li><i class="fas fa-check text-success me-2"></i>Tanlagan tarif nomi: <strong><span
-                                        id="selectedPlanName"></span></strong></li>
-                            <li><i class="fas fa-check text-success me-2"></i>Sizning username: <strong>{{
-                                    current_user.username }}</strong></li>
-                            <li><i class="fas fa-check text-success me-2"></i>To'lov miqdori: <strong><span
-                                        id="selectedAmountDisplay"></span> so'm</strong></li>
-                            <li><i class="fas fa-check text-success me-2"></i>Paynet to'lov cheki rasmi</li>
-                        </ul>
-                    </div>
+                <div class="text-start mt-4 px-2">
+                    <h6 class="fw-bold fs-6 mb-2"><i class="fas fa-info-circle text-warning me-2"></i>Muhim qadam:</h6>
+                    <p class="small text-muted mb-0">
+                        To'lovni amalga oshirgach, chekni va loginingizni (<strong>{{ current_user.username }}</strong>)
+                        adminning Telegram manziliga yuborishingiz qat'iy so'raladi. Admin tez orada profilingizni
+                        yangilaydi.
+                    </p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    Yopish
-                </button>
-                <a href="https://t.me/akramjon0011" target="_blank" class="btn btn-primary">
-                    <i class="fab fa-telegram-plane me-2"></i>
-                    Telegram orqali bog'lanish
+            <div
+                class="modal-footer border-top border-secondary border-opacity-10 p-3 bg-secondary bg-opacity-10 rounded-bottom-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Yopish</button>
+                <a href="https://t.me/akramjon0011" target="_blank"
+                    class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
+                    style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                    <i class="fab fa-telegram-plane me-2"></i>Adminga yuborish
                 </a>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -582,25 +583,19 @@
     document.addEventListener('DOMContentLoaded', function () {
         const contactModal = document.getElementById('contactModal');
 
-        // Handle contact modal
         contactModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             const subscription = button.getAttribute('data-subscription');
             const amount = button.getAttribute('data-amount');
 
-            // Update plan information
             const planNames = {
                 'starter': 'Starter',
-                'basic': 'Basic',
+                'basic': 'Standart',
                 'premium': 'Premium'
             };
 
             document.getElementById('selectedPlan').textContent = planNames[subscription] || subscription;
             document.getElementById('selectedAmount').textContent = new Intl.NumberFormat('uz-UZ').format(amount);
-
-            // Update new fields for payment instructions
-            document.getElementById('selectedPlanName').textContent = planNames[subscription] || subscription;
-            document.getElementById('selectedAmountDisplay').textContent = new Intl.NumberFormat('uz-UZ').format(amount);
         });
     });
 </script>

@@ -3,235 +3,354 @@
 {% block title %}{{ bot.name }} - Botni tahrirlash{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">
-                    <i class="fas fa-edit me-2"></i>{{ bot.name }} - Tahrirlash
-                </h4>
+<style>
+    /* Premium UI Custom Styles for Bot Edit */
+    .pulse-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: pulse-animation 2s infinite;
+    }
+
+    .pulse-dot-red {
+        background-color: #ef4444;
+        box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
+        animation: pulse-red-animation 2s infinite;
+    }
+
+    @keyframes pulse-animation {
+        0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+
+    @keyframes pulse-red-animation {
+        0% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+    }
+
+    .dropzone-area {
+        border: 2px dashed rgba(var(--bs-primary-rgb), 0.5);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    .dropzone-area:hover {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+
+    .custom-nav-pills .nav-link {
+        border-radius: 50rem;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .custom-nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+
+<div class="row" style="padding-top: 1rem;">
+    <!-- Left Column: Settings -->
+    <div class="col-lg-7 mb-4" data-aos="fade-right">
+
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-light rounded-circle shadow-sm me-3"
+                style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h3 class="fw-bold mb-0 text-gradient"><i class="fas fa-robot text-primary me-2"></i>{{ bot.name }}</h3>
+                <p class="text-muted small mb-0">Bot sozlamalarini boshqarish</p>
             </div>
-            <div class="card-body">
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden feature-card mb-4">
+            <div class="card-body p-4 p-md-5">
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">
-                            <i class="fas fa-robot me-1"></i>Bot nomi *
+
+                    <h5 class="fw-bold mb-4 border-bottom pb-2">Asosiy Sozlamalar</h5>
+
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-medium text-body">
+                            Bot nomi <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control" id="name" name="name" 
-                               value="{{ bot.name }}" required autofocus>
+                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                                    class="fas fa-signature"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="name" name="name"
+                                value="{{ bot.name }}" required autofocus style="box-shadow: none;">
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="platform" class="form-label">
-                            <i class="fas fa-mobile-alt me-1"></i>Platforma *
+
+                    <div class="mb-4">
+                        <label for="platform" class="form-label fw-medium text-body">
+                            Platforma <span class="text-danger">*</span>
                         </label>
-                        <select class="form-select" id="platform" name="platform" required>
-                            <option value="Telegram" {% if bot.platform == 'Telegram' %}selected{% endif %}>
-                                Telegram
-                            </option>
-                            {% if current_user.subscription_type in ['basic', 'premium', 'admin'] %}
-                            <option value="Instagram" {% if bot.platform == 'Instagram' %}selected{% endif %}>
-                                Instagram
-                            </option>
-                            <option value="WhatsApp" {% if bot.platform == 'WhatsApp' %}selected{% endif %}>
-                                WhatsApp
-                            </option>
-                            {% endif %}
-                        </select>
+                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                                    class="fas fa-mobile-alt"></i></span>
+                            <select class="form-select border-start-0 ps-0 text-body" id="platform" name="platform"
+                                required style="box-shadow: none; border-color: var(--bs-border-color);">
+                                <option value="Telegram" {% if bot.platform=='Telegram' %}selected{% endif %}>
+                                    Telegram
+                                </option>
+                                {% if current_user.subscription_type in ['basic', 'premium', 'admin'] %}
+                                <option value="Instagram" {% if bot.platform=='Instagram' %}selected{% endif %}>
+                                    Instagram
+                                </option>
+                                <option value="WhatsApp" {% if bot.platform=='WhatsApp' %}selected{% endif %}>
+                                    WhatsApp
+                                </option>
+                                {% endif %}
+                            </select>
+                        </div>
                     </div>
-                    
+
                     {% if bot.platform == 'Telegram' %}
-                    <div class="mb-3">
-                        <label for="telegram_token" class="form-label">
-                            <i class="fab fa-telegram me-1"></i>Telegram Bot Token
+                    <div class="mb-5">
+                        <label for="telegram_token" class="form-label fw-medium text-body">
+                            Telegram Bot Token
                         </label>
-                        <input type="text" class="form-control font-monospace" id="telegram_token" name="telegram_token" 
-                               value="{{ bot.telegram_token or '' }}" placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxyz">
-                        <div class="form-text">
-                            Token o'zgartirish uchun BotFather dan yangi token oling
+                        <div
+                            class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-primary border-opacity-25">
+                            <span class="input-group-text bg-primary bg-opacity-10 border-end-0 text-primary"><i
+                                    class="fas fa-key"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                id="telegram_token" name="telegram_token" value="{{ bot.telegram_token or '' }}"
+                                placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxyz" style="box-shadow: none;">
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle me-1 text-primary"></i>
+                            Token o'zgartirish uchun BotFather dan yangi token oling. Qabul qilingan token ishonchli
+                            shifrlanadi.
                         </div>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Suhbat kuzatuvi sozlamalari -->
-                    <div class="card mb-4 border-info">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0">
-                                <i class="fas fa-eye me-2"></i>Suhbat kuzatuvi sozlamalari
-                            </h6>
-                        </div>
-                        <div class="card-body bg-dark text-white">
-                            <div class="alert alert-info small">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Suhbat kuzatuvi:</strong> Mijozlaringiz va botingiz o'rtasidagi barcha suhbatlar sizning shaxsiy Telegram chatiga yoki kanalingizga real vaqtda yuboriladi.
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="admin_chat_id" class="form-label text-white">
-                                    <i class="fas fa-user-shield me-1"></i>Admin Chat ID
-                                </label>
-                                <input type="text" class="form-control" id="admin_chat_id" name="admin_chat_id" 
-                                       value="{{ bot.owner.admin_chat_id or '' }}" placeholder="123456789" pattern="[0-9-]+">
-                                <div class="form-text text-light">
-                                    Sizning shaxsiy Telegram chat ID-ngiz. Suhbatlar bu chatga yuboriladi.
-                                    <br><strong class="text-white">Chat ID olish:</strong> @userinfobot ga yozing va /start bosing
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="notification_channel" class="form-label text-white">
-                                    <i class="fas fa-bullhorn me-1"></i>Bildirishnoma kanali (ixtiyoriy)
-                                </label>
-                                <input type="text" class="form-control" id="notification_channel" name="notification_channel" 
-                                       value="{{ bot.owner.notification_channel or '' }}" placeholder="@kanal_nomi yoki -100123456789">
-                                <div class="form-text text-light">
-                                    Telegram kanal nomi (@kanal_nomi) yoki kanal ID-si. Bot administratorligini bering!
-                                </div>
-                            </div>
-                            
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="notifications_enabled" name="notifications_enabled" 
-                                       value="1" {% if bot.owner.notifications_enabled %}checked{% endif %}>
-                                <label class="form-check-label text-white" for="notifications_enabled">
-                                    <i class="fas fa-bell me-1"></i>Suhbat bildirishnomalarini yoqish
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">Kuzatuv (Monitoring)</h5>
+                    <div
+                        class="card border border-info border-opacity-25 shadow-sm rounded-4 mb-4 overflow-hidden bg-transparent">
+                        <div class="card-header border-bottom bg-info bg-opacity-10 py-3">
+                            <div class="form-check form-switch d-flex align-items-center m-0">
+                                <input class="form-check-input mt-0 me-3" type="checkbox" role="switch"
+                                    id="notifications_enabled" name="notifications_enabled" value="1" {% if
+                                    bot.owner.notifications_enabled %}checked{% endif %}
+                                    style="width: 2.5em; height: 1.25em; cursor: pointer;">
+                                <label class="form-check-label fw-bold text-body" for="notifications_enabled"
+                                    style="cursor: pointer;">
+                                    Suhbat xabarnomalarini yoqish
                                 </label>
                             </div>
                         </div>
+                        <div class="card-body p-4" id="monitoring-settings" style="transition: all 0.3s ease;">
+                            <p class="small text-muted mb-4"><i
+                                    class="fas fa-shield-alt text-info me-1"></i>Mijozlaringiz va botingiz o'rtasidagi
+                                barcha suhbatlar sizning shaxsiy Telegram chatiga yoki kanalingizga real vaqtda keladi.
+                            </p>
+
+                            <div class="mb-4">
+                                <label for="admin_chat_id" class="form-label fw-medium text-body">
+                                    <i class="fas fa-user-shield me-1 text-secondary"></i>Admin Chat ID
+                                </label>
+                                <input type="text" class="form-control bg-transparent text-body" id="admin_chat_id"
+                                    name="admin_chat_id" value="{{ bot.owner.admin_chat_id or '' }}"
+                                    placeholder="123456789" pattern="[0-9-]+">
+                                <div class="form-text small mt-1">
+                                    Sizning Telegram ID-ngiz. Olish uchun: <a href="https://t.me/userinfobot"
+                                        target="_blank" class="text-decoration-none text-info">@userinfobot</a>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="notification_channel" class="form-label fw-medium text-body">
+                                    <i class="fas fa-bullhorn me-1 text-secondary"></i>Bildirishnoma kanali (ixtiyoriy)
+                                </label>
+                                <input type="text" class="form-control bg-transparent text-body"
+                                    id="notification_channel" name="notification_channel"
+                                    value="{{ bot.owner.notification_channel or '' }}"
+                                    placeholder="@kanal_nomi yoki -100123456789">
+                                <div class="form-text small mt-1">
+                                    Kanal nomi yoki ID-si. Eslatma: Botingiz u yerda administrator bo'lishi shart!
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Saqlash
-                    </button>
-                    
-                    {% if bot.platform == 'Telegram' and bot.telegram_token %}
-                    <div class="btn-group ms-2" role="group">
-                        <form method="POST" action="{{ url_for('main.setup_webhook', bot_id=bot.id) }}" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Webhook ni o\'rnatishni xohlaysizmi? Bu production muhitida bot ishlashi uchun kerak.')">
-                                <i class="fas fa-link me-2"></i>Webhook o'rnatish
-                            </button>
-                        </form>
+
+                    <div class="d-flex flex-wrap gap-2 align-items-center mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow fw-bold px-4"
+                            style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                            <i class="fas fa-save me-2"></i>Saqlash
+                        </button>
+
+                        {% if bot.platform == 'Telegram' and bot.telegram_token %}
+                        <div class="d-inline-block">
+                            <form method="POST" action="{{ url_for('main.setup_webhook', bot_id=bot.id) }}" class="m-0"
+                                id="webhookForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                    class="btn btn-success btn-lg rounded-pill shadow-sm px-4 fw-bold text-white hover-lift ms-2"
+                                    onclick="return confirm('Webhook ni o\'rnatishni xohlaysizmi? Bu production muhitida bot ishlashi uchun kerak.')"
+                                    style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                                    <i class="fas fa-link me-2"></i>Webhook o'rnatish
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    
-                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary ms-2">
-                        <i class="fas fa-arrow-left me-2"></i>Orqaga
-                    </a>
                 </form>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-4">
-        <!-- Bot Status -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bot holati</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="me-2">Holat:</span>
-                    {% if bot.is_active %}
-                    <span class="badge bg-success">
-                        <i class="fas fa-check me-1"></i>Faol
-                    </span>
-                    {% else %}
-                    <span class="badge bg-secondary">
-                        <i class="fas fa-pause me-1"></i>To'xtatilgan
-                    </span>
-                    {% endif %}
+
+    <!-- Right Column: Status & Knowledge Base -->
+    <div class="col-lg-5" data-aos="fade-left" data-aos-delay="100">
+
+        <!-- Bot Status Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden"
+            style="background: linear-gradient(135deg, var(--bs-body-bg), rgba(var(--bs-primary-rgb), 0.05)); border: 1px solid rgba(var(--bs-primary-rgb), 0.1) !important;">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">
+                        Bot Holati</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        {% if bot.is_active %}
+                        <span class="pulse-dot me-2"></span>
+                        <h5 class="mb-0 fw-bold text-success">Faol (Ishlamoqda)</h5>
+                        {% else %}
+                        <span class="pulse-dot-red me-2"></span>
+                        <h5 class="mb-0 fw-bold text-danger">To'xtatilgan</h5>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="d-flex align-items-center mb-2">
-                    <span class="me-2">Platforma:</span>
-                    {% if bot.platform == 'Telegram' %}
-                    <span class="badge bg-info">
-                        <i class="fab fa-telegram me-1"></i>Telegram
+                <div class="text-end">
+                    <span
+                        class="badge bg-primary bg-opacity-10 text-primary p-2 px-3 rounded-pill fw-bold border border-primary border-opacity-25 shadow-sm">
+                        <i class="fab fa-{{ bot.platform | lower }} me-1"></i>{{ bot.platform }}
                     </span>
-                    {% elif bot.platform == 'Instagram' %}
-                    <span class="badge bg-danger">
-                        <i class="fab fa-instagram me-1"></i>Instagram
-                    </span>
-                    {% elif bot.platform == 'WhatsApp' %}
-                    <span class="badge bg-success">
-                        <i class="fab fa-whatsapp me-1"></i>WhatsApp
-                    </span>
-                    {% endif %}
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="me-2">Yaratilgan:</span>
-                    <span class="text-muted">{{ bot.created_at.strftime('%d.%m.%Y') }}</span>
+                    <div class="mt-2 text-muted small">
+                        Yaratilgan: {{ bot.created_at.strftime('%d.%m.%Y') }}
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Knowledge Base -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-book me-2"></i>Bilim bazasi</h6>
+
+        <!-- Knowledge Base Card -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden feature-card">
+            <div class="card-header bg-transparent border-bottom p-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning bg-opacity-10 p-2 rounded-circle me-3">
+                        <i class="fas fa-brain fs-4 text-warning"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Bilimlar Bazasi</h5>
+                        <p class="text-muted small mb-0">Botni aqlliroq qilish</p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="card-text small mb-3">
-                    Botga ma'lumot qo'shish uchun fayl yuklang, matn kiriting yoki rasm havolasini qo'shing.
-                </p>
-                
+
+            <div class="card-body p-4">
                 <!-- Nav tabs -->
-                <ul class="nav nav-pills nav-fill small mb-3" id="knowledgeTabs" role="tablist">
+                <ul class="nav custom-nav-pills nav-fill mb-4 bg-light p-1 rounded-pill border shadow-sm"
+                    id="knowledgeTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="file-tab" data-bs-toggle="pill" data-bs-target="#file-content" type="button" role="tab">
-                            <i class="fas fa-upload me-1"></i>Fayl
+                        <button class="nav-link active" id="file-tab" data-bs-toggle="pill"
+                            data-bs-target="#file-content" type="button" role="tab">
+                            <i class="fas fa-file-upload me-1"></i>Fayl
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="text-tab" data-bs-toggle="pill" data-bs-target="#text-content" type="button" role="tab">
-                            <i class="fas fa-edit me-1"></i>Matn
+                        <button class="nav-link" id="text-tab" data-bs-toggle="pill" data-bs-target="#text-content"
+                            type="button" role="tab">
+                            <i class="fas fa-keyboard me-1"></i>Matn
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="product-tab" data-bs-toggle="pill" data-bs-target="#product-content" type="button" role="tab">
-                            <i class="fas fa-box me-1"></i>Mahsulot
+                        <button class="nav-link" id="product-tab" data-bs-toggle="pill"
+                            data-bs-target="#product-content" type="button" role="tab">
+                            <i class="fas fa-shopping-bag me-1"></i>Mahsulot
                         </button>
                     </li>
                 </ul>
 
                 <!-- Tab content -->
                 <div class="tab-content" id="knowledgeTabContent">
+
                     <!-- File Upload Tab -->
                     <div class="tab-pane fade show active" id="file-content" role="tabpanel">
-                        <form method="POST" action="{{ url_for('main.upload_knowledge', bot_id=bot.id) }}" 
-                              enctype="multipart/form-data">
+                        <form method="POST" action="{{ url_for('main.upload_knowledge', bot_id=bot.id) }}"
+                            enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <div class="mb-3">
-                                <input type="file" class="form-control form-control-sm" name="file" 
-                                       accept=".txt,.docx,.csv,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.webp,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,application/csv,application/vnd.ms-excel,text/comma-separated-values" required>
-                                <div class="form-text text-light">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Qo'llab-quvvatlanadigan formatlar: 
-                                    <strong class="text-white">.txt, .docx, .xlsx, .xls, .csv, .jpg, .png, .gif</strong>
-                                    <br>
-                                    <i class="fas fa-file-excel me-1 text-success"></i>
-                                    <span class="text-white">Excel/CSV orqali ko'p mahsulot birdan qo'shishingiz mumkin!</span>
-                                </div>
+
+                            <div class="dropzone-area p-4 text-center mb-3 position-relative">
+                                <i class="fas fa-cloud-upload-alt fs-1 text-primary mb-2 opacity-75"></i>
+                                <h6 class="fw-bold mb-1">Fayl tanlang yoki shu yerga tashlang</h6>
+                                <p class="small text-muted mb-3">.txt, .docx, .xlsx, .csv, .png, .jpg (Max 5MB)</p>
+                                <input type="file"
+                                    class="form-control form-control-sm border-0 bg-white bg-opacity-50 mx-auto w-75 shadow-sm rounded-pill"
+                                    name="file"
+                                    accept=".txt,.docx,.csv,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.webp,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,application/csv,application/vnd.ms-excel,text/comma-separated-values"
+                                    required>
                             </div>
-                            
+
                             <!-- Excel/CSV help section -->
-                            <div class="alert alert-info alert-sm p-2 mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div
+                                class="alert alert-success bg-success bg-opacity-10 border-0 rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center shadow-sm">
+                                <div>
+                                    <i class="fas fa-file-excel text-success me-2 fs-5"></i>
                                     <div>
-                                        <i class="fas fa-download me-1"></i>
-                                        <small><strong class="text-dark">Excel namuna faylini yuklab oling</strong></small>
+                                        <strong class="text-body small d-block">Excel orqali ommaviy qo'shish</strong>
+                                        <span class="text-muted" style="font-size: 0.7rem;">Ustunlar: mahsulot_nomi,
+                                            narx, tavsif, rasm_url</span>
                                     </div>
-                                    <a href="{{ url_for('main.download_sample_excel') }}" 
-                                       class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-download me-1"></i>Namuna
-                                    </a>
                                 </div>
-                                <small class="text-light d-block mt-1">
-                                    Ustunlar: mahsulot_nomi, narx, tavsif, rasm_url
-                                </small>
+                                <a href="{{ url_for('main.download_sample_excel') }}"
+                                    class="btn btn-sm btn-success rounded-pill px-3 shadow-sm hover-lift">
+                                    <i class="fas fa-download me-1"></i>Namuna
+                                </a>
                             </div>
-                            <button type="submit" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-upload me-1"></i>Fayl yuklash
+
+                            <button type="submit"
+                                class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm hover-lift"
+                                style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                                <i class="fas fa-upload me-2"></i>Bazasni yangilash
                             </button>
                         </form>
                     </div>
@@ -241,17 +360,22 @@
                         <form method="POST" action="{{ url_for('main.add_text_knowledge', bot_id=bot.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
-                                <label for="source_name" class="form-label small text-white">Nom (ixtiyoriy):</label>
-                                <input type="text" class="form-control form-control-sm" id="source_name" name="source_name" 
-                                       placeholder="Masalan: Kompaniya haqida">
+                                <label for="source_name" class="form-label fw-medium text-body small">Ma'lumot nomi
+                                    (Topish oson bo'lishi uchun)</label>
+                                <input type="text" class="form-control bg-transparent" id="source_name"
+                                    name="source_name" placeholder="Masalan: Kompaniya haqida (ixtiyoriy)">
                             </div>
-                            <div class="mb-3">
-                                <label for="content" class="form-label small text-white">Matn:</label>
-                                <textarea class="form-control form-control-sm" id="content" name="content" rows="4" 
-                                          placeholder="Bu yerga bot bilishi kerak bo'lgan ma'lumotlarni kiriting..." required></textarea>
+                            <div class="mb-4">
+                                <label for="content" class="form-label fw-medium text-body small">Matn contenti <span
+                                        class="text-danger">*</span></label>
+                                <textarea class="form-control bg-transparent" id="content" name="content" rows="4"
+                                    placeholder="Bot ushbu ma'lumotlarni o'zlashtirib oladi va mijozlarga mos javob beradi..."
+                                    required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-sm btn-success w-100">
-                                <i class="fas fa-plus me-1"></i>Matn qo'shish
+                            <button type="submit"
+                                class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm hover-lift"
+                                style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                                <i class="fas fa-plus me-2"></i>Matn qo'shish
                             </button>
                         </form>
                     </div>
@@ -259,125 +383,411 @@
                     <!-- Product Tab -->
                     <div class="tab-pane fade" id="product-content" role="tabpanel">
                         <!-- Excel/CSV Bulk Upload -->
-                        <div class="card mb-3">
-                            <div class="card-header py-2">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-file-excel me-2 text-success"></i>Excel/CSV orqali ko'p mahsulot qo'shish
-                                </h6>
+                        <div class="accordion" id="productAccordion">
+                            <div
+                                class="accordion-item border-0 rounded-4 shadow-sm mb-3 overflow-hidden bg-light bg-opacity-25">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-transparent fw-bold" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseBulk" aria-expanded="false">
+                                        <i class="fas fa-boxes me-2 text-info"></i>Excel/CSV orqali yuklash
+                                    </button>
+                                </h2>
+                                <div id="collapseBulk" class="accordion-collapse collapse"
+                                    data-bs-parent="#productAccordion">
+                                    <div class="accordion-body border-top">
+                                        <form method="POST"
+                                            action="{{ url_for('main.upload_bulk_products', bot_id=bot.id) }}"
+                                            enctype="multipart/form-data">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="mb-3">
+                                                <input type="file" class="form-control form-control-sm bg-transparent"
+                                                    id="bulk_file" name="bulk_file" accept=".xlsx,.xls,.csv" required>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit"
+                                                    class="btn btn-sm btn-info text-white flex-grow-1 rounded-pill fw-bold hover-lift">
+                                                    <i class="fas fa-upload me-1"></i>Yuklash
+                                                </button>
+                                                <a href="{{ url_for('main.download_template') }}"
+                                                    class="btn btn-sm btn-outline-secondary rounded-pill fw-bold bg-white"
+                                                    title="Namuna yuklash">
+                                                    <i class="fas fa-file-download"></i>
+                                                </a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body p-3">
-                                <form method="POST" action="{{ url_for('main.upload_bulk_products', bot_id=bot.id) }}" enctype="multipart/form-data">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <div class="mb-3">
-                                        <label for="bulk_file" class="form-label small text-white">Excel yoki CSV fayl yuklash:</label>
-                                        <input type="file" class="form-control form-control-sm" id="bulk_file" name="bulk_file" 
-                                               accept=".xlsx,.xls,.csv" required>
-                                        <div class="form-text text-light">
-                                            <small class="text-white">Qo'llab-quvvatlanadigan formatlar: .xlsx, .xls, .csv</small><br>
-                                            <small class="text-light">Maksimal fayl hajmi: 5MB</small>
-                                        </div>
+
+                            <!-- Single Product Add -->
+                            <div
+                                class="accordion-item border-0 rounded-4 shadow-sm overflow-hidden bg-light bg-opacity-25">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button bg-transparent fw-bold text-body" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseSingle" aria-expanded="true">
+                                        <i class="fas fa-plus-circle me-2 text-success"></i>Bitta mahsulot qo'shish
+                                    </button>
+                                </h2>
+                                <div id="collapseSingle" class="accordion-collapse collapse show"
+                                    data-bs-parent="#productAccordion">
+                                    <div class="accordion-body border-top">
+                                        <form method="POST"
+                                            action="{{ url_for('main.add_product_knowledge', bot_id=bot.id) }}"
+                                            enctype="multipart/form-data">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="mb-3">
+                                                <input type="text" class="form-control form-control-sm bg-transparent"
+                                                    id="product_name" name="product_name" placeholder="Mahsulot nomi *"
+                                                    required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <input type="text" class="form-control form-control-sm bg-transparent"
+                                                    id="product_price" name="product_price"
+                                                    placeholder="Narx (masalan: 25000 so'm/dona)">
+                                            </div>
+                                            <div class="mb-3">
+                                                <textarea class="form-control form-control-sm bg-transparent"
+                                                    id="product_description" name="product_description" rows="2"
+                                                    placeholder="Mahsulot haqida ma'lumot"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <input type="url" class="form-control form-control-sm bg-transparent"
+                                                    id="product_image_url" name="product_image_url"
+                                                    placeholder="Rasm havolasi (URL - Ixtiyoriy)">
+                                            </div>
+                                            <div class="mb-3 text-center">
+                                                <span class="text-muted small">Yoki kompyuterdan rasm yuklash:</span>
+                                            </div>
+                                            <div class="mb-4">
+                                                <input type="file"
+                                                    class="form-control form-control-sm bg-transparent border-primary border-opacity-25"
+                                                    id="product_image_file" name="product_image_file"
+                                                    accept=".jpg,.jpeg,.png,.webp">
+                                            </div>
+                                            <button type="submit"
+                                                class="btn btn-sm btn-success w-100 rounded-pill fw-bold shadow-sm hover-lift">
+                                                <i class="fas fa-check me-1"></i>Qo'shish
+                                            </button>
+                                        </form>
                                     </div>
-                                    
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-upload me-1"></i>Faylni yuklash
-                                        </button>
-                                        <a href="{{ url_for('main.download_template') }}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-download me-1"></i>Namuna yuklash
-                                        </a>
-                                    </div>
-                                </form>
-                                
-                                <div class="alert alert-info mt-3 p-2" style="font-size: 0.8rem;">
-                                    <strong>Excel format:</strong> A ustun - Mahsulot nomi, B ustun - Narx, C ustun - Tavsif, D ustun - Rasm URL
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Single Product Add -->
-                        <div class="card">
-                            <div class="card-header py-2">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-plus me-2"></i>Bitta mahsulot qo'shish
-                                </h6>
+                    </div>
+                </div>
+
+                {% if bot.knowledge_base %}
+                <div class="mt-4 pt-4 border-top">
+                    <h6 class="fw-bold mb-3 text-body d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary rounded-pill px-3">{{ bot.knowledge_base|length }} ta
+                            Element</span>
+                        <span class="small text-muted fw-normal"><i class="fas fa-database me-1"></i>Saqlangan
+                            baza</span>
+                    </h6>
+
+                    <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;" class="custom-scrollbar">
+                        {% for kb in bot.knowledge_base %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-3 rounded-3 shadow-sm border border-secondary border-opacity-10 hover-lift"
+                            style="background: var(--bs-body-bg);">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                {% if kb.content_type == 'product' %}
+                                <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-box text-success"></i>
+                                </div>
+                                <div class="d-flex align-items-center text-truncate">
+                                    {% if kb.content and 'http' in kb.content %}
+                                    <img src="{{ kb.content.split('Rasm: ')[1].split(' ')[0] if 'Rasm: ' in kb.content else '' }}"
+                                        alt="Preview"
+                                        style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;"
+                                        class="me-2 shadow-sm" onerror="this.style.display='none'">
+                                    {% endif %}
+                                    <div>
+                                        <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                            kb.source_name or 'Mahsulot' }}</strong>
+                                        <span class="text-muted" style="font-size: 0.7rem;">Mahsulot</span>
+                                    </div>
+                                </div>
+                                {% elif kb.content_type == 'image' %}
+                                <div class="bg-warning bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-image text-warning"></i>
+                                </div>
+                                <div class="d-flex align-items-center text-truncate">
+                                    <img src="{{ kb.content }}" alt="Preview"
+                                        style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;"
+                                        class="me-2 shadow-sm">
+                                    <div>
+                                        <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                            kb.source_name or kb.filename }}</strong>
+                                        <span class="text-muted" style="font-size: 0.7rem;">Rasm fayli</span>
+                                    </div>
+                                </div>
+                                {% elif kb.content_type == 'file' %}
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                </div>
+                                <div class="text-truncate">
+                                    <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                        kb.source_name or kb.filename }}</strong>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Matnli fayl</span>
+                                </div>
+                                {% elif kb.content_type == 'text' %}
+                                <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-align-left text-info"></i>
+                                </div>
+                                <div class="text-truncate">
+                                    <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                        kb.source_name or kb.filename }}</strong>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Qo'lda kiritilgan matn</span>
+                                </div>
+                                {% elif kb.content_type == 'image_link' %}
+                                <div class="bg-secondary bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-link text-secondary"></i>
+                                </div>
+                                <div class="text-truncate">
+                                    <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                        kb.source_name or kb.filename }}</strong>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Havola</span>
+                                </div>
+                                {% endif %}
                             </div>
-                            <div class="card-body p-3">
-                                <form method="POST" action="{{ url_for('main.add_product_knowledge', bot_id=bot.id) }}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <div class="mb-3">
-                                        <label for="product_name" class="form-label small text-white">Mahsulot nomi *:</label>
-                                        <input type="text" class="form-control form-control-sm" id="product_name" name="product_name" 
-                                               placeholder="Masalan: Kartoshka" required>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="product_price" class="form-label small text-white">Narx:</label>
-                                        <input type="text" class="form-control form-control-sm" id="product_price" name="product_price" 
-                                               placeholder="Masalan: 2500 so'm/kg">
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="product_description" class="form-label small text-white">Tavsif:</label>
-                                        <textarea class="form-control form-control-sm" id="product_description" name="product_description" rows="3" 
-                                                  placeholder="Mahsulot haqida batafsil ma'lumot, mavjudlik, minimal buyurtma miqdori..."></textarea>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="product_image_url" class="form-label small text-white">Rasm havolasi (ixtiyoriy):</label>
-                                        <input type="url" class="form-control form-control-sm" id="product_image_url" name="product_image_url" 
-                                               placeholder="https://example.com/mahsulot-rasmi.jpg">
-                                        <div class="form-text text-light">Mahsulot rasmining URL manzili</div>
-                                    </div>
-                                    
-                                    <button type="submit" class="btn btn-sm btn-success w-100">
-                                        <i class="fas fa-plus me-1"></i>Mahsulot qo'shish
+                            <!-- Action Buttons & Date -->
+                            <div class="d-flex flex-column align-items-end flex-shrink-0">
+                                <span class="text-muted bg-transparent border-0 badge mb-2"
+                                    style="font-size: 0.7rem;">{{ kb.created_at.strftime('%d.%m.%Y') }}</span>
+                                <div class="btn-group btn-group-sm shadow-sm rounded-pill">
+                                    <button type="button"
+                                        class="btn btn-outline-info border-info border-opacity-25 edit-kb-btn"
+                                        data-id="{{ kb.id }}" data-type="{{ kb.content_type }}"
+                                        data-name="{{ kb.source_name or '' }}" data-content="{{ kb.content or '' }}"
+                                        title="Tahrirlash">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                </form>
+                                    <button type="button"
+                                        class="btn btn-outline-danger border-danger border-opacity-25 delete-kb-btn"
+                                        data-id="{{ kb.id }}" data-name="{{ kb.source_name or '' }}" title="O'chirish">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                </div>
-                
-                {% if bot.knowledge_base %}
-                <hr>
-                <h6 class="small mb-2">Qo'shilgan ma'lumotlar:</h6>
-                <div style="max-height: 200px; overflow-y: auto;">
-                {% for kb in bot.knowledge_base %}
-                <div class="d-flex justify-content-between align-items-center small mb-2 p-2 knowledge-item rounded">
-                    <div class="d-flex align-items-center">
-                        {% if kb.content_type == 'product' %}
-                            <i class="fas fa-box me-2 text-success"></i>
-                            <div class="d-flex align-items-center">
-                                {% if kb.content and 'http' in kb.content %}
-                                    <img src="{{ kb.content.split('Rasm: ')[1].split(' ')[0] if 'Rasm: ' in kb.content else '' }}" alt="Preview" 
-                                         style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;" class="me-2" onerror="this.style.display='none'">
-                                {% endif %}
-                                <span class="text-truncate">{{ kb.source_name or 'Mahsulot' }}</span>
-                            </div>
-                        {% elif kb.content_type == 'image' %}
-                            <i class="fas fa-image me-2 text-warning"></i>
-                            <div class="d-flex align-items-center">
-                                <img src="{{ kb.content }}" alt="Preview" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;" class="me-2">
-                                <span class="text-truncate">{{ kb.source_name or kb.filename }}</span>
-                            </div>
-                        {% elif kb.content_type == 'file' %}
-                            <i class="fas fa-file-text me-2 text-primary"></i>
-                            <span class="text-truncate">{{ kb.source_name or kb.filename }}</span>
-                        {% elif kb.content_type == 'text' %}
-                            <i class="fas fa-edit me-2 text-success"></i>
-                            <span class="text-truncate">{{ kb.source_name or kb.filename }}</span>
-                        {% elif kb.content_type == 'image_link' %}
-                            <i class="fas fa-link me-2 text-info"></i>
-                            <span class="text-truncate">{{ kb.source_name or kb.filename }}</span>
-                        {% endif %}
-                    </div>
-                    <span class="text-muted">{{ kb.created_at.strftime('%d.%m') }}</span>
-                </div>
-                {% endfor %}
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Edit Knowledge Modal -->
+<div class="modal fade glass-modal" id="editKnowledgeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-edit text-info fs-4 align-middle me-2"></i> Ma'lumotni tahrirlash
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editKnowledgeForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4 text-start">
+                    <!-- Text/File Edit -->
+                    <div id="editGenericContainer" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium text-muted small">Nomi (Source Name)</label>
+                            <input type="text"
+                                class="form-control form-control-sm bg-transparent border-primary border-opacity-25"
+                                id="editSourceName" name="source_name">
+                        </div>
+                        <div class="mb-3" id="editTextContentWrapper">
+                            <label class="form-label fw-medium text-muted small">Matn kontenti <span
+                                    class="text-danger">*</span></label>
+                            <textarea class="form-control bg-transparent border-primary border-opacity-25"
+                                id="editContent" name="content" rows="6"></textarea>
+                        </div>
+                    </div>
+                    <!-- Product Edit -->
+                    <div id="editProductContainer" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium text-muted small">Mahsulot nomi <span
+                                    class="text-danger">*</span></label>
+                            <input type="text"
+                                class="form-control form-control-sm bg-transparent border-primary border-opacity-25"
+                                id="editProductName" name="product_name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium text-muted small">Narxi</label>
+                            <input type="text"
+                                class="form-control form-control-sm bg-transparent border-primary border-opacity-25"
+                                id="editProductPrice" name="product_price">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium text-muted small">Tavsifi</label>
+                            <textarea class="form-control bg-transparent border-primary border-opacity-25"
+                                id="editProductDescription" name="product_description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="modal-footer border-top border-secondary border-opacity-10 py-3 px-4 bg-secondary bg-opacity-10 rounded-bottom-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor
+                        qilish</button>
+                    <button type="submit" class="btn btn-info rounded-pill px-4 fw-bold text-white shadow-sm"
+                        style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                        <i class="fas fa-save me-2"></i>Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="currentBotId" value="{{ bot.id }}">
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var BOT_ID = document.getElementById('currentBotId').value;
+
+        // Monitoring section toggle logic
+        var switchBtn = document.getElementById('notifications_enabled');
+        var monitoringSection = document.getElementById('monitoring-settings');
+
+        if (switchBtn && monitoringSection) {
+            function updateMonitoringVisibility() {
+                if (switchBtn.checked) {
+                    monitoringSection.style.display = 'block';
+                    requestAnimationFrame(function () {
+                        monitoringSection.style.opacity = '1';
+                        monitoringSection.style.transform = 'translateY(0)';
+                    });
+                } else {
+                    monitoringSection.style.opacity = '0';
+                    monitoringSection.style.transform = 'translateY(-10px)';
+                    setTimeout(function () {
+                        if (!switchBtn.checked) {
+                            monitoringSection.style.display = 'none';
+                        }
+                    }, 300);
+                }
+            }
+
+            monitoringSection.style.opacity = '0';
+            monitoringSection.style.transform = 'translateY(-10px)';
+            if (!switchBtn.checked) {
+                monitoringSection.style.display = 'none';
+            } else {
+                updateMonitoringVisibility();
+            }
+
+            switchBtn.addEventListener('change', updateMonitoringVisibility);
+        }
+
+        // --- Knowledge Base Delete ---
+        document.querySelectorAll('.delete-kb-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var kbId = this.getAttribute('data-id');
+                var kbName = this.getAttribute('data-name') || "Ma'lumot";
+
+                Swal.fire({
+                    title: "Ishonchingiz komilmi?",
+                    text: '"' + kbName + "\" butunlay o'chirilishi haqida fikringiz qat'iymi?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: "<i class='fas fa-trash me-2'></i>Ha, o'chirish",
+                    cancelButtonText: 'Bekor qilish',
+                    customClass: {
+                        popup: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'bg-dark text-light border border-secondary' : 'bg-white rounded-4 shadow-lg',
+                        title: 'fs-5 fw-bold',
+                        confirmButton: 'rounded-pill px-4',
+                        cancelButton: 'rounded-pill px-4'
+                    },
+                    background: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#1e1e1e' : '#ffffff'
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        fetch('/bot/' + BOT_ID + '/knowledge/' + kbId + '/delete', {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                            }
+                        })
+                            .then(function (response) { return response.json(); })
+                            .then(function (data) {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: "O'chirildi!",
+                                        text: "Ma'lumot muvaffaqiyatli o'chirib tashlandi.",
+                                        icon: 'success',
+                                        showConfirmButton: false,
+                                        timer: 1500,
+                                        background: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#1e1e1e' : '#ffffff',
+                                        customClass: { title: 'text-success' }
+                                    }).then(function () {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Xatolik!', data.error || "Noma'lum xatolik", 'error');
+                                }
+                            });
+                    }
+                });
+            });
+        });
+
+        // --- Knowledge Base Edit ---
+        document.querySelectorAll('.edit-kb-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var kbId = this.getAttribute('data-id');
+                var kbType = this.getAttribute('data-type');
+                var kbName = this.getAttribute('data-name');
+                var kbContent = this.getAttribute('data-content');
+
+                var form = document.getElementById('editKnowledgeForm');
+                form.action = '/bot/' + BOT_ID + '/knowledge/' + kbId + '/edit';
+
+                var genContainer = document.getElementById('editGenericContainer');
+                var prodContainer = document.getElementById('editProductContainer');
+                var txtContentWrapper = document.getElementById('editTextContentWrapper');
+
+                if (kbType === 'product') {
+                    genContainer.style.display = 'none';
+                    prodContainer.style.display = 'block';
+                    document.getElementById('editProductName').value = kbName;
+
+                    var price = '';
+                    var desc = '';
+                    if (kbContent) {
+                        var lines = kbContent.split('\n');
+                        for (var i = 0; i < lines.length; i++) {
+                            if (lines[i].indexOf('Narx: ') === 0) price = lines[i].substring(6);
+                            else if (lines[i].indexOf('Tavsif: ') === 0) desc = lines[i].substring(8);
+                        }
+                    }
+                    document.getElementById('editProductPrice').value = price;
+                    document.getElementById('editProductDescription').value = desc;
+
+                } else if (kbType === 'text') {
+                    genContainer.style.display = 'block';
+                    prodContainer.style.display = 'none';
+                    txtContentWrapper.style.display = 'block';
+                    document.getElementById('editSourceName').value = kbName;
+                    document.getElementById('editContent').value = kbContent;
+
+                } else {
+                    genContainer.style.display = 'block';
+                    prodContainer.style.display = 'none';
+                    txtContentWrapper.style.display = 'none';
+                    document.getElementById('editSourceName').value = kbName;
+                }
+
+                var modal = new bootstrap.Modal(document.getElementById('editKnowledgeModal'));
+                modal.show();
+            });
+        });
+    });
+</script>
 {% endblock %}

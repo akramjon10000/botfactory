@@ -3,151 +3,235 @@
 {% block title %}Yangi bot yaratish - Chatbot Factory AI{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">
-                    <i class="fas fa-plus me-2"></i>Yangi bot yaratish
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Telegram bot yaratish uchun:</strong>
-                    <ol class="mb-0 mt-2">
-                        <li>Telegramda <a href="https://t.me/BotFather" target="_blank"
-                                class="text-decoration-none">@BotFather</a> ga yozing</li>
-                        <li><code>/newbot</code> buyrug'ini yuboring</li>
-                        <li>Bot nomini kiriting (masalan: "Mening Bot")</li>
-                        <li>Bot username kiriting (masalan: "meningbot_bot")</li>
-                        <li>BotFather sizga token beradi - uni quyida kiriting</li>
-                    </ol>
-                </div>
+<div class="row justify-content-center" style="min-height: 80vh; align-items: start; padding-top: 2rem;">
+    <!-- Main Form Column -->
+    <div class="col-lg-7 col-md-10 mb-5" data-aos="fade-up">
 
+        <div class="text-center mb-4">
+            <h2 class="fw-bold"><i class="fas fa-robot text-primary me-2"></i>Yangi bot yaratish</h2>
+            <p class="text-muted">Platformamizga o'z aqlli yordamchingizni ulab, biznesingizni avtomatlashtiring.</p>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden feature-card">
+            <div class="card-body p-4 p-md-5">
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">
-                            <i class="fas fa-robot me-1"></i>Bot nomi *
+
+                    <!-- 1. Asosiy Ma'lumotlar -->
+                    <h5 class="fw-bold mb-4 d-flex align-items-center">
+                        <span
+                            class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
+                            style="width: 35px; height: 35px; font-size: 1rem;">1</span>
+                        Asosiy Ma'lumotlar
+                    </h5>
+
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-medium w-100">
+                            Bot Nomi <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control" id="name" name="name" required
-                            placeholder="Masalan: Mijozlar xizmati boti" autofocus>
-                        <div class="form-text">Bu nom faqat sizning panelingizda ko'rinadi</div>
+                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                                    class="fas fa-signature"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="name" name="name" required
+                                placeholder="Masalan: Trendo AI yordamchisi" autofocus style="box-shadow: none;">
+                        </div>
+                        <div class="form-text mt-2"><i class="fas fa-info-circle me-1"></i>Bu faqat boshqaruv panelida
+                            ko'rinadigan nom</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="platform" class="form-label">
-                            <i class="fab fa-telegram me-1"></i>Platforma
+                    <div class="mb-5">
+                        <label for="platform" class="form-label fw-medium">
+                            Platforma
                         </label>
                         <input type="hidden" name="platform" value="Telegram">
-                        <div class="form-control bg-light">
-                            <i class="fab fa-telegram text-primary me-2"></i>Telegram
-                        </div>
-                        <div class="form-text text-success">
-                            <i class="fas fa-check me-1"></i>Faqat Telegram botlar qo'llab-quvvatlanadi
+                        <div class="d-flex align-items-center p-3 rounded-3 border bg-opacity-10 shadow-sm"
+                            style="background-color: var(--bs-body-bg);">
+                            <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                <i class="fab fa-telegram fs-3 text-info"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Telegram Messenger</h6>
+                                <small class="text-muted">Ayni paytda faqat Telegram tarmog'i to'liq integratsiya
+                                    qilingan.</small>
+                            </div>
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle p-1 ms-2">
+                                <i class="fas fa-check"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mb-3" id="telegram-settings">
-                        <label for="telegram_token" class="form-label">
-                            <i class="fab fa-telegram me-1"></i>Telegram Bot Token *
+                    <hr class="mb-5 border-opacity-25">
+
+                    <!-- 2. Ulanish -->
+                    <h5 class="fw-bold mb-4 d-flex align-items-center">
+                        <span
+                            class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
+                            style="width: 35px; height: 35px; font-size: 1rem;">2</span>
+                        Tokenga ulanish
+                    </h5>
+
+                    <div class="mb-5" id="telegram-settings">
+                        <label for="telegram_token" class="form-label fw-medium w-100 text-body">
+                            Telegram Bot Token <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control font-monospace" id="telegram_token" name="telegram_token"
-                            placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxyz" required>
-                        <div class="form-text">
-                            BotFather dan olgan tokenni kiriting. Format: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-end-0 text-primary"><i
+                                    class="fas fa-key"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0 font-monospace"
+                                id="telegram_token" name="telegram_token"
+                                placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxyz" required
+                                style="box-shadow: none; font-size: 1rem;">
+                        </div>
+                        <div class="form-text mt-2 text-primary bg-primary bg-opacity-10 p-2 rounded-2 d-inline-block">
+                            <i class="fas fa-shield-alt me-1"></i> Tokeningiz shifrlangan holda xavfsiz saqlanadi.
                         </div>
                     </div>
 
+                    <hr class="mb-5 border-opacity-25">
 
+                    <!-- 3. Suhbat kuzatuvi -->
+                    <h5 class="fw-bold mb-4 d-flex align-items-center">
+                        <span
+                            class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
+                            style="width: 35px; height: 35px; font-size: 1rem;">3</span>
+                        Suhbat monitoringi (Ixtiyoriy)
+                    </h5>
 
-                    <!-- Suhbat kuzatuvi sozlamalari -->
-                    <div class="card mb-4 border-info">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0">
-                                <i class="fas fa-eye me-2"></i>Suhbat kuzatuvi sozlamalari
-                            </h6>
-                        </div>
-                        <div class="card-body bg-dark text-white">
-                            <div class="alert alert-info small">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Suhbat kuzatuvi:</strong> Mijozlaringiz va botingiz o'rtasidagi barcha suhbatlar
-                                sizning shaxsiy Telegram chatiga yoki kanalingizga real vaqtda yuboriladi.
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="admin_chat_id" class="form-label text-white">
-                                    <i class="fas fa-user-shield me-1"></i>Admin Chat ID
+                    <div class="card border border-info border-opacity-25 shadow-sm rounded-4 mb-5 overflow-hidden"
+                        style="background-color: var(--bs-body-bg);">
+                        <div class="card-header border-bottom bg-info bg-opacity-10 py-3">
+                            <div class="form-check form-switch d-flex align-items-center m-0">
+                                <input class="form-check-input mt-0 me-3" type="checkbox" role="switch"
+                                    id="notifications_enabled" name="notifications_enabled" value="1"
+                                    style="width: 2.5em; height: 1.25em; cursor: pointer;">
+                                <label class="form-check-label fw-bold text-body" for="notifications_enabled"
+                                    style="cursor: pointer;">
+                                    Suhbat xabarnomalarini yoqish
                                 </label>
-                                <input type="text" class="form-control" id="admin_chat_id" name="admin_chat_id"
-                                    placeholder="123456789" pattern="[0-9-]+">
-                                <div class="form-text text-light">
-                                    Sizning shaxsiy Telegram chat ID-ngiz. Suhbatlar bu chatga yuboriladi.
-                                    <br><strong class="text-white">Chat ID olish:</strong> @userinfobot ga yozing va
-                                    /start bosing
+                            </div>
+                        </div>
+                        <div class="card-body p-4" id="monitoring-settings"
+                            style="display: none; transition: all 0.3s ease;">
+                            <p class="small text-muted mb-4">Mijozlar bot bilan yozishganda barcha muloqotni o'z
+                                Telegram hisobingiz yoki boshqa guruh/kanal orqali kuzatib borishingiz mumkin.</p>
+
+                            <div class="mb-4">
+                                <label for="admin_chat_id" class="form-label fw-medium text-body">
+                                    <i class="fas fa-user-shield me-1 text-secondary"></i> Admin Chat ID
+                                </label>
+                                <input type="text" class="form-control bg-transparent" id="admin_chat_id"
+                                    name="admin_chat_id" placeholder="Masalan: 123456789" pattern="[0-9-]+">
+                                <div class="form-text small mt-1">
+                                    Sizning shaxsiy Telegram ID raqamingiz. Olish uchun: <a
+                                        href="https://t.me/userinfobot" target="_blank"
+                                        class="text-decoration-none">@userinfobot</a> ga kiring.
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="notification_channel" class="form-label text-white">
-                                    <i class="fas fa-bullhorn me-1"></i>Bildirishnoma kanali (ixtiyoriy)
+                            <div class="mb-2">
+                                <label for="notification_channel" class="form-label fw-medium text-body">
+                                    <i class="fas fa-bullhorn me-1 text-secondary"></i> Bildirishnoma kanali/guruhi
                                 </label>
-                                <input type="text" class="form-control" id="notification_channel"
+                                <input type="text" class="form-control bg-transparent" id="notification_channel"
                                     name="notification_channel" placeholder="@kanal_nomi yoki -100123456789">
-                                <div class="form-text text-light">
-                                    Telegram kanal nomi (@kanal_nomi) yoki kanal ID-si. Bot adminstrarorligini bering!
+                                <div class="form-text small mt-1">
+                                    Suhbatlar ushbu manzilga ham yuboriladi. Botingiz kanal/guruhda administrator
+                                    bo'lishi shart!
                                 </div>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="notifications_enabled"
-                                    name="notifications_enabled" value="1">
-                                <label class="form-check-label text-white" for="notifications_enabled">
-                                    <i class="fas fa-bell me-1"></i>Suhbat bildirishnomalarini yoqish
-                                </label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-plus me-2"></i>Bot yaratish
+                    <!-- Harakat tugmalari -->
+                    <div class="row mt-4">
+                        <div class="col-sm-8 mb-3 mb-sm-0">
+                            <button type="submit"
+                                class="btn btn-primary btn-lg w-100 rounded-pill shadow fw-bold py-3 text-uppercase"
+                                style="letter-spacing: 1px; background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                                <i class="fas fa-rocket me-2"></i>Loyiha Qo'shish
                             </button>
                         </div>
-                        <div class="col-md-6">
-                            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-lg w-100">
-                                <i class="fas fa-arrow-left me-2"></i>Bekor qilish
+                        <div class="col-sm-4">
+                            <a href="{{ url_for('main.dashboard') }}"
+                                class="btn btn-light btn-lg w-100 rounded-pill shadow-sm border py-3 text-body fw-bold">
+                                <i class="fas fa-times me-1"></i>Bekor qilish
                             </a>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
 
-                <!-- Help Section -->
-                <hr class="my-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-question-circle me-2"></i>BotFather qanday ishlaydi?</h6>
-                        <ol class="small">
-                            <li>Telegramda @BotFather ga yozing</li>
-                            <li>/start buyrug'ini bosing</li>
-                            <li>/newbot buyrug'ini bosing</li>
-                            <li>Bot nomini kiriting</li>
-                            <li>Bot username kiriting (bot bilan tugashi kerak)</li>
-                            <li>Token oling va bu yerga kiriting</li>
-                        </ol>
+    <!-- Sidebar Guide -->
+    <div class="col-lg-4 col-md-10" data-aos="fade-left" data-aos-delay="200">
+        <div class="card border-0 shadow-sm rounded-4 mb-4"
+            style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary p-3 rounded-circle me-3 shadow">
+                        <i class="fas fa-robot fs-4 text-white"></i>
                     </div>
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-shield-alt me-2"></i>Xavfsizlik</h6>
-                        <ul class="small">
-                            <li>Tokenni hech kimga bermang</li>
-                            <li>Token maxfiy ma'lumot hisoblanadi</li>
-                            <li>Agar token oshkor bo'lsa, BotFather orqali yangilang</li>
-                            <li>Biz tokeningizni xavfsiz saqlaymiz</li>
-                        </ul>
-                    </div>
+                    <h5 class="fw-bold mb-0 text-white">BotFather Qo'llanmasi</h5>
                 </div>
+
+                <p class="text-white-50 small mb-4">Telegram tarmog'ida mutlaqo yangi bot ochib, uni bizning platformaga
+                    ulash uchun quyidagi qadamlarni bajaring:</p>
+
+                <ul class="list-unstyled mb-0 position-relative">
+                    <!-- Vertical Line for timeline effect -->
+                    <div class="position-absolute bg-primary opacity-25"
+                        style="left: 15px; top: 15px; bottom: 30px; width: 2px;"></div>
+
+                    <li class="d-flex mb-4 position-relative">
+                        <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center text-white me-3 z-1 shadow"
+                            style="width: 32px; height: 32px; min-width: 32px;">1</div>
+                        <div>
+                            <strong class="d-block text-white mb-1">BotFather'ni toping</strong>
+                            <span class="text-white-50 small">Telegram qidiruv tarmog'iga <a
+                                    href="https://t.me/BotFather" target="_blank"
+                                    class="text-info text-decoration-none border-bottom border-info border-opacity-50">@BotFather</a>
+                                yozing va kiring.</span>
+                        </div>
+                    </li>
+                    <li class="d-flex mb-4 position-relative">
+                        <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center text-white me-3 z-1 shadow"
+                            style="width: 32px; height: 32px; min-width: 32px;">2</div>
+                        <div>
+                            <strong class="d-block text-white mb-1">Yangi bot yaratish</strong>
+                            <span class="text-white-50 small">Suhbat paneliga <code>/newbot</code> komandasini kiritib
+                                yuboring.</span>
+                        </div>
+                    </li>
+                    <li class="d-flex mb-4 position-relative">
+                        <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center text-white me-3 z-1 shadow"
+                            style="width: 32px; height: 32px; min-width: 32px;">3</div>
+                        <div>
+                            <strong class="d-block text-white mb-1">Ism va Username</strong>
+                            <span class="text-white-50 small">Navbati bilan botingizga chiroyli Ism (Name) va oxiri
+                                "bot" so'zi bilan tugaydigan Username (masalan: <i>doys_bot</i>) bering.</span>
+                        </div>
+                    </li>
+                    <li class="d-flex position-relative">
+                        <div class="bg-success rounded-circle d-flex justify-content-center align-items-center text-white me-3 z-1 shadow"
+                            style="width: 32px; height: 32px; min-width: 32px;"><i class="fas fa-check"></i></div>
+                        <div>
+                            <strong class="d-block text-white mb-1">Tokenni nusxalash</strong>
+                            <span class="text-white-50 small">BotFather taqdim etgan uzun API tokenni xavfsiz nusxalang
+                                va bu yerdagi shaklga tushiring!</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Security Mini Card -->
+        <div class="card border-0 shadow-sm rounded-4 bg-transparent border border-secondary border-opacity-25">
+            <div class="card-body p-4 text-center">
+                <i class="fas fa-shield-alt fs-1 text-muted opacity-50 mb-3"></i>
+                <h6 class="fw-bold mb-2">Yuqori darajadagi xavfsizlik</h6>
+                <p class="text-muted small mb-0">Biz sizning taqdim etgan API kalitlaringizni (Token) eng so'nggi
+                    algoritmlar yordamida shifrlaymiz va uchinchi shaxslardan qat'iy himoyalaymiz.</p>
             </div>
         </div>
     </div>
@@ -157,46 +241,36 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const platformSelect = document.getElementById('platform');
-        const telegramSettings = document.getElementById('telegram-settings');
-        const tokenInput = document.getElementById('telegram_token');
+        // Monitoring section toggle animation
+        const switchBtn = document.getElementById('notifications_enabled');
+        const monitoringSection = document.getElementById('monitoring-settings');
 
-        const instagramSettings = document.getElementById('instagram-settings');
-        const whatsappSettings = document.getElementById('whatsapp-settings');
-        const instagramTokenInput = document.getElementById('instagram_token');
-        const whatsappTokenInput = document.getElementById('whatsapp_token');
-        const whatsappPhoneInput = document.getElementById('whatsapp_phone_id');
-
-        function togglePlatformSettings() {
-            // Hide all settings
-            telegramSettings.style.display = 'none';
-            instagramSettings.style.display = 'none';
-            whatsappSettings.style.display = 'none';
-
-            // Remove required from all inputs
-            tokenInput.required = false;
-            instagramTokenInput.required = false;
-            whatsappTokenInput.required = false;
-            whatsappPhoneInput.required = false;
-
-            // Show relevant settings
-            if (platformSelect.value === 'Telegram') {
-                telegramSettings.style.display = 'block';
-                tokenInput.required = true;
-            } else if (platformSelect.value === 'Instagram') {
-                instagramSettings.style.display = 'block';
-                instagramTokenInput.required = true;
-            } else if (platformSelect.value === 'WhatsApp') {
-                whatsappSettings.style.display = 'block';
-                whatsappTokenInput.required = true;
-                whatsappPhoneInput.required = true;
+        switchBtn.addEventListener('change', function () {
+            if (this.checked) {
+                monitoringSection.style.display = 'block';
+                // Add simple fade in animation
+                requestAnimationFrame(() => {
+                    monitoringSection.style.opacity = '1';
+                    monitoringSection.style.transform = 'translateY(0)';
+                });
+            } else {
+                monitoringSection.style.display = 'none';
+                monitoringSection.style.opacity = '0';
+                monitoringSection.style.transform = 'translateY(-10px)';
             }
+        });
+
+        // Initialize state
+        monitoringSection.style.opacity = '0';
+        monitoringSection.style.transform = 'translateY(-10px)';
+        if (switchBtn.checked) {
+            monitoringSection.style.display = 'block';
+            monitoringSection.style.opacity = '1';
+            monitoringSection.style.transform = 'translateY(0)';
         }
 
-        platformSelect.addEventListener('change', togglePlatformSettings);
-        togglePlatformSettings(); // Initial call
-
-        // Token validation
+        // Token validation logic (kept from original)
+        const tokenInput = document.getElementById('telegram_token');
         tokenInput.addEventListener('input', function () {
             const token = this.value;
             const tokenPattern = /^\d+:[A-Za-z0-9_-]+$/;

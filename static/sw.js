@@ -1,5 +1,5 @@
 // Service Worker for BotFactory AI PWA
-const CACHE_NAME = 'botfactory-ai-v2';
+const CACHE_NAME = 'botfactory-ai-v3';
 const urlsToCache = [
   '/',
   '/static/css/style.css',
@@ -19,17 +19,28 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting(); // Force new service worker to take control immediately
 });
 
-// Fetch event
+// Fetch event (Network First with Cache Fallback for dynamic/changing assets)
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
+        // If network request succeeds, save a copy to cache and return response
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+        }
+        return response;
+      })
+      .catch(() => {
+        // If network request fails (e.g. offline), try to serve from cache
+        return caches.match(event.request);
+      })
   );
 });
 

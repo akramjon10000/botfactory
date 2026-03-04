@@ -1,0 +1,14 @@
+.git
+.gitignore
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+logs
+instance
+attached_assets
+uv.lock
+replit.md
+.replit

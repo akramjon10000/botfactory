@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Check
+        run: |
+          python -m compileall -q .
+
+      - name: Unit Tests
+        env:
+          TESTING: "1"
+          SESSION_SECRET: "ci-session-secret"
+          DATABASE_URL: "sqlite:///instance/test_ci.db"
+        run: |
+          python -m unittest -q test_rate_limiter.py test_payment_security.py test_payment_webhooks_integration.py

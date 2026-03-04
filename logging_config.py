@@ -5,8 +5,31 @@ Professional logging konfiguratsiyasi Chatbot Factory AI uchun
 import os
 import logging
 import logging.config
+import copy
 from datetime import datetime
 from typing import Dict, Any, Optional
+
+def _sanitize_for_legacy_console(text: str) -> str:
+    """Replace non-ASCII characters to avoid cp1251/cp1252 console encoding errors."""
+    return text.encode('ascii', errors='replace').decode('ascii')
+
+class SafeConsoleHandler(logging.StreamHandler):
+    """Console handler that degrades gracefully on legacy Windows encodings."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            message = self.format(record)
+            try:
+                self.stream.write(message + self.terminator)
+            except UnicodeEncodeError:
+                safe_record = copy.copy(record)
+                safe_record.msg = _sanitize_for_legacy_console(record.getMessage())
+                safe_record.args = ()
+                safe_message = self.format(safe_record)
+                self.stream.write(safe_message + self.terminator)
+            self.flush()
+        except Exception:
+            self.handleError(record)
 
 # Logging konfiguratsiyasi
 LOGGING_CONFIG: Dict[str, Any] = {
@@ -28,7 +51,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
     },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler',
+            'class': 'logging_config.SafeConsoleHandler',
             'level': 'INFO',
             'formatter': 'simple',
             'stream': 'ext://sys.stdout'

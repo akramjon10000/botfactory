@@ -828,7 +828,7 @@ class TelegramBot:
                         history_entries = ChatHistory.query.filter_by(
                             bot_id=self.bot_id, 
                             user_telegram_id=user_id
-                        ).order_by(ChatHistory.created_at.desc()).limit(3).all()
+                        ).order_by(ChatHistory.created_at.desc()).limit(10).all()
                         
                         if history_entries:
                             history_parts = []
@@ -1026,12 +1026,12 @@ class TelegramBot:
             
             # Get knowledge base and chat history in parallel for faster processing
             try:
-                # Optimize: Get recent chat history first (lighter operation)
+                # Get recent chat history in parallel (increased limit for better context)
                 recent_history = ""
                 history_entries = ChatHistory.query.filter_by(
                     bot_id=self.bot_id, 
                     user_telegram_id=user_id
-                ).order_by(ChatHistory.created_at.desc()).limit(3).all()  # Reduced from 5 to 3 for speed
+                ).order_by(ChatHistory.created_at.desc()).limit(10).all()
                 
                 if history_entries:
                     history_parts = []
@@ -1470,12 +1470,12 @@ def process_webhook_update(bot_id, bot_token, update_data):
                             if kb.content:
                                 knowledge_base += f"{kb.content}\n\n"
                                 
-                    # Suhbat tarixini olish
+                    # Suhbat tarixini olish (xotirani yaxshilash maqsadida limit 10 qilingan)
                     chat_history = ""
                     recent_chats = ChatHistory.query.filter_by(
                         bot_id=bot_id, 
                         user_telegram_id=str(chat_id)
-                    ).order_by(ChatHistory.created_at.desc()).limit(5).all()
+                    ).order_by(ChatHistory.created_at.desc()).limit(10).all()
                     
                     for chat in reversed(recent_chats):
                         chat_history += f"Foydalanuvchi: {chat.message}\nBot: {chat.response}\n\n"

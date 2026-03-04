@@ -4,381 +4,339 @@
 
 {% block content %}
 <!-- Hero Section -->
-<div class="hero-section bg-gradient text-white py-5 mb-5 rounded">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <div class="mb-4">
+<div class="hero-section text-white text-center shadow-lg" data-aos="fade-down" data-aos-duration="1000">
+    <div class="container position-relative z-1">
+        <div class="row align-items-center justify-content-center">
+            <div class="col-lg-9">
+                <div class="mb-5 text-center">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Chatbot Factory AI"
-                        style="width: 80px; height: 80px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-right: 15px;">
+                        style="width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 3px solid rgba(255,255,255,0.2);">
                 </div>
-                <h1 class="display-4 fw-bold mb-4">
-                    Chatbot Factory AI
+                <h1 class="display-3 fw-bold mb-4" style="line-height: 1.2;">
+                    Biznesingiz kelajagi uchun<br>
+                    <span class="text-warning">Aqlli AI Chatbotlar</span>
                 </h1>
-                <p class="lead mb-4">
-                    O'zbek tili uchun professional AI chatbot platformasi.
-                    Telegram uchun aqlli botlar yarating! 🚀
+                <p class="lead mb-5 px-lg-5" style="font-size: 1.25rem; font-weight: 300;">
+                    Telegram botlar, bilim bazasi tahlili, mijozlarni avtomatlashtirilgan holda boshqarish.
+                    Sizning ma'lumotlaringiz asosida yuzlab operatorlar ishini bexato bajaruvchi intellekt! 🚀
                 </p>
-                {% if not current_user.is_authenticated %}
-                <div class="d-flex gap-3">
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-rocket me-2"></i>Bepul boshlash
+                <div class="d-flex justify-content-center flex-wrap gap-3">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5 shadow"
+                        style="border-radius: 50px;">
+                        <i class="fas fa-rocket me-2 text-primary"></i>Bepul boshlash
                     </a>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-5"
+                        style="border-radius: 50px; border-width: 2px;">
                         <i class="fas fa-sign-in-alt me-2"></i>Kirish
                     </a>
+                    {% else %}
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-light btn-lg px-5 shadow"
+                        style="border-radius: 50px;">
+                        <i class="fas fa-tachometer-alt me-2 text-primary"></i>Boshqaruv paneli
+                    </a>
+                    {% endif %}
                 </div>
-                {% else %}
-                <a href="{{ url_for('main.dashboard') }}" class="btn btn-light btn-lg">
-                    <i class="fas fa-tachometer-alt me-2"></i>Boshqaruv paneli
-                </a>
-                {% endif %}
-            </div>
-            <div class="col-lg-6 text-center">
-                <i class="fas fa-robot display-1 text-white-50"></i>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Features Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-5">
-            <i class="fas fa-star me-2"></i>Nima uchun Chatbot Factory AI?
-        </h2>
+<div class="row pt-4 mb-5 pb-5">
+    <div class="col-12 text-center mb-5" data-aos="fade-up">
+        <span class="badge bg-primary text-white px-3 py-2 rounded-pill mb-3"
+            style="font-size: 0.9rem; font-weight: 500;">Imkoniyatlar jannati</span>
+        <h2 class="fw-bold">Nima uchun <span class="text-primary">BotFactory AI?</span></h2>
+        <p class="text-muted">Eng ilg'or texnologiyalar yordamida raqobatchilardan bir qadam oldinda bo'ling</p>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 feature-card">
-            <div class="card-body text-center">
-                <div class="feature-icon mb-3">
+    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card h-100 feature-card text-center border-0 glass-panel">
+            <div class="card-body p-5">
+                <div class="feature-icon mb-4">
                     <i class="fas fa-brain text-primary"></i>
                 </div>
-                <h5 class="card-title">Aqlli AI</h5>
-                <p class="card-text">
-                    Google Gemini AI yordamida o'zbek, rus va ingliz tillarida
-                    professional javoblar beruvchi botlar yarating.
+                <h4 class="card-title fw-bold">Aqlli Sun'iy Intellekt</h4>
+                <p class="card-text text-muted mt-3">
+                    Google Gemini AI yordamida o'zbek, rus va ingliz tillarida mantiqiy, to'g'ri va shablonlarsiz
+                    haqiqiy odamdek suhbatlashadi.
                 </p>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 feature-card">
-            <div class="card-body text-center">
-                <div class="feature-icon mb-3">
+    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="card h-100 feature-card text-center border-0 glass-panel">
+            <div class="card-body p-5">
+                <div class="feature-icon mb-4">
                     <i class="fas fa-mobile-alt text-success"></i>
                 </div>
-                <h5 class="card-title">Telegram Bot</h5>
-                <p class="card-text">
-                    Telegram uchun professional AI botlar yarating.
-                    Oson boshqaruv va kuchli funksiyalar.
+                <h4 class="card-title fw-bold">Tezkor Integratsiya</h4>
+                <p class="card-text text-muted mt-3">
+                    Bitta tugma orqali biznesingizni Telegram platformasiga ulang. Botlarni to'g'ridan-to'g'ri tizimdan
+                    boshqaring.
                 </p>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 feature-card">
-            <div class="card-body text-center">
-                <div class="feature-icon mb-3">
-                    <i class="fas fa-book text-warning"></i>
+    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="card h-100 feature-card text-center border-0 glass-panel">
+            <div class="card-body p-5">
+                <div class="feature-icon mb-4">
+                    <i class="fas fa-database text-warning"></i>
                 </div>
-                <h5 class="card-title">Bilim bazasi</h5>
-                <p class="card-text">
-                    O'z ma'lumotlaringizni yuklang va botingiz sizning
-                    kompaniya haqida batafsil ma'lumot bersin.
+                <h4 class="card-title fw-bold">Shaxsiy Bilim Bazasi</h4>
+                <p class="card-text text-muted mt-3">
+                    O'zingizning PDF, Word yoki oddiy matn hujjatlaringizni tizimga yuklang. AI aynan sizning
+                    ma'lumotlaringiz asosida javob beradi.
                 </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Contact Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="card-title mb-4">
-                    <i class="fas fa-headset me-2"></i>Biz bilan bog'laning
-                </h2>
-                <p class="text-muted mb-4">
-                    Savollaringiz bormi? Bizga yozing yoki qo'ng'iroq qiling!
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <button id="open-chatbot" class="btn btn-primary btn-lg">
-                        <i class="fas fa-robot me-2"></i>Chatbot bilan suhbat
-                    </button>
-                    <a href="{{ config.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011') }}" target="_blank"
-                        class="btn btn-info btn-lg text-white">
-                        <i class="fab fa-telegram me-2"></i>Telegramda yozish
-                    </a>
-                    <a href="tel:{{ config.get('SUPPORT_PHONE', '+998900000000') }}" class="btn btn-success btn-lg">
-                        <i class="fas fa-phone me-2"></i>Qo'ng'iroq qilish
-                    </a>
-                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Portfolio Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-5">
-            <i class="fas fa-briefcase me-2"></i>Bizning loyihalarimiz
-        </h2>
+<div class="row pt-2 mb-5 pb-5 rounded-5 shadow-sm p-4 p-md-5" data-aos="fade-right">
+    <div class="col-12 text-center mb-5">
+        <span class="badge bg-dark text-white px-3 py-2 rounded-pill mb-3"
+            style="font-size: 0.9rem; font-weight: 500;">Portfolio</span>
+        <h2 class="fw-bold">Biz nimalarga qodirmiz?</h2>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm hover-lift">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-store text-primary" style="font-size: 3rem;"></i>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm feature-card border-0">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="me-4">
+                    <i class="fas fa-store text-primary"
+                        style="font-size: 3rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
                 </div>
-                <h5 class="card-title">TrendoAI.uz</h5>
-                <p class="card-text text-muted">
-                    O'zbekiston uchun eng zamonaviy AI e-commerce platformasi.
-                    Kiyim-kechak va aksessuarlar onlayn do'koni.
-                </p>
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="https://trendoai.uz" target="_blank" class="btn btn-primary">
-                        <i class="fas fa-external-link-alt me-1"></i>Ko'rish
-                    </a>
-                    <a href="https://t.me/TrendoAI_Bot" target="_blank" class="btn btn-outline-info">
-                        <i class="fab fa-telegram me-1"></i>Bot
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm hover-lift">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-robot text-success" style="font-size: 3rem;"></i>
-                </div>
-                <h5 class="card-title">BotFactory AI</h5>
-                <p class="card-text text-muted">
-                    Telegram, Instagram va WhatsApp uchun AI chatbotlar yaratish platformasi.
-                    O'zbek tilida to'liq qo'llab-quvvatlash.
-                </p>
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-success">
-                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                <div>
+                    <h4 class="card-title fw-bold">TrendoAI.uz Elektroni Do'kon</h4>
+                    <p class="card-text text-muted small mb-3">
+                        O'zbekiston uchun to'liq sun'iy intellekt integratsiyalashgan zamonaviy kiyim-kechak do'koni.
+                        Maxsus maslahatchi bot bilan interfeys.
+                    </p>
+                    <a href="https://t.me/TrendoAI_Bot" target="_blank"
+                        class="btn btn-sm btn-primary rounded-pill px-3">
+                        <i class="fab fa-telegram me-1"></i> Botni ko'rish
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm hover-lift border-dashed">
-            <div class="card-body text-center d-flex flex-column justify-content-center">
-                <div class="mb-3">
-                    <i class="fas fa-plus-circle text-muted" style="font-size: 3rem;"></i>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm feature-card border-0">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="me-4">
+                    <i class="fas fa-bolt text-warning"
+                        style="font-size: 3rem; background: var(--gradient-warning); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
                 </div>
-                <h5 class="card-title text-muted">Sizning loyihangiz?</h5>
-                <p class="card-text text-muted">
-                    Biz bilan bog'laning va o'z AI chatbotingizni yarating!
-                </p>
-                <a href="{{ config.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011') }}" target="_blank"
-                    class="btn btn-outline-primary">
-                    <i class="fas fa-comments me-1"></i>Bog'lanish
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Pricing Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-5">
-            <i class="fas fa-crown me-2"></i>Tariflar
-        </h2>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card pricing-card h-100">
-            <div class="card-header text-center bg-secondary text-white">
-                <h4 class="my-2">
-                    <i class="fas fa-gift me-2"></i>Test
-                </h4>
-            </div>
-            <div class="card-body text-center">
-                <h2 class="card-title pricing-title">
-                    Bepul
-                    <small class="text-muted fs-6">/14 kun</small>
-                </h2>
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li><i class="fas fa-check text-success me-2"></i>1 ta bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Faqat Telegram</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Faqat o'zbek tili</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Bilim bazasi</li>
-                </ul>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.subscription') }}" class="btn btn-outline-secondary btn-lg w-100">
-                    Tanlash
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-lg w-100">
-                    Boshlash
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card pricing-card h-100 border-info">
-            <div class="card-header text-center bg-info text-white">
-                <h4 class="my-2">
-                    <i class="fas fa-rocket me-2"></i>Starter
-                </h4>
-            </div>
-            <div class="card-body text-center">
-                <h2 class="card-title pricing-title">
-                    165,000 so'm
-                    <small class="text-muted fs-6">/oy</small>
-                </h2>
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li><i class="fas fa-check text-success me-2"></i>1 ta bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Faqat Telegram</li>
-                    <li><i class="fas fa-check text-success me-2"></i>3 ta til (uz/ru/en)</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Bilim bazasi</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Texnik yordam</li>
-                </ul>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.subscription') }}" class="btn btn-info btn-lg w-100">
-                    Tanlash
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-info btn-lg w-100">
-                    Boshlash
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card pricing-card h-100 border-primary">
-            <div class="card-header text-center bg-primary text-white">
-                <h4 class="my-2">
-                    <i class="fas fa-star me-2"></i>Basic
-                </h4>
-            </div>
-            <div class="card-body text-center">
-                <h2 class="card-title pricing-title">
-                    290,000 so'm
-                    <small class="text-muted fs-6">/oy</small>
-                </h2>
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li><i class="fas fa-check text-success me-2"></i>1 ta bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Telegram Bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>3 ta til (uz/ru/en)</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Bilim bazasi</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Texnik yordam</li>
-                </ul>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.subscription') }}" class="btn btn-primary btn-lg w-100">
-                    Tanlash
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg w-100">
-                    Boshlash
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card pricing-card h-100 border-warning">
-            <div class="card-header text-center bg-warning text-dark">
-                <h4 class="my-2">
-                    <i class="fas fa-crown me-2"></i>Premium
-                </h4>
-            </div>
-            <div class="card-body text-center">
-                <h2 class="card-title pricing-title">
-                    590,000 so'm
-                    <small class="text-muted fs-6">/oy</small>
-                </h2>
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li><i class="fas fa-check text-success me-2"></i>5 ta bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Telegram Bot</li>
-                    <li><i class="fas fa-check text-success me-2"></i>3 ta til (uz/ru/en)</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Bilim bazasi</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Prioritet yordam</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Kengaytirilgan analitika</li>
-                </ul>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.subscription') }}" class="btn btn-warning btn-lg w-100">
-                    Tanlash
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg w-100">
-                    Boshlash
-                </a>
-                {% endif %}
+                <div>
+                    <h4 class="card-title fw-bold text-muted">Sizning biznesingiz</h4>
+                    <p class="card-text text-muted small mb-3">
+                        Navbatdagi noyob bot loyihasi sizniki bo'lishi mumkin. Hoziroq o'z shaxsiy botingizni yaratishni
+                        boshlang!
+                    </p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                        <i class="fas fa-plus me-1"></i> Boshlash
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- How it works -->
-<div class="row mb-5">
+<div class="row pt-2 mb-5 pb-5">
+    <div class="col-12 text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold">Qanday ishlaydi? <span class="text-primary">4 qadam</span></h2>
+    </div>
+
+    <div class="col-md-3 mb-4" data-aos="zoom-in" data-aos-delay="50">
+        <div class="text-center">
+            <div class="step-number mb-4 shadow" style="width: 80px; height: 80px; font-size: 2rem;">1</div>
+            <h5 class="fw-bold">Ro'yxatdan o'ting</h5>
+            <p class="text-muted small">
+                Tizimda hisob yarating va dastlabki tekin test kunlaridan foydalaning.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4" data-aos="zoom-in" data-aos-delay="150">
+        <div class="text-center">
+            <div class="step-number mb-4 shadow" style="width: 80px; height: 80px; font-size: 2rem;">2</div>
+            <h5 class="fw-bold">Bot ulanishi</h5>
+            <p class="text-muted small">
+                BotFather'dan token olib, bitta tugma orqali uni loyihaga ulab qo'ying.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4" data-aos="zoom-in" data-aos-delay="250">
+        <div class="text-center">
+            <div class="step-number mb-4 shadow" style="width: 80px; height: 80px; font-size: 2rem;">3</div>
+            <h5 class="fw-bold">Ma'lumot yuklash</h5>
+            <p class="text-muted small">
+                Maxsus matn, savol-javoblar yoki hujjatlarni yuklab AI'ni bilim bilan boyiting.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4" data-aos="zoom-in" data-aos-delay="350">
+        <div class="text-center">
+            <div class="step-number mb-4 shadow" style="width: 80px; height: 80px; font-size: 2rem;">4</div>
+            <h5 class="fw-bold">Mijozlar bilan ishlash</h5>
+            <p class="text-muted small">
+                Botingiz ishga tushdi! Endi AI yordamida yuzlab mijozlar so'rovlari avtomat javoblanadi.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Section -->
+<div class="row pt-2 mb-5 pb-5">
+    <div class="col-12 text-center mb-5" data-aos="fade-up">
+        <span class="badge bg-success text-white px-3 py-2 rounded-pill mb-3"
+            style="font-size: 0.9rem; font-weight: 500;">Hamyonbop</span>
+        <h2 class="fw-bold">Siz uchun mo'ljallangan Tariflar</h2>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="flip-left" data-aos-delay="100">
+        <div class="card pricing-card text-center border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="text-muted mb-0 fw-bold">Test (Bepul)</h5>
+                <p class="small text-muted mb-0">7 kun davomida kuchi sinash uchun.</p>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="card-title fw-bold mb-4">0 <span class="fs-6 text-muted">so'm</span></h2>
+                <ul class="list-unstyled text-start mb-4 text-muted small">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>1 ta bot</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Faqat Telegram</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Faqat o'zbek tili</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Bilim bazasi</li>
+                </ul>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-dark rounded-pill w-100 fw-bold">Test
+                    uchun</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="flip-left" data-aos-delay="200">
+        <div class="card pricing-card text-center border-0 shadow-lg position-relative"
+            style="border-top: 5px solid #0ea5e9 !important; transform: scale(1.03); z-index: 10;">
+            <div class="popular-badge badge bg-info px-3 py-2 rounded-pill shadow text-white">Eng ommabop</div>
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="text-info mb-0 fw-bold">Standart</h5>
+                <p class="small text-muted mb-0">Boshlang'ich bizneslar uchun.</p>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="card-title fw-bold text-info mb-4">165,000 <span class="fs-6 text-muted">so'm/oy</span></h2>
+                <ul class="list-unstyled text-start mb-4 text-muted small">
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>1 ta uzluksiz bot</li>
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Faqat Telegram</li>
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>3 ta til (uz/ru/en)</li>
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Keng ko'lamli bilim bazasi</li>
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Kengaytirilgan AI (GPT)</li>
+                    <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Texnik yordam</li>
+                </ul>
+                <a href="{{ url_for('main.subscription') }}"
+                    class="btn btn-info text-white rounded-pill w-100 fw-bold shadow">Hozir sotib oling</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="flip-left" data-aos-delay="300">
+        <div class="card pricing-card text-center border-0 shadow" style="border-top: 5px solid #f59e0b !important;">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="text-warning mb-0 fw-bold">Premium</h5>
+                <p class="small text-muted mb-0">Katta kompaniyalar va jamoalar uchun maxsus.</p>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="card-title fw-bold mb-4">590,000 <span class="fs-6 text-muted">so'm/oy</span></h2>
+                <ul class="list-unstyled text-start mb-4 text-muted small">
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>3 ta botgacha
+                    </li>
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Texnik Ko'mak</li>
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Keng ko'lamli bilim bazasi</li>
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Admin Panel monitoringi</li>
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Kengaytirilgan analitika</li>
+                    <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Haftalik hisobot</li>
+                </ul>
+                <a href="{{ url_for('main.subscription') }}"
+                    class="btn btn-warning rounded-pill w-100 fw-bold shadow-sm text-dark">Eksklyuziv tanlov</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if latest_posts %}
+<!-- Blog Preview -->
+<div class="row pt-2 mb-5 pb-2">
+    <div class="col-12 text-center mb-4" data-aos="fade-up">
+        <span class="badge bg-primary text-white px-3 py-2 rounded-pill mb-3"
+            style="font-size: 0.9rem; font-weight: 500;">Blog</span>
+        <h2 class="fw-bold">So'nggi <span class="text-primary">maqolalar</span></h2>
+        <p class="text-muted">Foydali amaliy postlar: sozlash, xavfsizlik va o'sish strategiyalari</p>
+    </div>
+
+    {% for p in latest_posts %}
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 80 }}">
+        <div class="card h-100 border-0 shadow-sm feature-card">
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="small text-muted mb-2">
+                    <i class="far fa-calendar me-1"></i>{{ p.published_human }}
+                    <span class="mx-2">|</span>
+                    <i class="far fa-clock me-1"></i>{{ p.reading_minutes }} daqiqa
+                </div>
+                <h5 class="fw-bold mb-2">
+                    <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a>
+                </h5>
+                <p class="text-muted small mb-3">{{ p.description or p.excerpt }}</p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        O'qish <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="col-12 text-center">
+        <a href="{{ url_for('main.blog_index') }}" class="btn btn-outline-dark rounded-pill px-4">
+            <i class="fas fa-newspaper me-2"></i>Barcha maqolalarni ko'rish
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Contact Banner -->
+<div class="row pt-2 mb-2" data-aos="fade-up">
     <div class="col-12">
-        <h2 class="text-center mb-5">
-            <i class="fas fa-cogs me-2"></i>Qanday ishlaydi?
-        </h2>
-    </div>
+        <div class="card border-0 shadow-lg text-white"
+            style="background: var(--dark-color); border-radius: 20px; overflow: hidden;">
+            <div class="card-body p-5 position-relative text-center">
+                <div class="position-absolute"
+                    style="top: -50px; left: -50px; width: 250px; height: 250px; background: rgba(79, 70, 229, 0.5); filter: blur(50px); border-radius: 50%;">
+                </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="text-center">
-            <div class="step-number mb-3">1</div>
-            <h5>Ro'yxatdan o'ting</h5>
-            <p class="text-body">
-                14 kunlik bepul sinov davri bilan
-                tizimda ro'yxatdan o'ting
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="text-center">
-            <div class="step-number mb-3">2</div>
-            <h5>Bot yarating</h5>
-            <p class="text-body">
-                Oddiy interfeys orqali o'z
-                chatbotingizni sozlang
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="text-center">
-            <div class="step-number mb-3">3</div>
-            <h5>Ma'lumot yuklang</h5>
-            <p class="text-body">
-                Kompaniya ma'lumotlarini yuklang
-                va botni o'qiting
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="text-center">
-            <div class="step-number mb-3">4</div>
-            <h5>Ishga tushiring</h5>
-            <p class="text-body">
-                Botingiz tayyor! Mijozlar bilan
-                24/7 muloqot qiling
-            </p>
+                <h3 class="fw-bold position-relative z-1 mb-4">Yordam kerakmi yoki savollaringiz bormi?</h3>
+                <p class="position-relative z-1 lead mb-4" style="color: rgba(255,255,255,0.8);">
+                    Mutaxassislarimiz bilan bog'lanib barcha ma'lumotlarni mukammal qabul qiling.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button id="open-chatbot" class="btn btn-primary btn-lg rounded-pill px-4 py-3 shadow">
+                        <i class="fas fa-robot me-2"></i>Sun'iy yordamchi
+                    </button>
+                    <a href="tel:{{ config.get('SUPPORT_PHONE', '+998900000000') }}"
+                        class="btn btn-light btn-lg rounded-pill px-4 py-3 shadow-sm">
+                        <i class="fas fa-phone-alt me-2 text-dark"></i>Qo'ng'iroq qilish
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

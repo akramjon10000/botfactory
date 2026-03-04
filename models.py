@@ -53,7 +53,7 @@ class User(UserMixin, db.Model):
             return False
         elif self.subscription_type in ['starter', 'basic'] and bot_count >= 1:
             return False
-        elif self.subscription_type == 'premium' and bot_count >= 5:
+        elif self.subscription_type == 'premium' and bot_count >= 3:
             return False
         return True
     
@@ -76,7 +76,7 @@ class User(UserMixin, db.Model):
             else:
                 # For legacy free users without end_date, give them 15 days from start or creation
                 base_date = self.subscription_start_date or self.created_at or datetime.utcnow()
-                computed_end = base_date + timedelta(days=15)
+                computed_end = base_date + timedelta(days=7)
                 return datetime.utcnow() < computed_end
                 
         # For paid subscriptions, require valid end_date

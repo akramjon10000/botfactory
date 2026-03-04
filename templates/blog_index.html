@@ -1,36 +1,83 @@
-{% extends "base.html" %}
-{% block title %}Blog — BotFactory AI{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}Blog | BotFactory AI{% endblock %}
 {% block og_title %}BotFactory AI Blog{% endblock %}
 {% block og_description %}Telegram, Instagram, WhatsApp uchun AI chatbot bo'yicha qo'llanmalar va yangiliklar.{% endblock %}
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container py-4 py-lg-5">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
     <div>
       <h1 class="mb-0"><i class="fas fa-newspaper text-primary"></i> Blog</h1>
-      <p class="text-muted mb-0">AI chatbot va messenjer integratsiyalari bo'yicha maqolalar</p>
+      <p class="text-muted mb-0">Real tajriba, amaliy qo'llanma va platforma yangiliklari</p>
     </div>
-    <a class="btn btn-outline-secondary" href="{{ url_for('main.index') }}"><i class="fas fa-home me-1"></i> Bosh sahifa</a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.index') }}"><i class="fas fa-home me-1"></i> Bosh sahifa</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('main.blog_rss') }}"><i class="fas fa-rss me-1"></i> RSS</a>
+    </div>
   </div>
 
   {% if posts %}
+  {% set featured = posts[0] %}
+  <article class="card border-0 shadow-sm mb-4 blog-featured-card">
+    <div class="card-body p-4 p-lg-5">
+      <span class="badge text-bg-primary mb-3">So'nggi post</span>
+      <h2 class="h3 fw-bold mb-2">
+        <a href="{{ url_for('main.blog_post', slug=featured.slug) }}" class="text-decoration-none">{{ featured.title }}</a>
+      </h2>
+      <p class="text-muted mb-3">{{ featured.description or featured.excerpt }}</p>
+      <div class="d-flex flex-wrap gap-3 small text-muted mb-3">
+        <span><i class="far fa-calendar me-1"></i>{{ featured.published_human }}</span>
+        <span><i class="far fa-clock me-1"></i>{{ featured.reading_minutes }} daqiqa</span>
+        <span><i class="far fa-user me-1"></i>{{ featured.author }}</span>
+      </div>
+      {% if featured.tags %}
+      <div class="mb-3">
+        {% for tag in featured.tags[:5] %}
+        <span class="badge rounded-pill text-bg-light border me-1 mb-1">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <a href="{{ url_for('main.blog_post', slug=featured.slug) }}" class="btn btn-primary">
+        <i class="fas fa-book-open me-1"></i> To'liq o'qish
+      </a>
+    </div>
+  </article>
+
+  {% if posts|length > 1 %}
   <div class="row g-4">
-    {% for p in posts %}
-    <div class="col-md-6">
-      <div class="card h-100 shadow-sm">
+    {% for p in posts[1:] %}
+    <div class="col-lg-4 col-md-6">
+      <article class="card h-100 shadow-sm border-0 blog-post-card">
         <div class="card-body d-flex flex-column">
-          <h5 class="card-title mb-2"><a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a></h5>
-          <p class="card-text text-muted">{{ p.description }}</p>
-          <div class="mt-auto d-flex justify-content-between align-items-center">
-            <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="btn btn-sm btn-primary"><i class="fas fa-book-open me-1"></i> O'qish</a>
-            <small class="text-muted">/{{ p.slug }}</small>
+          <h3 class="h5 card-title mb-2">
+            <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a>
+          </h3>
+          <p class="card-text text-muted mb-3">{{ p.description or p.excerpt }}</p>
+          <div class="small text-muted mb-3 d-flex flex-wrap gap-3">
+            <span><i class="far fa-calendar me-1"></i>{{ p.published_human }}</span>
+            <span><i class="far fa-clock me-1"></i>{{ p.reading_minutes }} daqiqa</span>
+          </div>
+          {% if p.tags %}
+          <div class="mb-3">
+            {% for tag in p.tags[:3] %}
+            <span class="badge rounded-pill text-bg-light border me-1 mb-1">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="mt-auto">
+            <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-arrow-right me-1"></i> O'qish
+            </a>
           </div>
         </div>
-      </div>
+      </article>
     </div>
     {% endfor %}
   </div>
+  {% endif %}
   {% else %}
-  <div class="alert alert-info">Hozircha maqolalar yo'q.</div>
+  <div class="alert alert-info mb-0">
+    Hozircha maqolalar yo'q. <code>content/blog</code> papkasiga yangi <code>.md</code> post qo'shsangiz avtomatik chiqadi.
+  </div>
   {% endif %}
 </div>
 {% endblock %}
