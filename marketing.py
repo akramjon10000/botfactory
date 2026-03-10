@@ -264,7 +264,7 @@ class MarketingCampaigns:
                 <p>Chatbot Factory AI platformasiga xush kelibsiz! Siz endi o'zingizning AI chatbotlaringizni yaratishingiz mumkin.</p>
                 
                 <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h3>🎁 14 kunlik bepul sinov:</h3>
+                    <h3>🎁 7 kunlik bepul sinov:</h3>
                     <ul>
                         <li>✅ 1 ta bot yaratish</li>
                         <li>✅ Telegram integratsiyasi</li>
@@ -308,7 +308,7 @@ Salom, {user.username}!
 
 Chatbot Factory AI ga xush kelibsiz! Siz endi o'zingizning AI chatbotlaringizni yaratishingiz mumkin.
 
-14 kunlik bepul sinov:
+7 kunlik bepul sinov:
 - 1 ta bot yaratish
 - Telegram integratsiyasi  
 - O'zbek tilida AI javoblar
@@ -502,7 +502,7 @@ https://t.me/akramjon0011"""
                 <p>Hurmatli {{ username }},</p>
                 
                 <div style="background: #fee2e2; border: 2px solid #fca5a5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <p><strong>🕐 Sizning 14 kunlik bepul sinov muddatingiz bugun tugadi!</strong></p>
+                    <p><strong>🕐 Sizning 7 kunlik bepul sinov muddatingiz bugun tugadi!</strong></p>
                     <p>Barcha premium imkoniyatlardan foydalanishni davom ettirish uchun to'lov ta'rifini tanlang.</p>
                 </div>
                 
@@ -560,7 +560,7 @@ https://t.me/akramjon0011"""
         
         text_content = f"""Hurmatli {user.username},
 
-🕐 Sizning 14 kunlik bepul sinov muddatingiz bugun tugadi!
+🕐 Sizning 7 kunlik bepul sinov muddatingiz bugun tugadi!
 
 🚀 Premium ta'riflari:
 💰 Basic - 290,000 so'm/oy
@@ -578,7 +578,7 @@ https://t.me/akramjon0011"""
         # SMS ham yuborish
         sms_message = f"""🤖 Chatbot Factory AI
 
-{user.username}, 14 kunlik bepul sinov tugadi!
+{user.username}, 7 kunlik bepul sinov tugadi!
 
 💰 Basic: 290,000 so'm
 💎 Premium: 590,000 so'm

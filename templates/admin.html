@@ -26,7 +26,8 @@
                         {% if current_user.telegram_id %}
                         <p><strong>Sizning Telegram ID:</strong> <span class="badge bg-success">{{
                                 current_user.telegram_id }}</span></p>
-                        <form method="POST" action="{{ url_for('admin_routes.test_message') }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('admin_routes.test_message') }}"
+                            style="display: inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-success me-2">
                                 <i class="fas fa-paper-plane me-1"></i>📧 Test xabar yuborish
@@ -546,7 +547,7 @@
                                 <label for="segment" class="form-label">Segment (ixtiyoriy)</label>
                                 <select class="form-select" id="segment" name="segment">
                                     <option value="">— Segment tanlanmagan —</option>
-                                    <option value="trial_14">Faqat 14 kunlik sinovdagilar</option>
+                                    <option value="trial_14">Faqat 7 kunlik sinovdagilar</option>
                                     <option value="active_30d">So'nggi 30 kunda aktiv bo'lganlar</option>
                                     <option value="paid">Pullik obunachilar</option>
                                     <option value="unpaid">Pullik emaslar (free)</option>
@@ -648,7 +649,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                <form method="POST" action="{{ url_for('admin_routes.cleanup_chat_history') }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('admin_routes.cleanup_chat_history') }}"
+                    style="display: inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-broom me-2"></i>Tozalash

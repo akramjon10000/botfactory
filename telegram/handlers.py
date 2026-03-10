@@ -587,7 +587,7 @@ class TelegramBot:
             if not subscription_ok:
                 logger.info("DEBUG: Subscription not active and free trial expired")
                 if update.message:
-                    await update.message.reply_text("❌ Obunangiz tugagan yoki bepul 14 kunlik sinov muddati yakunlangan. Iltimos, obunani yangilang.")
+                    await update.message.reply_text("❌ Obunangiz tugagan yoki bepul 7 kunlik sinov muddati yakunlangan. Iltimos, obunani yangilang.")
                 return
 
             logger.info("DEBUG: Subscription active or trial active")

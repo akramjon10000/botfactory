@@ -145,7 +145,7 @@ def process_webhook_update(bot_id, bot_token, update_data):
                     trial_active = False
 
                 if not (telegram_user.subscription_active() or trial_active):
-                    send_webhook_message(bot_token, chat_id, "Sizning obunangiz tugagan yoki 14 kunlik sinov muddati yakunlangan. Iltimos, yangilang!")
+                    send_webhook_message(bot_token, chat_id, "Sizning obunangiz tugagan yoki 7 kunlik sinov muddati yakunlangan. Iltimos, yangilang!")
                     return True
 
                 # Komandalarni qayta ishlash
