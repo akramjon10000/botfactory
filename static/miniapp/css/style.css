@@ -52,6 +52,20 @@ body {
     padding: 20px 16px;
     background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
     border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0, 212, 170, 0.1), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .business-info {
@@ -227,7 +241,40 @@ body {
 }
 
 .catalog-item:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
+}
+
+.catalog-item:hover {
+    box-shadow: 0 8px 24px var(--shadow);
+}
+
+/* Staggered animation for catalog items */
+.catalog-item {
+    animation: fadeInUp 0.4s ease backwards;
+}
+
+.catalog-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.catalog-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.catalog-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.catalog-item:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.catalog-item:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.catalog-item:nth-child(6) {
+    animation-delay: 0.3s;
 }
 
 .item-image {
@@ -670,4 +717,49 @@ body {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+/* ===== Contact Actions ===== */
+.contact-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.btn-half {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* ===== Section Transitions ===== */
+.section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Improved Scrollbar ===== */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
 }

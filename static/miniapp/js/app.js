@@ -51,7 +51,9 @@ function initElements() {
     elements.contactPhone = document.getElementById('contactPhone');
     elements.contactAddress = document.getElementById('contactAddress');
     elements.contactHours = document.getElementById('contactHours');
+    elements.contactTelegram = document.getElementById('contactTelegram');
     elements.callButton = document.getElementById('callButton');
+    elements.telegramButton = document.getElementById('telegramButton');
 }
 
 function initTelegram() {
@@ -251,6 +253,16 @@ function renderContact(contact) {
 
     if (contact.phone) {
         elements.callButton.href = `tel:${contact.phone}`;
+    }
+
+    // Telegram contact
+    if (contact.telegram) {
+        const tgId = contact.telegram.replace('@', '');
+        elements.contactTelegram.textContent = `@${tgId}`;
+        elements.telegramButton.href = `https://t.me/${tgId}`;
+    } else {
+        elements.contactTelegram.textContent = 'Ko\'rsatilmagan';
+        elements.telegramButton.style.display = 'none';
     }
 }
 

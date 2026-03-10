@@ -75,15 +75,21 @@ def get_contact_info(bot_id):
         if not bot:
             return jsonify({'error': 'Bot topilmadi'}), 404
         
-        # Get contact info from bot owner or environment
-        phone = os.environ.get('SUPPORT_PHONE', '+998996448444')
+        # Get contact info from bot owner
+        phone = ''
+        telegram = ''
         address = 'Ko\'rsatilmagan'
         working_hours = '09:00 - 18:00'
         
         if bot.owner:
-            # Check if owner has custom contact info
-            if hasattr(bot.owner, 'phone') and bot.owner.phone:
-                phone = bot.owner.phone
+            phone = bot.owner.phone_number or ''
+            telegram = bot.owner.telegram_id or ''
+        
+        # Fallback to env if owner has no info
+        if not phone:
+            phone = os.environ.get('SUPPORT_PHONE', '+998996448444')
+        if not telegram:
+            telegram = os.environ.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011')
         
         # Try to get working hours from bot settings
         if hasattr(bot, 'working_hours') and bot.working_hours:
@@ -93,7 +99,7 @@ def get_contact_info(bot_id):
             'phone': phone,
             'address': address,
             'working_hours': working_hours,
-            'telegram': os.environ.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011')
+            'telegram': telegram
         })
         
     except Exception as e:
