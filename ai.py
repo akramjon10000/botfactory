@@ -113,7 +113,7 @@ def get_ai_response(message: str, bot_name: str = "Chatbot Factory AI", user_lan
             
             error_msg = error_msg.encode('ascii', errors='ignore').decode('ascii')
             logging.error(f"AI response error: {error_msg}")
-        except:
+        except Exception:
             logging.error("AI response error: Unicode encoding issue")
         return get_fallback_response(user_language)
 

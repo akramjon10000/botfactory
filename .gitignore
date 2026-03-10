@@ -49,3 +49,6 @@ node_modules/
 
 # PWA/Service worker builds
 static/sw.js.map
+
+# Sensitive files
+cookies.txt

@@ -84,6 +84,14 @@ def register():
                 flash('Parol kamida 6 ta belgidan iborat bo\'lishi kerak!', 'error')
                 return render_template('register.html')
             
+            # Phone number validation
+            import re
+            clean_phone = re.sub(r'[\s\-\(\)]', '', phone_number)
+            if not re.match(r'^\+998\d{9}$', clean_phone):
+                flash('Telefon raqam noto\'g\'ri formatda! +998XXXXXXXXX ko\'rinishida kiriting.', 'error')
+                return render_template('register.html')
+            phone_number = clean_phone  # Save cleaned version
+            
             # Check if user exists with database error handling
             try:
                 existing_user = User.query.filter_by(username=username).first()
@@ -94,6 +102,11 @@ def register():
                 existing_email = User.query.filter_by(email=email).first()
                 if existing_email:
                     flash('Bu email band!', 'error')
+                    return render_template('register.html')
+                
+                existing_phone = User.query.filter_by(phone_number=phone_number).first()
+                if existing_phone:
+                    flash('Bu telefon raqam allaqachon ro\'yxatdan o\'tgan!', 'error')
                     return render_template('register.html')
             except Exception as db_check_error:
                 logging.error(f"Database check error: {str(db_check_error)}")

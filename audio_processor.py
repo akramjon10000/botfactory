@@ -45,7 +45,10 @@ class AudioProcessor:
             logger.info(f"Audio matn: {text_from_audio}")
             
             # 2. AI javob olish
-            ai_response = get_ai_response(text_from_audio, user_id)
+            ai_response = get_ai_response(
+                message=text_from_audio,
+                user_language=language
+            )
             
             return f"🎤 Sizning xabaringiz: \"{text_from_audio}\"\n\n{ai_response}"
             
