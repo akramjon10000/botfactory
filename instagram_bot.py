@@ -213,7 +213,7 @@ class InstagramBot:
                 except Exception as _:
                     try:
                         db.session.rollback()
-                    except:
+                    except Exception:
                         pass
 
                 # AI javobini olish

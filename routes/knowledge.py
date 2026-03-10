@@ -242,7 +242,7 @@ def upload_knowledge(bot_id):
                 error_details = error_details.encode('ascii', errors='ignore').decode('ascii')
                 if error_details.strip():
                     error_msg = f'Fayl yuklashda xatolik: {error_details}'
-            except:
+            except Exception:
                 pass
             flash(error_msg, 'error')
     

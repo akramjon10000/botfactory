@@ -283,7 +283,7 @@ Yangi obunani BotFactory.uz saytidan sotib oling.
                 except Exception as _:
                     try:
                         db.session.rollback()
-                    except:
+                    except Exception:
                         pass
                 
                 # AI javobini olish
@@ -636,7 +636,7 @@ def whatsapp_webhook(bot_id):
                                         logger.error(f"Customer tracking error: {str(e)}")
                                         try:
                                             db.session.rollback()
-                                        except:
+                                        except Exception:
                                             pass
             
             return 'OK', 200

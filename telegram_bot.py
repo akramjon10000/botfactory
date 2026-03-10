@@ -92,7 +92,7 @@ class TelegramHTTPBot:
             # Ultra-safe logging
             try:
                 logger.error("Error sending message occurred")
-            except:
+            except Exception:
                 pass
             return None
     
@@ -122,7 +122,7 @@ class TelegramHTTPBot:
         except Exception as e:
             try:
                 logger.error("Error sending chat action occurred")
-            except:
+            except Exception:
                 pass
             return None
     
@@ -139,7 +139,7 @@ class TelegramHTTPBot:
             # Ultra-safe logging
             try:
                 logger.error("Error getting updates occurred")
-            except:
+            except Exception:
                 pass
             return {'ok': False, 'result': []}
             
@@ -340,7 +340,7 @@ class TelegramApplication:
                 try:
                     error_safe = str(e).encode('ascii', errors='ignore').decode('ascii')
                     logger.error(f"Polling error: {error_safe}")
-                except:
+                except Exception:
                     logger.error("Polling error: encoding issue")
                 import time
                 time.sleep(5)
@@ -514,7 +514,7 @@ class TelegramBot:
                 logging.error(f"Failed to track customer: {str(customer_error)}")
                 try:
                     db.session.rollback()
-                except:
+                except Exception:
                     pass
             
             welcome_message = f"🤖 Salom! Men {bot_name} chatbot!\n\n"
@@ -898,7 +898,7 @@ class TelegramBot:
                                 logger.error(f"Failed to save voice chat history: {str(db_error)[:100]}")
                                 try:
                                     db.session.rollback()
-                                except:
+                                except Exception:
                                     pass
                     
                     except Exception as processing_error:
@@ -994,7 +994,7 @@ class TelegramBot:
                 logger.error(f"Failed to track customer interaction: {str(customer_error)}")
                 try:
                     db.session.rollback()
-                except:
+                except Exception:
                     pass
             
             # Check subscription with 14-day free trial per bot for new users
@@ -1168,7 +1168,7 @@ class TelegramBot:
                             try:
                                 db.session.rollback()
                                 logger.error(f"Chat history save failed, rolled back: {str(db_error)[:100]}")
-                            except:
+                            except Exception:
                                 logger.error("Chat history save failed and rollback failed")
                         
                         # Send notification to admin using bot's own token
@@ -1186,7 +1186,7 @@ class TelegramBot:
                                 try:
                                     if update and update.effective_user and hasattr(update.effective_user, 'username'):
                                         username = update.effective_user.username or ""
-                                except:
+                                except Exception:
                                     username = ""
                                 
                                 bot_notification_service.send_chat_notification(
@@ -1236,7 +1236,7 @@ class TelegramBot:
                         try:
                             if update.message:
                                 await update.message.reply_text("Javob tayyor! 🤖")
-                        except:
+                        except Exception:
                             logger.error("Failed to send fallback message")
                 else:
                     await update.message.reply_text("Javob berishda xatolik yuz berdi! Keyinroq urinib ko'ring. ⚠️")
@@ -1246,13 +1246,13 @@ class TelegramBot:
                 try:
                     error_str = str(e).encode('ascii', errors='ignore').decode('ascii')[:200]
                     logger.error(f"DEBUG: Message handling failed: {error_str}")
-                except:
+                except Exception:
                     logger.error("DEBUG: Message handling failed with encoding error")
                 
                 # Send simple error message
                 try:
                     await update.message.reply_text("Xatolik yuz berdi!")
-                except:
+                except Exception:
                     print("[ERROR] Cannot send error message to user")
     
     
@@ -1283,7 +1283,7 @@ class TelegramBot:
             try:
                 error_safe = str(e).encode('ascii', errors='ignore').decode('ascii')
                 logger.error(f"Bot running error: {error_safe}")
-            except:
+            except Exception:
                 logger.error("Bot running error: encoding issue")
 
 def start_telegram_bot(bot_token, bot_id):
