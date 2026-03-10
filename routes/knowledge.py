@@ -305,7 +305,7 @@ def add_text_knowledge(bot_id):
             error_details = error_details.encode('ascii', errors='ignore').decode('ascii')
             if error_details.strip():
                 error_msg = f'Matn qo\'shishda xatolik: {error_details}'
-        except:
+        except Exception:
             pass
         flash(error_msg, 'error')
     return redirect(url_for('bot.edit_bot', bot_id=bot_id))

@@ -1387,7 +1387,7 @@ def send_message_to_bot_customer(bot_id: int, platform: str, platform_user_id: s
     except Exception as e:
         try:
             logger.error(f"Error sending message to bot customer: {str(e)[:100]}")
-        except:
+        except Exception:
             pass
         return False
 
