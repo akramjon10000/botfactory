@@ -65,13 +65,14 @@ def register():
         try:
             username = request.form.get('username')
             email = request.form.get('email')
+            phone_number = request.form.get('phone_number')
             password = request.form.get('password')
             confirm_password = request.form.get('confirm_password')
             
             logging.info(f"Registration attempt for username: {username}, email: {email}")
             
             # Validation
-            if not all([username, email, password, confirm_password]):
+            if not all([username, email, phone_number, password, confirm_password]):
                 flash('Barcha maydonlar to\'ldirilishi shart!', 'error')
                 return render_template('register.html')
             
@@ -103,6 +104,7 @@ def register():
             user = User()
             user.username = username
             user.email = email
+            user.phone_number = phone_number
             user.password_hash = generate_password_hash(password or '')
             user.language = 'uz'
             user.subscription_type = 'free'
