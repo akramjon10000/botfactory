@@ -14,7 +14,7 @@
             </div>
             <div>
                 {% if subscription_info.can_create %}
-                <a href="{{ url_for('main.create_bot') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <a href="{{ url_for('bot.create_bot') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
                     <i class="fas fa-plus me-2"></i>Yangi bot yaratish
                 </a>
                 {% endif %}
@@ -167,7 +167,7 @@
                     Mening loyihalarim
                 </h4>
                 {% if subscription_info.can_create %}
-                <a href="{{ url_for('main.create_bot') }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                <a href="{{ url_for('bot.create_bot') }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
                     <i class="fas fa-plus me-1"></i>Yangi yaratish
                 </a>
                 {% endif %}
@@ -240,7 +240,7 @@
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2">
                                         {% if bot.is_active %}
-                                        <form method="POST" action="{{ url_for('main.stop_bot', bot_id=bot.id) }}"
+                                        <form method="POST" action="{{ url_for('bot.stop_bot', bot_id=bot.id) }}"
                                             class="m-0">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit"
@@ -251,7 +251,7 @@
                                             </button>
                                         </form>
                                         {% else %}
-                                        <form method="POST" action="{{ url_for('main.start_bot', bot_id=bot.id) }}"
+                                        <form method="POST" action="{{ url_for('bot.start_bot', bot_id=bot.id) }}"
                                             class="m-0">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit"
@@ -263,19 +263,19 @@
                                         </form>
                                         {% endif %}
 
-                                        <a href="{{ url_for('main.edit_bot', bot_id=bot.id) }}"
+                                        <a href="{{ url_for('bot.edit_bot', bot_id=bot.id) }}"
                                             class="btn btn-sm rounded-circle shadow-sm hover-lift d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary border-0"
                                             title="Tahrirlash va Sozlamalar"
                                             style="width: 36px; height: 36px; transition: all 0.2s;">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{{ url_for('main.bot_messaging', bot_id=bot.id) }}"
+                                        <a href="{{ url_for('webhook.bot_messaging', bot_id=bot.id) }}"
                                             class="btn btn-sm rounded-circle shadow-sm hover-lift d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info border-0"
                                             title="Mijozlarga xabar yuborish"
                                             style="width: 36px; height: 36px; transition: all 0.2s;">
                                             <i class="fas fa-paper-plane"></i>
                                         </a>
-                                        <form method="POST" action="{{ url_for('main.delete_bot', bot_id=bot.id) }}"
+                                        <form method="POST" action="{{ url_for('bot.delete_bot', bot_id=bot.id) }}"
                                             class="m-0"
                                             onsubmit="return confirm('Siz ushbu interfeysdagi botni o\'chiryapsiz, davom etasizmi?')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -341,7 +341,7 @@
                                 xavfsiz holda
                                 monitoring qilish uchun sozlang.</p>
                             {% if bots %}
-                            <a href="{{ url_for('main.edit_bot', bot_id=bots[0].id) }}"
+                            <a href="{{ url_for('bot.edit_bot', bot_id=bots[0].id) }}"
                                 class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm mt-1 fw-bold text-dark hover-lift">
                                 <i class="fas fa-cog me-1"></i>Suhbat kuzatuvini sozlash
                             </a>
@@ -363,7 +363,7 @@
                     <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">Botingizga yangi "jon" baxsh etish
                         uchun maxsus ma'lumotlaringiz asosida birinchi AI yordamchingizni yarating.</p>
                     {% if subscription_info.can_create %}
-                    <a href="{{ url_for('main.create_bot') }}"
+                    <a href="{{ url_for('bot.create_bot') }}"
                         class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
                         <i class="fas fa-plus me-2"></i>Birinchi botni yaratish
                     </a>

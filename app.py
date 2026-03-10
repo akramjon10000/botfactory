@@ -197,7 +197,7 @@ app.jinja_env.globals['csrf_token'] = generate_csrf
 app.jinja_env.globals['config'] = app.config
 
 # Import routes after app creation to avoid circular imports
-from routes import main_bp
+from routes import main_bp, blog_bp, admin_routes_bp, bot_bp, knowledge_bp, webhook_bp
 from auth import auth_bp
 from payments import payment_bp
 from instagram_bot import instagram_bp
@@ -207,6 +207,11 @@ from bot_status import bot_status_bp
 from miniapp_api import miniapp_bp
 
 app.register_blueprint(main_bp)
+app.register_blueprint(blog_bp)
+app.register_blueprint(admin_routes_bp)
+app.register_blueprint(bot_bp)
+app.register_blueprint(knowledge_bp)
+app.register_blueprint(webhook_bp)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(payment_bp, url_prefix='/payment')
 app.register_blueprint(instagram_bp, url_prefix='/instagram')

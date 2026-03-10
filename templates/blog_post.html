@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}{{ post.title }} | Blog | BotFactory AI{% endblock %}
 {% block og_title %}{{ post.title }} | BotFactory AI{% endblock %}
 {% block og_description %}{{ post.description or post.excerpt }}{% endblock %}
@@ -7,7 +7,7 @@
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Bosh sahifa</a></li>
-      <li class="breadcrumb-item"><a href="{{ url_for('main.blog_index') }}">Blog</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('blog.blog_index') }}">Blog</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
     </ol>
   </nav>
@@ -43,7 +43,7 @@
     <div class="row g-3">
       {% for r in related %}
       <div class="col-md-6">
-        <a href="{{ url_for('main.blog_post', slug=r.slug) }}" class="text-decoration-none">
+        <a href="{{ url_for('blog.blog_post', slug=r.slug) }}" class="text-decoration-none">
           <article class="card border-0 shadow-sm h-100 blog-related-card">
             <div class="card-body">
               <h3 class="h6 mb-2">{{ r.title }}</h3>
@@ -115,3 +115,4 @@
 }
 </script>
 {% endblock %}
+

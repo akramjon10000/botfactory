@@ -37,7 +37,7 @@
                             <h5 class="mb-0"><i class="fas fa-edit"></i> Yangi xabar yaratish</h5>
                         </div>
                         <div class="card-body">
-                            <form action="{{ url_for('main.send_bot_message', bot_id=bot.id) }}" method="POST">
+                            <form action="{{ url_for('webhook.send_bot_message', bot_id=bot.id) }}" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <!-- Xabar turi tanlash -->
                                 <div class="mb-3">

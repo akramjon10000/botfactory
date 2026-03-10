@@ -292,11 +292,11 @@
                     <i class="far fa-clock me-1"></i>{{ p.reading_minutes }} daqiqa
                 </div>
                 <h5 class="fw-bold mb-2">
-                    <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a>
+                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a>
                 </h5>
                 <p class="text-muted small mb-3">{{ p.description or p.excerpt }}</p>
                 <div class="mt-auto">
-                    <a href="{{ url_for('main.blog_post', slug=p.slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                         O'qish <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -306,7 +306,7 @@
     {% endfor %}
 
     <div class="col-12 text-center">
-        <a href="{{ url_for('main.blog_index') }}" class="btn btn-outline-dark rounded-pill px-4">
+        <a href="{{ url_for('blog.blog_index') }}" class="btn btn-outline-dark rounded-pill px-4">
             <i class="fas fa-newspaper me-2"></i>Barcha maqolalarni ko'rish
         </a>
     </div>
@@ -341,3 +341,4 @@
     </div>
 </div>
 {% endblock %}
+

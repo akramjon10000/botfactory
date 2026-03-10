@@ -26,7 +26,7 @@
                         {% if current_user.telegram_id %}
                         <p><strong>Sizning Telegram ID:</strong> <span class="badge bg-success">{{
                                 current_user.telegram_id }}</span></p>
-                        <form method="POST" action="{{ url_for('main.test_message') }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('admin_routes.test_message') }}" style="display: inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-success me-2">
                                 <i class="fas fa-paper-plane me-1"></i>📧 Test xabar yuborish
@@ -37,7 +37,7 @@
                             <strong>⚠️ Telegram ID mavjud emas!</strong><br>
                             Test xabar yuborish uchun Telegram ID ni kiriting:
                         </div>
-                        <form method="POST" action="{{ url_for('main.set_telegram_id') }}" class="mb-3">
+                        <form method="POST" action="{{ url_for('admin_routes.set_telegram_id') }}" class="mb-3">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="input-group">
                                 <input type="text" name="telegram_id" class="form-control"
@@ -228,7 +228,7 @@
                                             <i class="fas fa-crown"></i>
                                         </button>
                                         <form method="POST"
-                                            action="{{ url_for('main.admin_delete_user', user_id=user.id) }}"
+                                            action="{{ url_for('admin_routes.admin_delete_user', user_id=user.id) }}"
                                             style="display:inline;"
                                             onsubmit="return confirm('Ushbu foydalanuvchini va uning barcha botlarini o\'chirishni tasdiqlaysizmi?');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -366,7 +366,7 @@
                                 <td>{{ bot.created_at.strftime('%d.%m.%Y') }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ url_for('main.edit_bot', bot_id=bot.id) }}"
+                                        <a href="{{ url_for('bot.edit_bot', bot_id=bot.id) }}"
                                             class="btn btn-outline-primary" title="Tahrirlash">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -402,7 +402,7 @@
                                             <i class="fas fa-cog"></i>
                                         </button>
                                         <form method="POST"
-                                            action="{{ url_for('main.admin_delete_bot', bot_id=bot.id) }}"
+                                            action="{{ url_for('admin_routes.admin_delete_bot', bot_id=bot.id) }}"
                                             style="display:inline;"
                                             onsubmit="return confirm('Ushbu bot va uning barcha yozuvlarini o\'chirishni tasdiqlaysizmi?');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -428,7 +428,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Bot yozishmalar tarixi</h5>
                 <div class="btn-group">
-                    <a href="{{ url_for('main.export_chat_history') }}" class="btn btn-success btn-sm">
+                    <a href="{{ url_for('admin_routes.export_chat_history') }}" class="btn btn-success btn-sm">
                         <i class="fas fa-download me-2"></i>Excel ga yuklash
                     </a>
                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal"
@@ -533,7 +533,7 @@
                         <h5 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Xabar yuborish</h5>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="{{ url_for('main.send_broadcast') }}">
+                        <form method="POST" action="{{ url_for('admin_routes.send_broadcast') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label for="target_type" class="form-label">Kimga yuborish</label>
@@ -648,7 +648,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                <form method="POST" action="{{ url_for('main.cleanup_chat_history') }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('admin_routes.cleanup_chat_history') }}" style="display: inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-broom me-2"></i>Tozalash
@@ -679,7 +679,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                     style="filter: var(--close-btn-filter);"></button>
             </div>
-            <form method="POST" action="{{ url_for('main.change_user_subscription') }}">
+            <form method="POST" action="{{ url_for('admin_routes.change_user_subscription') }}">
                 <div class="modal-body pt-4">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="user_id" id="modal_user_id">

@@ -222,7 +222,7 @@
 
                         {% if bot.platform == 'Telegram' and bot.telegram_token %}
                         <div class="d-inline-block">
-                            <form method="POST" action="{{ url_for('main.setup_webhook', bot_id=bot.id) }}" class="m-0"
+                            <form method="POST" action="{{ url_for('webhook.setup_webhook', bot_id=bot.id) }}" class="m-0"
                                 id="webhookForm">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit"
@@ -315,7 +315,7 @@
 
                     <!-- File Upload Tab -->
                     <div class="tab-pane fade show active" id="file-content" role="tabpanel">
-                        <form method="POST" action="{{ url_for('main.upload_knowledge', bot_id=bot.id) }}"
+                        <form method="POST" action="{{ url_for('knowledge.upload_knowledge', bot_id=bot.id) }}"
                             enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -341,7 +341,7 @@
                                             narx, tavsif, rasm_url</span>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('main.download_sample_excel') }}"
+                                <a href="{{ url_for('knowledge.download_sample_excel') }}"
                                     class="btn btn-sm btn-success rounded-pill px-3 shadow-sm hover-lift">
                                     <i class="fas fa-download me-1"></i>Namuna
                                 </a>
@@ -357,7 +357,7 @@
 
                     <!-- Text Input Tab -->
                     <div class="tab-pane fade" id="text-content" role="tabpanel">
-                        <form method="POST" action="{{ url_for('main.add_text_knowledge', bot_id=bot.id) }}">
+                        <form method="POST" action="{{ url_for('knowledge.add_text_knowledge', bot_id=bot.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label for="source_name" class="form-label fw-medium text-body small">Ma'lumot nomi
@@ -396,7 +396,7 @@
                                     data-bs-parent="#productAccordion">
                                     <div class="accordion-body border-top">
                                         <form method="POST"
-                                            action="{{ url_for('main.upload_bulk_products', bot_id=bot.id) }}"
+                                            action="{{ url_for('knowledge.upload_bulk_products', bot_id=bot.id) }}"
                                             enctype="multipart/form-data">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="mb-3">
@@ -408,7 +408,7 @@
                                                     class="btn btn-sm btn-info text-white flex-grow-1 rounded-pill fw-bold hover-lift">
                                                     <i class="fas fa-upload me-1"></i>Yuklash
                                                 </button>
-                                                <a href="{{ url_for('main.download_template') }}"
+                                                <a href="{{ url_for('knowledge.download_template') }}"
                                                     class="btn btn-sm btn-outline-secondary rounded-pill fw-bold bg-white"
                                                     title="Namuna yuklash">
                                                     <i class="fas fa-file-download"></i>
@@ -432,7 +432,7 @@
                                     data-bs-parent="#productAccordion">
                                     <div class="accordion-body border-top">
                                         <form method="POST"
-                                            action="{{ url_for('main.add_product_knowledge', bot_id=bot.id) }}"
+                                            action="{{ url_for('knowledge.add_product_knowledge', bot_id=bot.id) }}"
                                             enctype="multipart/form-data">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="mb-3">
