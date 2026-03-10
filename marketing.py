@@ -285,7 +285,7 @@ class MarketingCampaigns:
                 <ul>
                     <li>🤖 5 ta bot yaratish</li>
                     <li>🌍 3 tilda AI (O'zbek/Rus/Ingliz)</li>
-                    <li>📱 Barcha platformalar (Telegram/Instagram/WhatsApp)</li>
+                    <li>📱 Barcha platformalar yordami (Tez kunda)</li>
                     <li>📞 Prioritet yordam</li>
                 </ul>
                 
@@ -450,7 +450,6 @@ https://t.me/akramjon0011"""
                     <ul style="font-size: 16px;">
                         <li>🤖 <strong>5 ta bot</strong> yarating</li>
                         <li>🌍 <strong>3 tilda AI</strong> (O'zbek/Rus/Ingliz)</li>
-                        <li>📱 <strong>Instagram va WhatsApp</strong> ham</li>
                         <li>📞 <strong>Prioritet yordam</strong></li>
                         <li>📊 <strong>Tahlil va statistika</strong></li>
                     </ul>
@@ -515,7 +514,7 @@ https://t.me/akramjon0011"""
                         <h3 style="color: #fef3c7; margin-top: 0;">💰 Basic - 290,000 so'm/oy</h3>
                         <ul style="color: white;">
                             <li>✅ 1 ta bot yaratish</li>
-                            <li>✅ Barcha platformalar (Telegram/Instagram/WhatsApp)</li>
+                            <li>✅ Barcha platformalar yordami (Tez kunda)</li>
                             <li>✅ 3 tilda AI (O'zbek/Rus/Ingliz)</li>
                             <li>✅ Bilim bazasi yuklash</li>
                         </ul>
