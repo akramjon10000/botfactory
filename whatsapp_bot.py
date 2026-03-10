@@ -9,7 +9,8 @@ from flask_login import login_required, current_user
 from app import db, app
 from models import User, Bot, ChatHistory, BotCustomer
 from ai import get_ai_response, process_knowledge_base
-from audio_processor import download_and_process_audio
+from audio_processor import transcribe_audio_from_url
+from ai import get_ai_response, process_knowledge_base
 from rate_limiter import rate_limiter, get_client_ip
 
 # Configure logging
@@ -393,12 +394,65 @@ Yangi obunani BotFactory.uz saytidan sotib oling.
                     file_ext = '.wav'
                 
                 # Process audio
-                ai_response = download_and_process_audio(
+                transcribed_text = transcribe_audio_from_url(
                     audio_url=audio_url,
-                    user_id=from_number,
                     language=db_user.language,
                     file_extension=file_ext
                 )
+                
+                if not transcribed_text:
+                    self.send_message(from_number, "🎤 Ovoz xabari eshitilmadi yoki bo'sh. Iltimos, qaytadan urinib ko'ring.")
+                    return False
+                
+                # Send transcription confirmation
+                self.send_message(from_number, f"🎤 Eshitildi: {transcribed_text}")
+                
+                # Process transcribed text
+                # Process transcribed text
+                try:
+                    knowledge_base = process_knowledge_base(self.bot_id)
+                    
+                    recent_history = ""
+                    history_entries = ChatHistory.query.filter_by(
+                        bot_id=self.bot_id, 
+                        user_telegram_id=str(from_number)
+                    ).order_by(ChatHistory.created_at.desc()).limit(10).all()
+                    
+                    if history_entries:
+                        history_parts = []
+                        for entry in reversed(history_entries):
+                            history_parts.append(f"Foydalanuvchi: {entry.message}")
+                            history_parts.append(f"Bot: {entry.response}")
+                        recent_history = "\n".join(history_parts)
+                    
+                    owner_contact_info = ""
+                    if bot.owner:
+                        owner_contact_info = f"Telefon raqam: {bot.owner.phone_number or 'Mavjud emas'}, Telegram: {bot.owner.telegram_id or 'Mavjud emas'}"
+                    
+                    ai_response = get_ai_response(
+                        message=transcribed_text,
+                        bot_name=bot.name,
+                        user_language=db_user.language,
+                        knowledge_base=knowledge_base,
+                        chat_history=recent_history,
+                        owner_contact_info=owner_contact_info
+                    )
+                    
+                    if not ai_response:
+                        self.send_message(from_number, "❌ Ovoz xabarini qayta ishlashda xatolik yuz berdi.")
+                        return False
+                        
+                    user_text = transcribed_text
+                    ai_text = ai_response
+                    
+                    from ai import validate_ai_response
+                    ai_text = validate_ai_response(ai_text)
+                    if not ai_text:
+                        ai_text = ai_response
+                except Exception as e:
+                    logger.error(f"WhatsApp audio processing error: {e}")
+                    self.send_message(from_number, "❌ Ovoz xabarini qayta ishlashda xatolik yuz berdi.")
+                    return False
                 
                 # Extract the text part and AI response
                 if "🎤 Sizning xabaringiz:" in ai_response:
