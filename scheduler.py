@@ -120,12 +120,12 @@ class TaskScheduler:
                     replace_existing=True
                 )
                 
-                # Haftada bir marta bepul foydalanuvchilarga marketing (Dushanba 14:00)
+                # Haftada ikki marta bepul foydalanuvchilarga marketing (Dushanba va Payshanba 14:00)
                 self.scheduler.add_job(
                     func=self.send_marketing_campaigns,
-                    trigger=CronTrigger(day_of_week='mon', hour=14, minute=0, timezone='Asia/Tashkent'),
+                    trigger=CronTrigger(day_of_week='mon,thu', hour=14, minute=0, timezone='Asia/Tashkent'),
                     id='marketing_campaigns',
-                    name='Weekly marketing campaigns',
+                    name='Twice weekly marketing campaigns',
                     replace_existing=True
                 )
                 
@@ -173,6 +173,7 @@ class TaskScheduler:
                 schedule.every().day.at("09:00").do(self.check_subscriptions)
                 schedule.every().day.at("10:00").do(self.send_reminders)
                 schedule.every().monday.at("14:00").do(self.send_marketing_campaigns)
+                schedule.every().thursday.at("14:00").do(self.send_marketing_campaigns)
                 schedule.every().day.at("00:00").do(self.cleanup_old_data)
                 schedule.every().hour.do(self.update_bot_stats)
                 schedule.every(15).minutes.do(self.system_health_check)
