@@ -79,8 +79,8 @@ def get_ai_response(message: str, bot_name: str = "Chatbot Factory AI", user_lan
             os.environ.get("GOOGLE_API_KEY2"),
         ]
         models = [
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
+            'gemini-3.1-flash-lite-preview',
+            'gemini-3.1-flash-lite-preview',
         ]
         
         last_error = None
