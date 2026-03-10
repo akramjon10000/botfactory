@@ -120,26 +120,20 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="platform" class="form-label fw-medium text-body">
-                            Platforma <span class="text-danger">*</span>
-                        </label>
+                        <label class="form-label fw-medium text-body">Platforma</label>
                         <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
                             <span class="input-group-text bg-transparent border-end-0 text-muted"><i
                                     class="fas fa-mobile-alt"></i></span>
-                            <select class="form-select border-start-0 ps-0 text-body" id="platform" name="platform"
-                                required style="box-shadow: none; border-color: var(--bs-border-color);">
-                                <option value="Telegram" {% if bot.platform=='Telegram' %}selected{% endif %}>
-                                    Telegram
+                            <select class="form-select border-start-0 ps-0 text-body bg-light" id="platform" disabled
+                                style="box-shadow: none; border-color: var(--bs-border-color);">
+                                <option value="Telegram" {% if bot.platform=='Telegram' %}selected{% endif %}>Telegram
                                 </option>
-                                {% if current_user.subscription_type in ['basic', 'premium', 'admin'] %}
-                                <option value="Instagram" {% if bot.platform=='Instagram' %}selected{% endif %}>
-                                    Instagram
-                                </option>
-                                <option value="WhatsApp" {% if bot.platform=='WhatsApp' %}selected{% endif %}>
-                                    WhatsApp
-                                </option>
-                                {% endif %}
+                                <option value="Instagram" disabled {% if bot.platform=='Instagram' %}selected{% endif
+                                    %}>Instagram 🔒 (Tez kunda)</option>
+                                <option value="WhatsApp" disabled {% if bot.platform=='WhatsApp' %}selected{% endif %}>
+                                    WhatsApp 🔒 (Tez kunda)</option>
                             </select>
+                            <input type="hidden" name="platform" value="{{ bot.platform }}">
                         </div>
                     </div>
 
