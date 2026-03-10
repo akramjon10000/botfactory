@@ -20,7 +20,39 @@ def index():
 @main_bp.route('/api/webchat', methods=['POST'])
 @csrf.exempt
 def api_webchat():
-    """Frontend web chat endpoint. Returns AI reply as JSON."""
+    """
+    Frontend web chat endpoint. Returns AI reply as JSON.
+    ---
+    tags:
+      - Chat API
+    description: Ushbu endpoint orqali veb-sahifadagi vidjet AI bot bilan yozishadi.
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Salom, menga yordam bera olasizmi?"
+              description: Foydalanuvchi xabari
+    responses:
+      200:
+        description: AI javobi muvaffaqiyatli saqlandi
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+              example: true
+            reply:
+              type: string
+              example: "Assalomu alaykum! Ha, men BotFactory yordamchisiman..."
+      400:
+        description: Xabar bo'sh yoki noto'g'ri so'rov
+      429:
+        description: Rate limitdan o'tildi
+    """
     try:
         client_ip = get_client_ip(request)
         allowed, retry_after = rate_limiter.is_allowed(
@@ -281,7 +313,52 @@ def process_payment(subscription_type):
 @main_bp.route('/api/admin/stats')
 @login_required
 def admin_stats_api():
-    """API endpoint for Chart.js dashboard visualizations"""
+    """
+    API endpoint for Chart.js dashboard visualizations
+    ---
+    tags:
+      - Admin Analytics
+    description: Dashbord uchun kunlik xaridorlar o'sishi va tillar bo'yicha vizual grafik ma'lumotlarini qaytaradi.
+    security:
+      - cookieAuth: []
+    responses:
+      200:
+        description: Statistik ma'lumotlar
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            growth:
+              type: object
+              properties:
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  example: ["03-04", "03-05", "03-06"]
+                data:
+                  type: array
+                  items:
+                    type: integer
+                  example: [5, 12, 3]
+            languages:
+              type: object
+              properties:
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  example: ["UZ", "RU", "EN"]
+                data:
+                  type: array
+                  items:
+                    type: integer
+                  example: [45, 10, 2]
+      401:
+        description: Avtorizatsiyadan o'tilmagan
+    """
     from models import BotCustomer, Bot
     from sqlalchemy import func
     from datetime import datetime, timedelta

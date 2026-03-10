@@ -7,6 +7,7 @@ from flask_wtf.csrf import generate_csrf
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flasgger import Swagger
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import create_engine, text
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -189,6 +190,30 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 login_manager.init_app(app)
 migrate = Migrate(app, db)
+
+# Configure Swagger for API Documentation
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/apispec_1.json',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/api/docs",
+    "openapi": "3.0.0"
+}
+app.config['SWAGGER'] = {
+    'title': 'BotFactory AI API',
+    'uiversion': 3,
+    'description': 'BotFactory AI platformining ochiq API hujjatlari. Ushbu darchada tizimga ulanish va u bilan integratsiya qilish yo\'riqnomalari mavjud.',
+    'version': '1.0.0'
+}
+swagger = Swagger(app, config=swagger_config)
 login_manager.login_view = 'auth.login'  # type: ignore
 login_manager.login_message = 'Iltimos, tizimga kiring.'
 login_manager.login_message_category = 'info'
