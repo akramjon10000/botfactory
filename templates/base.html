@@ -37,7 +37,7 @@
 
     <!-- Canonical URL for SEO -->
     <link rel="canonical" href="{{ request.base_url if request else '' }}">
-    <link rel="alternate" type="application/rss+xml" title="BotFactory AI Blog RSS" href="/blog/rss.xml">
+    <!-- Blog RSS temporarly removed -->
     <meta name="robots" content="index,follow">
 
     <!-- Open Graph (OG) tags for rich previews -->
@@ -203,11 +203,7 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('blog.blog_index') }}">
-                            <i class="fas fa-newspaper me-1"></i>Blog
-                        </a>
-                    </li>
+                    <!-- Blog link temporarily removed -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.help_getting_started') }}">
                             <i class="fas fa-graduation-cap me-1"></i>Qo'llanma

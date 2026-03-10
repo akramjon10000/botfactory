@@ -272,8 +272,8 @@
     </div>
 </div>
 
+{# Blog section temporarily disabled
 {% if latest_posts %}
-<!-- Blog Preview -->
 <div class="row pt-2 mb-5 pb-2">
     <div class="col-12 text-center mb-4" data-aos="fade-up">
         <span class="badge bg-primary text-white px-3 py-2 rounded-pill mb-3"
@@ -292,11 +292,13 @@
                     <i class="far fa-clock me-1"></i>{{ p.reading_minutes }} daqiqa
                 </div>
                 <h5 class="fw-bold mb-2">
-                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title }}</a>
+                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}" class="text-decoration-none">{{ p.title
+                        }}</a>
                 </h5>
                 <p class="text-muted small mb-3">{{ p.description or p.excerpt }}</p>
                 <div class="mt-auto">
-                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <a href="{{ url_for('blog.blog_post', slug=p.slug) }}"
+                        class="btn btn-sm btn-outline-primary rounded-pill px-3">
                         O'qish <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -312,6 +314,7 @@
     </div>
 </div>
 {% endif %}
+#}
 
 <!-- Contact Banner -->
 <div class="row pt-2 mb-2" data-aos="fade-up">
@@ -341,4 +344,3 @@
     </div>
 </div>
 {% endblock %}
-
