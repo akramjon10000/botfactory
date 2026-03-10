@@ -519,11 +519,32 @@ class TelegramBot:
             
             welcome_message = f"🤖 Salom! Men {bot_name} chatbot!\n\n"
             welcome_message += "📝 Menga savolingizni yozing va men sizga yordam beraman.\n"
-            welcome_message += "🌐 Tilni tanlash uchun /language buyrug'ini ishlating.\n"
             welcome_message += "❓ Yordam uchun /help buyrug'ini ishlating."
             
             if update.message:
                 await update.message.reply_text(welcome_message)
+                
+            # Til tanlash uchun inline klaviaturani ko'rsatish
+            try:
+                owner_subscription = bot.owner.subscription_type if (bot and bot.owner) else 'free'
+                owner_subscription_norm = (owner_subscription or '').strip().lower()
+                owner_allows_extra = owner_subscription_norm in ['starter', 'basic', 'premium', 'admin']
+                
+                lang_keyboard = []
+                lang_keyboard.append([InlineKeyboardButton("🇺🇿 O'zbek", callback_data="lang_uz")])
+                if owner_allows_extra:
+                    lang_keyboard.append([InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru")])
+                    lang_keyboard.append([InlineKeyboardButton("🇺🇸 English", callback_data="lang_en")])
+                else:
+                    lang_keyboard.append([InlineKeyboardButton("🔒 Русский (Starter/Basic/Premium)", callback_data="lang_locked")])
+                    lang_keyboard.append([InlineKeyboardButton("🔒 English (Starter/Basic/Premium)", callback_data="lang_locked")])
+                
+                lang_markup = InlineKeyboardMarkup(lang_keyboard)
+                lang_msg = "🌐 Tilni tanlang / Выберите язык / Choose language:"
+                if update.message:
+                    await update.message.reply_text(lang_msg, reply_markup=lang_markup)
+            except Exception as lang_err:
+                logger.error(f"Failed to send language keyboard: {lang_err}")
 
             # Send Mini App button if enabled
             try:
