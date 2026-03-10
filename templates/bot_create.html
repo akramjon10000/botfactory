@@ -40,23 +40,20 @@
                     </div>
 
                     <div class="mb-5">
-                        <label for="platform" class="form-label fw-medium">
-                            Platforma
+                        <label for="platform" class="form-label fw-medium text-body">
+                            Platforma <span class="text-danger">*</span>
                         </label>
-                        <input type="hidden" name="platform" value="Telegram">
-                        <div class="d-flex align-items-center p-3 rounded-3 border bg-opacity-10 shadow-sm"
-                            style="background-color: var(--bs-body-bg);">
-                            <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
-                                <i class="fab fa-telegram fs-3 text-info"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0 fw-bold">Telegram Messenger</h6>
-                                <small class="text-muted">Ayni paytda faqat Telegram tarmog'i to'liq integratsiya
-                                    qilingan.</small>
-                            </div>
-                            <div class="bg-success bg-opacity-10 text-success rounded-circle p-1 ms-2">
-                                <i class="fas fa-check"></i>
-                            </div>
+                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                                    class="fas fa-mobile-alt"></i></span>
+                            <select class="form-select border-start-0 ps-0 text-body" id="platform" name="platform"
+                                required style="box-shadow: none; border-color: var(--bs-border-color);">
+                                <option value="Telegram" selected>Telegram</option>
+                                {% if current_user.subscription_type in ['basic', 'premium', 'admin'] %}
+                                <option value="Instagram">Instagram</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                {% endif %}
+                            </select>
                         </div>
                     </div>
 
@@ -70,20 +67,75 @@
                         Tokenga ulanish
                     </h5>
 
-                    <div class="mb-5" id="telegram-settings">
+                    <div class="mb-5 platform-fields" id="telegram_fields">
                         <label for="telegram_token" class="form-label fw-medium w-100 text-body">
                             Telegram Bot Token <span class="text-danger">*</span>
                         </label>
-                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                        <div
+                            class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-primary border-opacity-25">
                             <span class="input-group-text bg-transparent border-end-0 text-primary"><i
                                     class="fas fa-key"></i></span>
-                            <input type="text" class="form-control border-start-0 ps-0 font-monospace"
+                            <input type="text" class="form-control border-start-0 ps-0 font-monospace bg-transparent"
                                 id="telegram_token" name="telegram_token"
                                 placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxyz" required
                                 style="box-shadow: none; font-size: 1rem;">
                         </div>
                         <div class="form-text mt-2 text-primary bg-primary bg-opacity-10 p-2 rounded-2 d-inline-block">
                             <i class="fas fa-shield-alt me-1"></i> Tokeningiz shifrlangan holda xavfsiz saqlanadi.
+                        </div>
+                    </div>
+
+                    <div class="mb-5 platform-fields" id="instagram_fields" style="display: none;">
+                        <label for="instagram_token" class="form-label fw-medium text-body">
+                            Instagram Graph API Token <span class="text-danger">*</span>
+                        </label>
+                        <div
+                            class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-danger border-opacity-25">
+                            <span class="input-group-text bg-danger bg-opacity-10 border-end-0 text-danger"><i
+                                    class="fab fa-instagram"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                id="instagram_token" name="instagram_token" placeholder="EAAI..."
+                                style="box-shadow: none;" disabled>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle me-1 text-danger"></i>
+                            Meta for Developers sahifasidan olingan uzoq muddatli Access Token.
+                        </div>
+                    </div>
+
+                    <div class="mb-5 platform-fields" id="whatsapp_fields" style="display: none;">
+                        <div class="mb-4">
+                            <label for="whatsapp_token" class="form-label fw-medium text-body">
+                                WhatsApp Access Token <span class="text-danger">*</span>
+                            </label>
+                            <div
+                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
+                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
+                                        class="fab fa-whatsapp"></i></span>
+                                <input type="text"
+                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                    id="whatsapp_token" name="whatsapp_token" placeholder="EAAI..."
+                                    style="box-shadow: none;" disabled>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="whatsapp_phone_id" class="form-label fw-medium text-body">
+                                WhatsApp Phone Number ID <span class="text-danger">*</span>
+                            </label>
+                            <div
+                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
+                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
+                                        class="fas fa-phone-square"></i></span>
+                                <input type="text"
+                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                    id="whatsapp_phone_id" name="whatsapp_phone_id" placeholder="123456789012345"
+                                    style="box-shadow: none;" disabled>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1 text-success"></i>
+                                Meta joriy qilgan Phone Number ID (Telefon raqami emas).
+                            </div>
                         </div>
                     </div>
 
@@ -269,18 +321,70 @@
             monitoringSection.style.transform = 'translateY(0)';
         }
 
+        // Platform logic
+        const platformSelect = document.getElementById('platform');
+
+        if (platformSelect) {
+            platformSelect.addEventListener('change', function () {
+                var selectedPlatform = this.value;
+
+                // Hide all platform fields
+                document.querySelectorAll('.platform-fields').forEach(function (el) {
+                    el.style.display = 'none';
+                    // Disable inputs
+                    var inputs = el.querySelectorAll('input');
+                    inputs.forEach(function (input) {
+                        input.disabled = true;
+                        if (input.required) input.required = false; // remove required on hidden fields
+                    });
+                });
+
+                // Show chosen platform fields
+                if (selectedPlatform === 'Telegram') {
+                    var tgFields = document.getElementById('telegram_fields');
+                    if (tgFields) {
+                        tgFields.style.display = 'block';
+                        tgFields.querySelectorAll('input').forEach(function (input) {
+                            input.disabled = false;
+                            input.required = true;
+                        });
+                    }
+                } else if (selectedPlatform === 'Instagram') {
+                    var igFields = document.getElementById('instagram_fields');
+                    if (igFields) {
+                        igFields.style.display = 'block';
+                        igFields.querySelectorAll('input').forEach(function (input) {
+                            input.disabled = false;
+                            input.required = true;
+                        });
+                    }
+                } else if (selectedPlatform === 'WhatsApp') {
+                    var waFields = document.getElementById('whatsapp_fields');
+                    if (waFields) {
+                        waFields.style.display = 'block';
+                        waFields.querySelectorAll('input').forEach(function (input) {
+                            input.disabled = false;
+                            input.required = true;
+                        });
+                    }
+                }
+            });
+        }
+
         // Token validation logic (kept from original)
         const tokenInput = document.getElementById('telegram_token');
-        tokenInput.addEventListener('input', function () {
-            const token = this.value;
-            const tokenPattern = /^\d+:[A-Za-z0-9_-]+$/;
+        if (tokenInput) {
+            tokenInput.addEventListener('input', function () {
+                const token = this.value;
+                const tokenPattern = /^\d+:[A-Za-z0-9_-]+$/;
 
-            if (token && !tokenPattern.test(token)) {
-                this.setCustomValidity('Token formati noto\'g\'ri. Format: 123456:ABC-DEF1234ghIkl');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
+                if (token && !tokenPattern.test(token)) {
+                    this.setCustomValidity('Token formati noto\'g\'ri. Format: 123456:ABC-DEF1234ghIkl');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

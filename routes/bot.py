@@ -106,6 +106,9 @@ def edit_bot(bot_id):
         bot.name = request.form.get('name', bot.name)
         bot.platform = request.form.get('platform', bot.platform)
         bot.telegram_token = request.form.get('telegram_token', bot.telegram_token)
+        bot.instagram_token = request.form.get('instagram_token', bot.instagram_token)
+        bot.whatsapp_token = request.form.get('whatsapp_token', bot.whatsapp_token)
+        bot.whatsapp_phone_id = request.form.get('whatsapp_phone_id', bot.whatsapp_phone_id)
         
         # Suhbat kuzatuvi sozlamalarini yangilash
         admin_chat_id = request.form.get('admin_chat_id')
@@ -126,6 +129,28 @@ def edit_bot(bot_id):
             except Exception as e:
                 logging.error(f"Telegram botni ishga tushirishda xato: {e}")
                 flash('Bot ma\'lumotlari yangilandi, lekin token noto\'g\'ri!', 'warning')
+        elif bot.platform == 'Instagram' and bot.instagram_token:
+            try:
+                from instagram_bot import start_instagram_bot_automatically
+                success = start_instagram_bot_automatically(bot.id, bot.instagram_token)
+                if success:
+                    bot.is_active = True
+                else:
+                    flash('Bot ma\'lumotlari yangilandi, lekin Instagram token ishlamadi!', 'warning')
+            except Exception as e:
+                logging.error(f"Instagram botni ishga tushirishda xato: {e}")
+                flash('Instagram botni yangilashda xato yuz berdi.', 'warning')
+        elif bot.platform == 'WhatsApp' and bot.whatsapp_token and bot.whatsapp_phone_id:
+            try:
+                from whatsapp_bot import start_whatsapp_bot_automatically
+                success = start_whatsapp_bot_automatically(bot.id, bot.whatsapp_token, bot.whatsapp_phone_id)
+                if success:
+                    bot.is_active = True
+                else:
+                    flash('Bot ma\'lumotlari yangilandi, lekin WhatsApp token ishlamadi!', 'warning')
+            except Exception as e:
+                logging.error(f"WhatsApp botni ishga tushirishda xato: {e}")
+                flash('WhatsApp botni yangilashda xato yuz berdi.', 'warning')
         
         db.session.commit()
         flash('Bot ma\'lumotlari yangilandi!', 'success')

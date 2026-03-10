@@ -143,8 +143,8 @@
                         </div>
                     </div>
 
-                    {% if bot.platform == 'Telegram' %}
-                    <div class="mb-5">
+                    <div id="telegram_fields" class="platform-fields mb-5" {% if bot.platform !='Telegram'
+                        %}style="display: none;" {% endif %}>
                         <label for="telegram_token" class="form-label fw-medium text-body">
                             Telegram Bot Token
                         </label>
@@ -162,7 +162,63 @@
                             shifrlanadi.
                         </div>
                     </div>
-                    {% endif %}
+
+                    <div id="instagram_fields" class="platform-fields mb-5" {% if bot.platform !='Instagram'
+                        %}style="display: none;" {% endif %}>
+                        <label for="instagram_token" class="form-label fw-medium text-body">
+                            Instagram Graph API Token <span class="text-danger">*</span>
+                        </label>
+                        <div
+                            class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-danger border-opacity-25">
+                            <span class="input-group-text bg-danger bg-opacity-10 border-end-0 text-danger"><i
+                                    class="fab fa-instagram"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                id="instagram_token" name="instagram_token" value="{{ bot.instagram_token or '' }}"
+                                placeholder="EAAI..." style="box-shadow: none;">
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle me-1 text-danger"></i>
+                            Meta for Developers sahifasidan olingan uzoq muddatli Access Token.
+                        </div>
+                    </div>
+
+                    <div id="whatsapp_fields" class="platform-fields mb-5" {% if bot.platform !='WhatsApp'
+                        %}style="display: none;" {% endif %}>
+                        <div class="mb-4">
+                            <label for="whatsapp_token" class="form-label fw-medium text-body">
+                                WhatsApp Access Token <span class="text-danger">*</span>
+                            </label>
+                            <div
+                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
+                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
+                                        class="fab fa-whatsapp"></i></span>
+                                <input type="text"
+                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                    id="whatsapp_token" name="whatsapp_token" value="{{ bot.whatsapp_token or '' }}"
+                                    placeholder="EAAI..." style="box-shadow: none;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="whatsapp_phone_id" class="form-label fw-medium text-body">
+                                WhatsApp Phone Number ID <span class="text-danger">*</span>
+                            </label>
+                            <div
+                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
+                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
+                                        class="fas fa-phone-square"></i></span>
+                                <input type="text"
+                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
+                                    id="whatsapp_phone_id" name="whatsapp_phone_id"
+                                    value="{{ bot.whatsapp_phone_id or '' }}" placeholder="123456789012345"
+                                    style="box-shadow: none;">
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1 text-success"></i>
+                                Meta joriy qilgan Phone Number ID (Telefon raqami emas).
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Suhbat kuzatuvi sozlamalari -->
                     <h5 class="fw-bold mb-3 border-bottom pb-2">Kuzatuv (Monitoring)</h5>
@@ -222,8 +278,8 @@
 
                         {% if bot.platform == 'Telegram' and bot.telegram_token %}
                         <div class="d-inline-block">
-                            <form method="POST" action="{{ url_for('webhook.setup_webhook', bot_id=bot.id) }}" class="m-0"
-                                id="webhookForm">
+                            <form method="POST" action="{{ url_for('webhook.setup_webhook', bot_id=bot.id) }}"
+                                class="m-0" id="webhookForm">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit"
                                     class="btn btn-success btn-lg rounded-pill shadow-sm px-4 fw-bold text-white hover-lift ms-2"
@@ -683,6 +739,48 @@
             }
 
             switchBtn.addEventListener('change', updateMonitoringVisibility);
+        }
+
+        // Platform selection toggle logic
+        var platformSelect = document.getElementById('platform');
+        if (platformSelect) {
+            platformSelect.addEventListener('change', function () {
+                var selectedPlatform = this.value;
+
+                // Hide all platform fields
+                document.querySelectorAll('.platform-fields').forEach(function (el) {
+                    el.style.display = 'none';
+                    // Disable inputs in hidden fields to prevent validation errors on submit
+                    var inputs = el.querySelectorAll('input');
+                    inputs.forEach(function (input) {
+                        input.disabled = true;
+                    });
+                });
+
+                // Show selected platform fields
+                if (selectedPlatform === 'Telegram') {
+                    var tgFields = document.getElementById('telegram_fields');
+                    if (tgFields) {
+                        tgFields.style.display = 'block';
+                        tgFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
+                    }
+                } else if (selectedPlatform === 'Instagram') {
+                    var igFields = document.getElementById('instagram_fields');
+                    if (igFields) {
+                        igFields.style.display = 'block';
+                        igFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
+                    }
+                } else if (selectedPlatform === 'WhatsApp') {
+                    var waFields = document.getElementById('whatsapp_fields');
+                    if (waFields) {
+                        waFields.style.display = 'block';
+                        waFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
+                    }
+                }
+            });
+
+            // Trigger change event to set initial state correctly on page load
+            platformSelect.dispatchEvent(new Event('change'));
         }
 
         // --- Knowledge Base Delete ---

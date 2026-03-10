@@ -133,14 +133,60 @@ class BotManager:
         logger.info(f"🧵 Telegram polling thread started for bot: {bot_model.name}")
     
     def _start_instagram_bot(self, bot_model, bot_key):
-        """Start Instagram bot polling (placeholder for future implementation)"""
-        logger.info(f"📷 Instagram bot polling not implemented yet for: {bot_model.name}")
-        # TODO: Implement Instagram bot polling
+        """Start Instagram bot polling"""
+        if not bot_model.instagram_token:
+            logger.warning(f"⚠️ No Instagram token for bot {bot_model.name}")
+            return
+            
+        try:
+            logger.info(f"📷 Starting Instagram bot: {bot_model.name}")
+            from instagram_bot import start_instagram_bot_automatically
+            
+            # Start Instagram webhook registration/setup
+            success = start_instagram_bot_automatically(bot_model.id, bot_model.instagram_token)
+            
+            if success:
+                self.active_bots[bot_key] = {
+                    'model': bot_model,
+                    'instance': None, # Instagram relies on webhooks, no persistent instance
+                    'platform': 'instagram',
+                    'status': 'running',
+                    'started_at': datetime.now()
+                }
+                logger.info(f"✅ Instagram bot {bot_model.name} started successfully!")
+            else:
+                logger.error(f"❌ Failed to start Instagram bot {bot_model.name}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error starting Instagram bot {bot_model.name}: {e}")
     
     def _start_whatsapp_bot(self, bot_model, bot_key):
-        """Start WhatsApp bot polling (placeholder for future implementation)"""
-        logger.info(f"📱 WhatsApp bot polling not implemented yet for: {bot_model.name}")
-        # TODO: Implement WhatsApp bot polling
+        """Start WhatsApp bot polling"""
+        if not bot_model.whatsapp_token or not bot_model.whatsapp_phone_id:
+            logger.warning(f"⚠️ No WhatsApp token or phone ID for bot {bot_model.name}")
+            return
+            
+        try:
+            logger.info(f"📱 Starting WhatsApp bot: {bot_model.name}")
+            from whatsapp_bot import start_whatsapp_bot_automatically
+            
+            # Start WhatsApp webhook registration/setup
+            success = start_whatsapp_bot_automatically(bot_model.id, bot_model.whatsapp_token, bot_model.whatsapp_phone_id)
+            
+            if success:
+                self.active_bots[bot_key] = {
+                    'model': bot_model,
+                    'instance': None, # WhatsApp relies on webhooks, no persistent instance
+                    'platform': 'whatsapp',
+                    'status': 'running',
+                    'started_at': datetime.now()
+                }
+                logger.info(f"✅ WhatsApp bot {bot_model.name} started successfully!")
+            else:
+                logger.error(f"❌ Failed to start WhatsApp bot {bot_model.name}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error starting WhatsApp bot {bot_model.name}: {e}")
     
     def stop_bot_polling(self, bot_id, platform='telegram'):
         """Stop polling for a specific bot"""
