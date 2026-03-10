@@ -5,7 +5,7 @@ import requests
 import tempfile
 from typing import Optional
 from datetime import datetime, timedelta
-from audio_processor import download_and_process_audio, process_audio_message
+from audio_processor import transcribe_audio_from_url
 
 # Set telegram as available and use real bot implementation
 TELEGRAM_AVAILABLE = True
@@ -822,12 +822,12 @@ class TelegramBot:
                 file_path = file_info_response.json()['result']['file_path']
                 file_url = f"https://api.telegram.org/file/bot{context.bot.token}/{file_path}"
                 
-                # Process the voice message using existing audio processor
+                # Process the voice message using Gemini-based audio transcription
                 try:
                     # Run the synchronous audio processing in executor to avoid blocking
                     loop = asyncio.get_event_loop()
                     transcribed_text = await loop.run_in_executor(
-                        None, lambda: download_and_process_audio(file_url, db_user.language)
+                        None, lambda: transcribe_audio_from_url(file_url, db_user.language)
                     )
                     
                     if not transcribed_text or transcribed_text.strip() == "":
