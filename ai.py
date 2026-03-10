@@ -1,7 +1,6 @@
 import os
 import logging
 from typing import Optional
-from flask import current_app
 
 try:
     import google.generativeai as genai
@@ -12,7 +11,7 @@ except ImportError:
     GEMINI_AVAILABLE = False
     logging.warning("Google Generative AI library not available. Install with: pip install google-generativeai")
 
-def get_ai_response(message: str, bot_name: str = "Chatbot Factory AI", user_language: str = "uz", knowledge_base: str = "", chat_history: str = "") -> Optional[str]:
+def get_ai_response(message: str, bot_name: str = "Chatbot Factory AI", user_language: str = "uz", knowledge_base: str = "", chat_history: str = "", owner_contact_info: str = "") -> Optional[str]:
     """
     Generate AI response using Google Gemini with chat history context
     """
@@ -27,20 +26,10 @@ def get_ai_response(message: str, bot_name: str = "Chatbot Factory AI", user_lan
         system_prompt = language_prompts.get(user_language, language_prompts['uz'])
 
         # Inject platform contact info so bot can answer contact-related questions precisely
-        try:
-            support_phone = (current_app.config.get('SUPPORT_PHONE') or '').strip()
-            support_tg = (current_app.config.get('SUPPORT_TELEGRAM') or '').strip()
-            contact_block = []
-            if support_phone:
-                contact_block.append(f"Admin telefon raqami: {support_phone}")
-            if support_tg:
-                contact_block.append(f"Telegram aloqa: {support_tg}")
-            if contact_block:
-                system_prompt += "\n\nMuhim kontaktlar (ishga tushirilgan platforma sozlamalaridan):\n" + "\n".join(contact_block) + "\n" 
-                system_prompt += "\nAgar foydalanuvchi telefon yoki telegram haqida so'rasa, yuqoridagi kontaktlarni aniq ko'rsating."
-        except Exception:
-            pass
-        
+        if owner_contact_info:
+            system_prompt += f"\n\nMuhim kontaktlar (Ushbu do'kon/kompaniya egasi bilan bog'lanish):\n{owner_contact_info}\n"
+            system_prompt += "\nAgar foydalanuvchi menejer, ma'mur, telefon yoki telegram haqida so'rasa, faqatgina ushbu kontaktlarni aniq ko'rsating."
+
         # Base prompt protection
         base_prompt = system_prompt
         

@@ -89,15 +89,18 @@ def api_webchat():
 
         # If there is at least one bot, pass its knowledge base
         kb_text = ''
+        owner_contact_info = ''
         try:
             first_bot = Bot.query.first()
             if first_bot:
                 kb_text = process_knowledge_base(first_bot.id)
                 bot_name = first_bot.name or bot_name
+                if first_bot.owner:
+                    owner_contact_info = f"Telefon raqam: {first_bot.owner.phone_number or 'Mavjud emas'}, Telegram: {first_bot.owner.telegram_id or 'Mavjud emas'}"
         except Exception:
             kb_text = ''
 
-        reply = get_ai_response(message=message, bot_name=bot_name, user_language=user_lang, knowledge_base=kb_text, chat_history='')
+        reply = get_ai_response(message=message, bot_name=bot_name, user_language=user_lang, knowledge_base=kb_text, chat_history='', owner_contact_info=owner_contact_info)
         reply = reply or 'Salom! Hozircha javob tayyorlanmoqda. 🤖'
         return jsonify({"ok": True, "reply": reply})
     except Exception as e:

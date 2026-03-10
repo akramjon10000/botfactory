@@ -219,11 +219,16 @@ class InstagramBot:
                 # AI javobini olish
                 knowledge_base = process_knowledge_base(self.bot_id)
                 
+                owner_contact_info = ""
+                if bot.owner:
+                    owner_contact_info = f"Telefon raqam: {bot.owner.phone_number or 'Mavjud emas'}, Telegram: {bot.owner.telegram_id or 'Mavjud emas'}"
+
                 ai_response = get_ai_response(
                     message=message_text,
                     bot_name=bot.name,
                     user_language=user.language,
-                    knowledge_base=knowledge_base
+                    knowledge_base=knowledge_base,
+                    owner_contact_info=owner_contact_info
                 )
                 
                 # Chat tarixini saqlash

@@ -859,12 +859,16 @@ class TelegramBot:
                             recent_history = "\n".join(history_parts)
                         
                         # Generate AI response for transcribed text
+                        owner_contact_info = ""
+                        if bot.owner:
+                            owner_contact_info = f"Telefon raqam: {bot.owner.phone_number or 'Mavjud emas'}, Telegram: {bot.owner.telegram_id or 'Mavjud emas'}"
                         ai_response = get_ai_response(
                             message=transcribed_text,
                             bot_name=bot.name,
                             user_language=db_user.language,
                             knowledge_base=knowledge_base,
-                            chat_history=recent_history
+                            chat_history=recent_history,
+                            owner_contact_info=owner_contact_info
                         )
                         
                         if ai_response:
@@ -1081,12 +1085,17 @@ class TelegramBot:
             try:
                 logger.info("DEBUG: Starting AI response generation")
                 
+                owner_contact_info = ""
+                if bot.owner:
+                    owner_contact_info = f"Telefon raqam: {bot.owner.phone_number or 'Mavjud emas'}, Telegram: {bot.owner.telegram_id or 'Mavjud emas'}"
+
                 ai_response = get_ai_response(
                     message=message_text,
                     bot_name=bot.name,
                     user_language=db_user.language,
                     knowledge_base=knowledge_base,
-                    chat_history=recent_history
+                    chat_history=recent_history,
+                    owner_contact_info=owner_contact_info
                 )
                 
                 logger.info("DEBUG: AI response received")
@@ -1502,12 +1511,16 @@ def process_webhook_update(bot_id, bot_token, update_data):
                         chat_history += f"Foydalanuvchi: {chat.message}\nBot: {chat.response}\n\n"
                     
                     # AI javob olish
+                    owner_contact_info = ""
+                    if bot.owner:
+                        owner_contact_info = f"Telefon raqam: {bot.owner.phone_number or 'Mavjud emas'}, Telegram: {bot.owner.telegram_id or 'Mavjud emas'}"
                     ai_response = get_ai_response(
                         message=text,
                         bot_name=bot.name,
                         user_language=telegram_user.language,
                         knowledge_base=knowledge_base,
-                        chat_history=chat_history
+                        chat_history=chat_history,
+                        owner_contact_info=owner_contact_info
                     )
                     
                     if not ai_response:
