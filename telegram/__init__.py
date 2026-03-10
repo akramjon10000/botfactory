@@ -1,19 +1,13 @@
 """
-telegram_bot.py — Backward-compatible shim.
+Telegram package — re-exports all public APIs for backward compatibility.
 
-All logic has been refactored into the telegram/ package:
-  telegram/sdk.py       — HTTP SDK layer (Update, TelegramHTTPBot, filters, etc.)
-  telegram/handlers.py  — TelegramBot class with all command/message handlers
-  telegram/manager.py   — BotManager for managing multiple bot instances
-  telegram/utils.py     — Utility functions (webhook, broadcast, admin messaging)
-
-This file re-exports everything so existing imports continue to work:
+Usage:
     from telegram_bot import bot_manager, start_telegram_bot, ...
+    (unchanged — telegram_bot.py re-exports from this package)
 """
 
-# Re-export everything from the telegram package
-from telegram import (
-    # SDK
+# SDK layer
+from telegram.sdk import (
     TELEGRAM_AVAILABLE,
     Update,
     InlineKeyboardButton,
@@ -29,14 +23,23 @@ from telegram import (
     FilterType,
     filters,
     _mark_processed,
-    # Handlers
+)
+
+# Bot handlers
+from telegram.handlers import (
     TelegramBot,
     start_telegram_bot,
     get_dependencies,
-    # Manager
+)
+
+# Bot manager
+from telegram.manager import (
     BotManager,
     bot_manager,
-    # Utils
+)
+
+# Utility functions
+from telegram.utils import (
     validate_telegram_token,
     send_message_to_bot_customer,
     start_bot_automatically,
