@@ -72,7 +72,7 @@ class AudioProcessor:
             lang_name = lang_names.get(language, "o'zbek")
             
             # Use Gemini to transcribe
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            model = genai.GenerativeModel('gemini-3.1-flash-lite-preview')
             
             prompt = f"""Bu audio xabardagi nutqni aniq matn shaklida yoz. 
 Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma.
