@@ -278,6 +278,71 @@ def process_payment(subscription_type):
     return redirect(url_for('main.dashboard'))
 
 
+@main_bp.route('/api/admin/stats')
+@login_required
+def admin_stats_api():
+    """API endpoint for Chart.js dashboard visualizations"""
+    from models import BotCustomer, Bot
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+    
+    # 1. User Growth (Last 7 days)
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=6)
+    
+    # Identify bots owned by this user
+    user_bot_ids = [b.id for b in Bot.query.filter_by(user_id=current_user.id).all()]
+    
+    # Daily growth data
+    daily_stats = db.session.query(
+        func.date(BotCustomer.created_at).label('date'),
+        func.count(BotCustomer.id).label('count')
+    ).filter(
+        BotCustomer.bot_id.in_(user_bot_ids) if user_bot_ids else False,
+        BotCustomer.created_at >= start_date
+    ).group_by(
+        func.date(BotCustomer.created_at)
+    ).all()
+    
+    # Format for Chart.js
+    dates = [(start_date + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)]
+    growth_dict = {str(d.date): d.count for d in daily_stats}
+    growth_data = [growth_dict.get(date, 0) for date in dates]
+    
+    # 2. Language Distribution
+    lang_stats = db.session.query(
+        BotCustomer.language,
+        func.count(BotCustomer.id)
+    ).filter(
+        BotCustomer.bot_id.in_(user_bot_ids) if user_bot_ids else False
+    ).group_by(
+        BotCustomer.language
+    ).all()
+    
+    lang_labels = []
+    lang_data = []
+    for lang, count in lang_stats:
+        lang_str = lang if lang else 'uz' # Default fallback
+        lang_labels.append(lang_str.upper())
+        lang_data.append(count)
+        
+    if not lang_labels:
+        lang_labels = ['UZ', 'RU', 'EN']
+        lang_data = [0, 0, 0]
+
+    return jsonify({
+        'status': 'success',
+        'growth': {
+            'labels': [d[-5:] for d in dates], # Only MM-DD
+            'data': growth_data
+        },
+        'languages': {
+            'labels': lang_labels,
+            'data': lang_data
+        }
+    })
+
+
 @main_bp.route('/api/dashboard/refresh')
 @login_required
 def dashboard_api():

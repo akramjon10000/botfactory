@@ -157,6 +157,30 @@
     </div>
 </div>
 
+<!-- Analytics Charts (Chart.js) -->
+<div class="row mb-5" data-aos="fade-up" data-aos-delay="380">
+    <div class="col-md-8 mb-4 mb-md-0">
+        <div class="card border-0 shadow-sm rounded-4 h-100 feature-card overflow-hidden">
+            <div class="card-header bg-transparent border-0 p-4 border-bottom">
+                <h5 class="fw-bold mb-0 text-primary"><i class="fas fa-chart-line me-2"></i>Mijozlar o'sish dinamikasi (Ohirgi 7 kun)</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="growthChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 feature-card overflow-hidden">
+            <div class="card-header bg-transparent border-0 p-4 border-bottom">
+                <h5 class="fw-bold mb-0 text-primary"><i class="fas fa-language me-2"></i>Tillar kesimida</h5>
+            </div>
+            <div class="card-body p-4 d-flex justify-content-center align-items-center">
+                <canvas id="languageChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bots List -->
 <div class="row" data-aos="fade-up" data-aos-delay="400">
     <div class="col-12">
@@ -385,4 +409,85 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Fetch dashboard statistics API
+        fetch("{{ url_for('main.admin_stats_api') }}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Line Chart (Growth)
+                    const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+                    new Chart(ctxGrowth, {
+                        type: 'line',
+                        data: {
+                            labels: data.growth.labels,
+                            datasets: [{
+                                label: 'Yangi mijozlar',
+                                data: data.growth.data,
+                                borderColor: '#00bcd4',
+                                backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                borderWidth: 2,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#00bcd4',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 }
+                                }
+                            }
+                        }
+                    });
+
+                    // Doughnut Chart (Languages)
+                    const ctxLang = document.getElementById('languageChart').getContext('2d');
+                    new Chart(ctxLang, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.languages.labels,
+                            datasets: [{
+                                data: data.languages.data,
+                                backgroundColor: [
+                                    '#00bcd4',
+                                    '#3b82f6',
+                                    '#6366f1',
+                                    '#ec4899',
+                                    '#f59e0b'
+                                ],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { padding: 20, usePointStyle: true }
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error("Chart ma'lumotlarini yuklashda xatolik:", err));
+    });
+</script>
 {% endblock %}
