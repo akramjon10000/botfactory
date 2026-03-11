@@ -595,14 +595,6 @@ class TelegramBot:
             # Immediate feedback
             try:
                 feedback = "🤖 Xabaringiz qabul qilindi, javob tayyorlanmoqda..."
-                try:
-                    if trial_active and trial_start:
-                        days_left = 14 - (datetime.utcnow() - trial_start).days
-                        if days_left < 0:
-                            days_left = 0
-                        feedback += f"\n🎁 Bepul sinov: yana {days_left} kun qoldi"
-                except Exception:
-                    pass
                 await update.message.reply_text(feedback)
             except Exception:
                 pass
