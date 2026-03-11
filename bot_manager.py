@@ -21,11 +21,30 @@ class BotManager:
         self.polling_threads: Dict[str, threading.Thread] = {}
         self.shutdown_event = threading.Event()
         self.startup_complete = False
+        self._lock_fd = None
         
         # Setup graceful shutdown
         signal.signal(signal.SIGTERM, self._shutdown_handler)
         signal.signal(signal.SIGINT, self._shutdown_handler)
     
+    def _acquire_lock(self):
+        """Acquire a cross-process lock to prevent duplicate polling across Gunicorn workers"""
+        import os
+        import tempfile
+        lock_file = os.path.join(tempfile.gettempdir(), 'bot_manager_polling.lock')
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                self._lock_fd = os.open(lock_file, os.O_RDWR | os.O_CREAT | os.O_TRUNC)
+                msvcrt.locking(self._lock_fd, msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                self._lock_fd = open(lock_file, 'w')
+                fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except (IOError, OSError):
+            return False
+
     def _shutdown_handler(self, signum, frame):
         """Handle graceful shutdown signals"""
         logger.info(f"🛑 Bot manager received shutdown signal: {signum}")
@@ -34,6 +53,11 @@ class BotManager:
     
     def start_all_active_bots(self):
         """Start polling for all active bots in the database"""
+        if not self._acquire_lock():
+            logger.info("🤖 Primary bot manager is running in another worker process. Skipping polling to prevent duplicate messages.")
+            self.startup_complete = True
+            return
+
         try:
             from models import Bot
             from app import db, app
