@@ -142,6 +142,18 @@ class TelegramHTTPBot:
         except Exception:
             return False
 
+    def has_webhook(self):
+        """Check if bot has an active webhook configured"""
+        try:
+            url = f"{self.base_url}/getWebhookInfo"
+            resp = requests.get(url, timeout=10)
+            data = resp.json()
+            if data.get('ok') and data.get('result', {}).get('url'):
+                return True
+            return False
+        except Exception:
+            return False
+
     async def send_chat_action(self, chat_id, action):
         """Send typing or other chat actions to user"""
         url = f"{self.base_url}/sendChatAction"
@@ -344,6 +356,12 @@ class TelegramApplication:
         offset = None
         global bot_instance
         bot_instance = self.bot
+        
+        # Check if webhook is active - if so, DO NOT start polling
+        if self.bot.has_webhook():
+            logger.info("📡 Webhook is currently active for this bot. Skipping long-polling to prevent duplicate messages.")
+            return
+
         try:
             self.bot.delete_webhook(drop_pending_updates=False)
         except Exception:

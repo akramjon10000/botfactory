@@ -23,6 +23,14 @@ class BotManager:
         if bot_id not in self.running_bots:
             try:
                 bot = TelegramBot(bot_token, bot_id)
+                
+                # Check if webhook is active - if so, DO NOT start polling
+                if bot.application.bot.has_webhook():
+                    logger.info(f"📡 Webhook is currently active for bot {bot_id}. Skipping long-polling thread to prevent duplicate messages.")
+                    # Still record it as running so system knows it's active
+                    self.running_bots[bot_id] = {'bot': bot, 'thread': None}
+                    return True
+
                 # Make sure webhook is disabled before polling
                 try:
                     bot.application.bot.delete_webhook(drop_pending_updates=False)
