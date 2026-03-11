@@ -220,6 +220,40 @@ function renderBusiness() {
     } else {
         elements.businessLogo.src = '/static/images/default-logo.png';
     }
+
+    // Apply custom theme
+    if (state.business.theme) {
+        const t = state.business.theme;
+        const root = document.documentElement;
+        if (t.accent) {
+            root.style.setProperty('--accent', t.accent);
+            root.style.setProperty('--accent-hover', t.accent);
+        }
+        if (t.bg) {
+            root.style.setProperty('--bg-primary', t.bg);
+            document.body.style.background = t.bg;
+        }
+        if (t.card) {
+            root.style.setProperty('--bg-card', t.card);
+        }
+    }
+
+    // Store currency
+    if (state.business.currency) {
+        state.currency = state.business.currency;
+    }
+
+    // Show welcome text
+    if (state.business.welcome_text) {
+        const welcomeEl = document.createElement('p');
+        welcomeEl.className = 'welcome-text';
+        welcomeEl.textContent = state.business.welcome_text;
+        welcomeEl.style.cssText = 'color:var(--text-secondary);font-size:13px;padding:8px 16px 0;margin:0;text-align:center;';
+        const header = document.querySelector('.header');
+        if (header && !document.querySelector('.welcome-text')) {
+            header.after(welcomeEl);
+        }
+    }
 }
 
 function renderCatalog() {
@@ -436,8 +470,8 @@ async function submitOrder(e) {
 
 // ===== Utilities =====
 function formatPrice(price) {
-    if (!price) return '0 so\'m';
-    return Number(price).toLocaleString('uz-UZ') + ' so\'m';
+    if (!price) return '0 ' + (state.currency || "so'm");
+    return Number(price).toLocaleString('uz-UZ') + ' ' + (state.currency || "so'm");
 }
 
 function showLoading() {

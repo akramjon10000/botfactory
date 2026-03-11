@@ -110,6 +110,13 @@ class Bot(db.Model):
     miniapp_enabled = db.Column(db.Boolean, default=True)
     description = db.Column(db.String(500))
     
+    # MiniApp Customization (Premium only)
+    miniapp_theme_color = db.Column(db.String(20), default='#00d4aa')
+    miniapp_bg_color = db.Column(db.String(20), default='#0f0f0f')
+    miniapp_card_color = db.Column(db.String(20), default='#252525')
+    miniapp_welcome_text = db.Column(db.String(300), default='')
+    miniapp_currency = db.Column(db.String(20), default="so'm")
+    
     # Relationships
     knowledge_base = db.relationship('KnowledgeBase', backref='bot', lazy=True, cascade='all, delete-orphan')
     orders = db.relationship('MiniAppOrder', backref='bot', lazy=True, cascade='all, delete-orphan')

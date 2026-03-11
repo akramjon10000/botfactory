@@ -189,6 +189,106 @@
                         </div>
                     </div>
 
+                    <!-- MiniApp Customization (Premium Only) -->
+                    {% set owner_sub = (current_user.subscription_type or '')|lower|trim %}
+                    <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
+                        <i class="fas fa-palette me-2 text-success"></i>MiniApp Tashqi Ko'rinishi
+                        {% if owner_sub not in ['premium', 'admin'] %}
+                        <span class="badge bg-warning text-dark ms-2"><i class="fas fa-lock me-1"></i>Premium</span>
+                        {% endif %}
+                    </h5>
+
+                    <div class="card border border-success border-opacity-25 shadow-sm rounded-4 mb-4 overflow-hidden bg-transparent position-relative">
+                        {% if owner_sub not in ['premium', 'admin'] %}
+                        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:10;display:flex;align-items:center;justify-content:center;border-radius:1rem;">
+                            <div class="text-center text-white p-4">
+                                <i class="fas fa-crown fa-3x mb-3 text-warning"></i>
+                                <h5>Premium Xususiyat</h5>
+                                <p class="small mb-3">MiniApp ranglarini, valyutani va xush kelibsiz xabarni o'zgartirish uchun Premium obunaga o'ting.</p>
+                                <a href="{{ url_for('main.subscription') }}" class="btn btn-warning btn-sm rounded-pill fw-bold">
+                                    <i class="fas fa-arrow-up me-1"></i>Obunani yangilash
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="card-body p-4">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-medium text-body">
+                                        <i class="fas fa-tint me-1 text-success"></i>Accent rang
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="color" class="form-control form-control-color border-0 shadow-sm" 
+                                            name="miniapp_theme_color" id="miniapp_theme_color"
+                                            value="{{ bot.miniapp_theme_color or '#00d4aa' }}" style="width:48px;height:40px;">
+                                        <input type="text" class="form-control form-control-sm font-monospace bg-transparent text-body"
+                                            value="{{ bot.miniapp_theme_color or '#00d4aa' }}" id="miniapp_theme_color_text" readonly
+                                            style="max-width:100px;">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-medium text-body">
+                                        <i class="fas fa-fill-drip me-1 text-secondary"></i>Fon rangi
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="color" class="form-control form-control-color border-0 shadow-sm" 
+                                            name="miniapp_bg_color" id="miniapp_bg_color"
+                                            value="{{ bot.miniapp_bg_color or '#0f0f0f' }}" style="width:48px;height:40px;">
+                                        <input type="text" class="form-control form-control-sm font-monospace bg-transparent text-body"
+                                            value="{{ bot.miniapp_bg_color or '#0f0f0f' }}" id="miniapp_bg_color_text" readonly
+                                            style="max-width:100px;">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-medium text-body">
+                                        <i class="fas fa-square me-1 text-info"></i>Kartochka rangi
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="color" class="form-control form-control-color border-0 shadow-sm" 
+                                            name="miniapp_card_color" id="miniapp_card_color"
+                                            value="{{ bot.miniapp_card_color or '#252525' }}" style="width:48px;height:40px;">
+                                        <input type="text" class="form-control form-control-sm font-monospace bg-transparent text-body"
+                                            value="{{ bot.miniapp_card_color or '#252525' }}" id="miniapp_card_color_text" readonly
+                                            style="max-width:100px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="miniapp_currency" class="form-label small fw-medium text-body">
+                                        <i class="fas fa-money-bill-wave me-1 text-warning"></i>Valyuta
+                                    </label>
+                                    <select class="form-select bg-transparent text-body" name="miniapp_currency" id="miniapp_currency">
+                                        {% set cur = bot.miniapp_currency or "so'm" %}
+                                        <option value="so'm" {% if cur == "so'm" %}selected{% endif %}>so'm (UZS)</option>
+                                        <option value="$" {% if cur == "$" %}selected{% endif %}>$ (USD)</option>
+                                        <option value="€" {% if cur == "€" %}selected{% endif %}>€ (EUR)</option>
+                                        <option value="₽" {% if cur == "₽" %}selected{% endif %}>₽ (RUB)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="miniapp_welcome_text" class="form-label small fw-medium text-body">
+                                        <i class="fas fa-comment-dots me-1 text-primary"></i>Xush kelibsiz xabar
+                                    </label>
+                                    <input type="text" class="form-control bg-transparent text-body" name="miniapp_welcome_text"
+                                        id="miniapp_welcome_text" value="{{ bot.miniapp_welcome_text or '' }}"
+                                        placeholder="Xush kelibsiz! Mahsulotlarimizni ko'ring" maxlength="300">
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 rounded-3" id="miniappPreview"
+                                 style="background: {{ bot.miniapp_bg_color or '#0f0f0f' }}; border: 1px solid rgba(128,128,128,0.2);">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div style="width:32px;height:32px;border-radius:8px;background:{{ bot.miniapp_card_color or '#252525' }};"></div>
+                                    <span style="color:{{ bot.miniapp_theme_color or '#00d4aa' }};font-weight:700;font-size:14px;">Ko'rinish namunasi</span>
+                                </div>
+                                <div style="background:{{ bot.miniapp_card_color or '#252525' }};border-radius:12px;padding:12px;">
+                                    <span style="color:#fff;font-size:13px;">Mahsulot nomi</span><br>
+                                    <span style="color:{{ bot.miniapp_theme_color or '#00d4aa' }};font-weight:700;font-size:15px;">150,000 {{ bot.miniapp_currency or "so'm" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex flex-wrap gap-2 align-items-center mt-5">
                         <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow fw-bold px-4"
                             style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
@@ -795,6 +895,35 @@
                 modal.show();
             });
         });
+
+        // MiniApp Color Picker interactivity
+        const colorPickers = ['miniapp_theme_color', 'miniapp_bg_color', 'miniapp_card_color'];
+        colorPickers.forEach(function(id) {
+            const picker = document.getElementById(id);
+            const textEl = document.getElementById(id + '_text');
+            if (picker && textEl) {
+                picker.addEventListener('input', function() {
+                    textEl.value = picker.value;
+                    updateMiniappPreview();
+                });
+            }
+        });
+        function updateMiniappPreview() {
+            const preview = document.getElementById('miniappPreview');
+            if (!preview) return;
+            const bg = document.getElementById('miniapp_bg_color');
+            const card = document.getElementById('miniapp_card_color');
+            const accent = document.getElementById('miniapp_theme_color');
+            if (bg) preview.style.background = bg.value;
+            const cardDiv = preview.querySelector('div[style*="border-radius:12px"]');
+            const iconDiv = preview.querySelector('div[style*="border-radius:8px"]');
+            if (card && cardDiv) cardDiv.style.background = card.value;
+            if (card && iconDiv) iconDiv.style.background = card.value;
+            const accentSpans = preview.querySelectorAll('span[style*="font-weight:700"]');
+            if (accent && accentSpans.length) {
+                accentSpans.forEach(function(el) { el.style.color = accent.value; });
+            }
+        }
     });
 </script>
 {% endblock %}

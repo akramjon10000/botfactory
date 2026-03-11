@@ -167,6 +167,26 @@ def edit_bot(bot_id):
                 logging.error(f"WhatsApp botni ishga tushirishda xato: {e}")
                 flash('WhatsApp botni yangilashda xato yuz berdi.', 'warning')
         
+        # MiniApp Customization (Premium/Admin only)
+        owner_sub = (current_user.subscription_type or '').strip().lower()
+        if owner_sub in ['premium', 'admin']:
+            miniapp_theme = request.form.get('miniapp_theme_color')
+            miniapp_bg = request.form.get('miniapp_bg_color')
+            miniapp_card = request.form.get('miniapp_card_color')
+            miniapp_welcome = request.form.get('miniapp_welcome_text')
+            miniapp_currency = request.form.get('miniapp_currency')
+            
+            if miniapp_theme:
+                bot.miniapp_theme_color = miniapp_theme.strip()
+            if miniapp_bg:
+                bot.miniapp_bg_color = miniapp_bg.strip()
+            if miniapp_card:
+                bot.miniapp_card_color = miniapp_card.strip()
+            if miniapp_welcome is not None:
+                bot.miniapp_welcome_text = miniapp_welcome.strip()[:300]
+            if miniapp_currency:
+                bot.miniapp_currency = miniapp_currency.strip()[:20]
+        
         db.session.commit()
         flash('Bot ma\'lumotlari yangilandi!', 'success')
         return redirect(url_for('main.dashboard'))

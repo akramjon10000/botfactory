@@ -29,7 +29,14 @@ def get_business_info(bot_id):
             'description': bot.business_description or bot.description or '',
             'logo': bot.business_logo or '/static/images/default-logo.png',
             'business_type': bot.business_type or 'product',
-            'owner_name': bot.owner.username if bot.owner else ''
+            'owner_name': bot.owner.username if bot.owner else '',
+            'theme': {
+                'accent': getattr(bot, 'miniapp_theme_color', '#00d4aa') or '#00d4aa',
+                'bg': getattr(bot, 'miniapp_bg_color', '#0f0f0f') or '#0f0f0f',
+                'card': getattr(bot, 'miniapp_card_color', '#252525') or '#252525'
+            },
+            'welcome_text': getattr(bot, 'miniapp_welcome_text', '') or '',
+            'currency': getattr(bot, 'miniapp_currency', "so'm") or "so'm"
         })
         
     except Exception as e:
