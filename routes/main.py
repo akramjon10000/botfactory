@@ -81,24 +81,36 @@ def api_webchat():
         except Exception:
             pass
 
-        # Get bot name (generic for site widget)
-        bot_name = 'Chatbot Factory AI'
+        bot_name = 'BotFactory AI'
+        from ai import get_ai_response
 
-        # Import AI helpers
-        from ai import get_ai_response, process_knowledge_base
+        # Use dedicated BotFactory AI knowledge for the website widget
+        # (NOT a random user's bot knowledge base!)
+        kb_text = """BotFactory AI — O'zbekiston uchun mo'ljallangan AI chatbot platformasi.
 
-        # If there is at least one bot, pass its knowledge base
-        kb_text = ''
+Asosiy xususiyatlar:
+- Telegram botlar yaratish va boshqarish
+- Google Gemini AI asosida aqlli javoblar (o'zbek, rus, ingliz tillarida)
+- Bilim bazasi yuklash (PDF, Word, TXT, CSV)
+- Mijozlar bilan avtomatik suhbat
+- Boshqaruv paneli va analitika
+- Marketing kampaniyalari
+
+Tariflar:
+- Test (Bepul): 7 kunlik sinov, 1 ta bot, faqat Telegram, o'zbek tili
+- Standart: 165,000 so'm/oy, 1 ta bot, 3 til, kengaytirilgan AI (GPT)
+- Premium: 590,000 so'm/oy, 3 tagacha bot, texnik ko'mak, haftalik hisobot
+
+Qanday boshlash:
+1. Ro'yxatdan o'ting (https://botfactory-am64.onrender.com/auth/register)
+2. BotFather'dan Telegram token oling
+3. Dashboard'da yangi bot yarating va tokenni kiriting
+4. Bilim bazasini yuklang — bot tayyor!
+
+Bog'lanish: Telegram orqali yozing yoki saytda ro'yxatdan o'ting.
+Instagram va WhatsApp integratsiyasi tez kunda qo'shiladi.
+"""
         owner_contact_info = ''
-        try:
-            first_bot = Bot.query.first()
-            if first_bot:
-                kb_text = process_knowledge_base(first_bot.id)
-                bot_name = first_bot.name or bot_name
-                if first_bot.owner:
-                    owner_contact_info = f"Telefon raqam: {first_bot.owner.phone_number or 'Mavjud emas'}, Telegram: {first_bot.owner.telegram_id or 'Mavjud emas'}"
-        except Exception:
-            kb_text = ''
 
         reply = get_ai_response(message=message, bot_name=bot_name, user_language=user_lang, knowledge_base=kb_text, chat_history='', owner_contact_info=owner_contact_info)
         reply = reply or 'Salom! Hozircha javob tayyorlanmoqda. 🤖'
