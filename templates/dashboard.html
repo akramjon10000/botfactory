@@ -376,26 +376,74 @@
                 </div>
 
                 {% else %}
-                <div class="text-center py-5">
-                    <div class="mb-4 mt-2">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle shadow-sm"
-                            style="width: 100px; height: 100px;">
-                            <i class="fas fa-robot" style="font-size: 3rem;"></i>
+                <div class="p-5 text-center bg-white">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle shadow-sm mb-3"
+                            style="width: 80px; height: 80px;">
+                            <i class="fas fa-rocket" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2">BotFactory ga Xush Kelibsiz!</h3>
+                        <p class="text-muted mx-auto" style="max-width: 600px;">
+                            Sizda hali hech qanday bot yo'q. Birinchi sun'iy intellekt yordamchingizni yaratish uchun quyidagi 3 ta oson qadamni bajaring:
+                        </p>
+                    </div>
+
+                    <div class="row justify-content-center text-start mb-5 px-md-4">
+                        <!-- Step 1 -->
+                        <div class="col-md-4 mb-4 mb-md-0 position-relative">
+                            <div class="card h-100 border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02)); border: 1px solid rgba(59, 130, 246, 0.1) !important;">
+                                <div class="card-body p-4 text-center">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow" style="width: 40px; height: 40px; font-weight: bold; font-size: 1.2rem; transform: translateY(-30px); margin-bottom: -15px !important;">1</div>
+                                    <i class="fab fa-telegram fs-1 text-primary mb-3"></i>
+                                    <h6 class="fw-bold">@BotFather'ga kiring</h6>
+                                    <p class="small text-muted mb-0">Telegram orqali <a href="https://t.me/BotFather" target="_blank" class="fw-bold text-decoration-none">@BotFather</a> ni toping va unga <code class="bg-light px-2 py-1 rounded text-dark">/newbot</code> deb yozing.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Step 2 -->
+                        <div class="col-md-4 mb-4 mb-md-0 position-relative">
+                            <div class="card h-100 border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02)); border: 1px solid rgba(16, 185, 129, 0.1) !important;">
+                                <div class="card-body p-4 text-center">
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow" style="width: 40px; height: 40px; font-weight: bold; font-size: 1.2rem; transform: translateY(-30px); margin-bottom: -15px !important;">2</div>
+                                    <i class="fas fa-key fs-1 text-success mb-3"></i>
+                                    <h6 class="fw-bold">Tokenni nusxalang</h6>
+                                    <p class="small text-muted mb-0">Botga ism va username (misol: yordamchi_bot) berganingizdan so'ng, u sizga uzun HTTP API <strong class="text-success">Token</strong> beradi. Shuni nusxalang.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Step 3 -->
+                        <div class="col-md-4 position-relative">
+                            <div class="card h-100 border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.02)); border: 1px solid rgba(139, 92, 246, 0.1) !important;">
+                                <div class="card-body p-4 text-center">
+                                    <div class="d-flex align-items-center justify-content-center text-white rounded-circle mx-auto mb-3 shadow" style="width: 40px; height: 40px; font-weight: bold; font-size: 1.2rem; background: #8b5cf6; transform: translateY(-30px); margin-bottom: -15px !important;">3</div>
+                                    <i class="fas fa-plus-circle fs-1 mb-3" style="color: #8b5cf6;"></i>
+                                    <h6 class="fw-bold">Botni yarating</h6>
+                                    <p class="small text-muted mb-0">Quyidagi tugmani bosing va nusxalagan tokenni kiriting. Keyin unga ma'lumot yuklab aqlli qilasiz!</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <h4 class="fw-bold mb-2">Hali loyihalaringiz mavjud emas</h4>
-                    <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">Botingizga yangi "jon" baxsh etish
-                        uchun maxsus ma'lumotlaringiz asosida birinchi AI yordamchingizni yarating.</p>
+
                     {% if subscription_info.can_create %}
                     <a href="{{ url_for('bot.create_bot') }}"
-                        class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold">
-                        <i class="fas fa-plus me-2"></i>Birinchi botni yaratish
+                        class="btn btn-primary btn-lg rounded-pill px-5 shadow-lg fw-bold pulse-animation"
+                        style="background: linear-gradient(135deg, #00C6FF, #0072FF); border: none;">
+                        <i class="fas fa-magic me-2"></i>Ajoyib, botni yaratamiz!
                     </a>
+                    <style>
+                        .pulse-animation {
+                            animation: pulse-shadow 2s infinite;
+                        }
+                        @keyframes pulse-shadow {
+                            0% { box-shadow: 0 0 0 0 rgba(0, 114, 255, 0.4); }
+                            70% { box-shadow: 0 0 0 15px rgba(0, 114, 255, 0); }
+                            100% { box-shadow: 0 0 0 0 rgba(0, 114, 255, 0); }
+                        }
+                    </style>
                     {% else %}
                     <div class="alert alert-warning border-0 shadow-sm d-inline-block text-center rounded-3">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        Siz o'z ta'rifingizdagi maksimal bot yaratish chekloviga yetdingiz. Yangi loyiha qo'shishingiz
-                        uchun:
+                        Siz o'z ta'rifingizdagi maksimal bot yaratish chekloviga yetdingiz.
                     </div>
                     <br>
                     <a href="{{ url_for('main.subscription') }}"
@@ -426,24 +474,39 @@
                         type: 'line',
                         data: {
                             labels: data.growth.labels,
-                            datasets: [{
-                                label: 'Yangi mijozlar',
-                                data: data.growth.data,
-                                borderColor: '#00bcd4',
-                                backgroundColor: 'rgba(0, 188, 212, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                borderWidth: 2,
-                                pointBackgroundColor: '#fff',
-                                pointBorderColor: '#00bcd4',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                            }]
+                            datasets: [
+                                {
+                                    label: 'Yangi xabarlar',
+                                    data: data.growth.messages_data,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#fff',
+                                    pointBorderColor: '#3b82f6',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                },
+                                {
+                                    label: 'Yangi mijozlar',
+                                    data: data.growth.data,
+                                    borderColor: '#00bcd4',
+                                    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#fff',
+                                    pointBorderColor: '#00bcd4',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             plugins: {
-                                legend: { display: false }
+                                legend: { display: true, position: 'top' }
                             },
                             scales: {
                                 y: {

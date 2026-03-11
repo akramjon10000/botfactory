@@ -266,11 +266,12 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Foydalanuvchi</th>
-                                <th>Miqdor</th>
+                                <th>Miqdor/Tarif</th>
                                 <th>Usul</th>
                                 <th>Holat</th>
                                 <th>Sana</th>
                                 <th>Tranzaksiya ID</th>
+                                <th>Amallar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -278,7 +279,10 @@
                             <tr>
                                 <td>{{ payment.id }}</td>
                                 <td>@{{ payment.user.username }}</td>
-                                <td><strong>{{ "{:,.0f}".format(payment.amount) }} so'm</strong></td>
+                                <td>
+                                    <strong>{{ "{:,.0f}".format(payment.amount) }} so'm</strong><br>
+                                    <small class="text-muted">{{ payment.subscription_type }}</small>
+                                </td>
                                 <td>
                                     {% if payment.method == 'Payme' %}
                                     <span class="badge bg-info">Payme</span>
@@ -286,6 +290,8 @@
                                     <span class="badge bg-warning">Click</span>
                                     {% elif payment.method == 'Uzum' %}
                                     <span class="badge bg-success">Uzum</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ payment.method }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -303,6 +309,24 @@
                                     <code>{{ payment.transaction_id }}</code>
                                     {% else %}
                                     -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if payment.status == 'pending' %}
+                                    <div class="btn-group btn-group-sm">
+                                        <form method="POST" action="{{ url_for('admin_routes.approve_payment', payment_id=payment.id) }}" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-success" title="Tasdiqlash" onsubmit="return confirm('To\'lovni tasdiqlaysizmi?');">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('admin_routes.reject_payment', payment_id=payment.id) }}" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-danger" title="Bekor qilish" onsubmit="return confirm('To\'lovni bekor qilasizmi?');">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                     {% endif %}
                                 </td>
                             </tr>

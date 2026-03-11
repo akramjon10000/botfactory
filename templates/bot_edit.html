@@ -119,26 +119,9 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-medium text-body">Platforma</label>
-                        <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
-                                    class="fas fa-mobile-alt"></i></span>
-                            <select class="form-select border-start-0 ps-0 text-body bg-light" id="platform" disabled
-                                style="box-shadow: none; border-color: var(--bs-border-color);">
-                                <option value="Telegram" {% if bot.platform=='Telegram' %}selected{% endif %}>Telegram
-                                </option>
-                                <option value="Instagram" disabled {% if bot.platform=='Instagram' %}selected{% endif
-                                    %}>Instagram 🔒 (Tez kunda)</option>
-                                <option value="WhatsApp" disabled {% if bot.platform=='WhatsApp' %}selected{% endif %}>
-                                    WhatsApp 🔒 (Tez kunda)</option>
-                            </select>
-                            <input type="hidden" name="platform" value="{{ bot.platform }}">
-                        </div>
-                    </div>
+                    <input type="hidden" name="platform" value="{{ bot.platform }}">
 
-                    <div id="telegram_fields" class="platform-fields mb-5" {% if bot.platform !='Telegram'
-                        %}style="display: none;" {% endif %}>
+                    <div class="mb-5">
                         <label for="telegram_token" class="form-label fw-medium text-body">
                             Telegram Bot Token
                         </label>
@@ -156,64 +139,6 @@
                             shifrlanadi.
                         </div>
                     </div>
-
-                    <div id="instagram_fields" class="platform-fields mb-5" {% if bot.platform !='Instagram'
-                        %}style="display: none;" {% endif %}>
-                        <label for="instagram_token" class="form-label fw-medium text-body">
-                            Instagram Graph API Token <span class="text-danger">*</span>
-                        </label>
-                        <div
-                            class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-danger border-opacity-25">
-                            <span class="input-group-text bg-danger bg-opacity-10 border-end-0 text-danger"><i
-                                    class="fab fa-instagram"></i></span>
-                            <input type="text" class="form-control border-start-0 ps-0 font-monospace bg-transparent"
-                                id="instagram_token" name="instagram_token" value="{{ bot.instagram_token or '' }}"
-                                placeholder="EAAI..." style="box-shadow: none;">
-                        </div>
-                        <div class="form-text mt-2">
-                            <i class="fas fa-info-circle me-1 text-danger"></i>
-                            Meta for Developers sahifasidan olingan uzoq muddatli Access Token.
-                        </div>
-                    </div>
-
-                    <div id="whatsapp_fields" class="platform-fields mb-5" {% if bot.platform !='WhatsApp'
-                        %}style="display: none;" {% endif %}>
-                        <div class="mb-4">
-                            <label for="whatsapp_token" class="form-label fw-medium text-body">
-                                WhatsApp Access Token <span class="text-danger">*</span>
-                            </label>
-                            <div
-                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
-                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
-                                        class="fab fa-whatsapp"></i></span>
-                                <input type="text"
-                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
-                                    id="whatsapp_token" name="whatsapp_token" value="{{ bot.whatsapp_token or '' }}"
-                                    placeholder="EAAI..." style="box-shadow: none;">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="whatsapp_phone_id" class="form-label fw-medium text-body">
-                                WhatsApp Phone Number ID <span class="text-danger">*</span>
-                            </label>
-                            <div
-                                class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border border-success border-opacity-25">
-                                <span class="input-group-text bg-success bg-opacity-10 border-end-0 text-success"><i
-                                        class="fas fa-phone-square"></i></span>
-                                <input type="text"
-                                    class="form-control border-start-0 ps-0 font-monospace bg-transparent"
-                                    id="whatsapp_phone_id" name="whatsapp_phone_id"
-                                    value="{{ bot.whatsapp_phone_id or '' }}" placeholder="123456789012345"
-                                    style="box-shadow: none;">
-                            </div>
-                            <div class="form-text mt-2">
-                                <i class="fas fa-info-circle me-1 text-success"></i>
-                                Meta joriy qilgan Phone Number ID (Telefon raqami emas).
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Suhbat kuzatuvi sozlamalari -->
                     <h5 class="fw-bold mb-3 border-bottom pb-2">Kuzatuv (Monitoring)</h5>
                     <div
@@ -269,21 +194,6 @@
                             style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
                             <i class="fas fa-save me-2"></i>Saqlash
                         </button>
-
-                        {% if bot.platform == 'Telegram' and bot.telegram_token %}
-                        <div class="d-inline-block">
-                            <form method="POST" action="{{ url_for('webhook.setup_webhook', bot_id=bot.id) }}"
-                                class="m-0" id="webhookForm">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit"
-                                    class="btn btn-success btn-lg rounded-pill shadow-sm px-4 fw-bold text-white hover-lift ms-2"
-                                    onclick="return confirm('Webhook ni o\'rnatishni xohlaysizmi? Bu production muhitida bot ishlashi uchun kerak.')"
-                                    style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
-                                    <i class="fas fa-link me-2"></i>Webhook o'rnatish
-                                </button>
-                            </form>
-                        </div>
-                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -350,6 +260,12 @@
                         <button class="nav-link" id="text-tab" data-bs-toggle="pill" data-bs-target="#text-content"
                             type="button" role="tab">
                             <i class="fas fa-keyboard me-1"></i>Matn
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="qa-tab" data-bs-toggle="pill" data-bs-target="#qa-content"
+                            type="button" role="tab">
+                            <i class="fas fa-question-circle me-1"></i>Q&A
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -426,6 +342,28 @@
                                 class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm hover-lift"
                                 style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
                                 <i class="fas fa-plus me-2"></i>Matn qo'shish
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Q&A (Savol-Javob) Tab -->
+                    <div class="tab-pane fade" id="qa-content" role="tabpanel">
+                        <form method="POST" action="{{ url_for('knowledge.add_qa_knowledge', bot_id=bot.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <label for="qa_question" class="form-label fw-medium text-body small">Savol <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control bg-transparent" id="qa_question"
+                                    name="source_name" placeholder="Mijoz qanday so'rashi mumkin?" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="qa_answer" class="form-label fw-medium text-body small">Javob <span class="text-danger">*</span></label>
+                                <textarea class="form-control bg-transparent" id="qa_answer" name="content" rows="4"
+                                    placeholder="Ushbu savolga bot qanday javob bersin?" required></textarea>
+                            </div>
+                            <button type="submit"
+                                class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm hover-lift"
+                                style="background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none;">
+                                <i class="fas fa-comments me-2"></i>Savol-Javob qo'shish
                             </button>
                         </form>
                     </div>
@@ -589,6 +527,15 @@
                                         kb.source_name or kb.filename }}</strong>
                                     <span class="text-muted" style="font-size: 0.7rem;">Qo'lda kiritilgan matn</span>
                                 </div>
+                                {% elif kb.content_type == 'qa' %}
+                                <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
+                                    <i class="fas fa-question-circle text-success"></i>
+                                </div>
+                                <div class="text-truncate">
+                                    <strong class="text-body text-truncate d-block" style="font-size: 0.9rem;">{{
+                                        kb.source_name or 'Savol' }}</strong>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Savol-Javob</span>
+                                </div>
                                 {% elif kb.content_type == 'image_link' %}
                                 <div class="bg-secondary bg-opacity-10 p-2 rounded-circle me-3 flex-shrink-0">
                                     <i class="fas fa-link text-secondary"></i>
@@ -735,47 +682,6 @@
             switchBtn.addEventListener('change', updateMonitoringVisibility);
         }
 
-        // Platform selection toggle logic
-        var platformSelect = document.getElementById('platform');
-        if (platformSelect) {
-            platformSelect.addEventListener('change', function () {
-                var selectedPlatform = this.value;
-
-                // Hide all platform fields
-                document.querySelectorAll('.platform-fields').forEach(function (el) {
-                    el.style.display = 'none';
-                    // Disable inputs in hidden fields to prevent validation errors on submit
-                    var inputs = el.querySelectorAll('input');
-                    inputs.forEach(function (input) {
-                        input.disabled = true;
-                    });
-                });
-
-                // Show selected platform fields
-                if (selectedPlatform === 'Telegram') {
-                    var tgFields = document.getElementById('telegram_fields');
-                    if (tgFields) {
-                        tgFields.style.display = 'block';
-                        tgFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
-                    }
-                } else if (selectedPlatform === 'Instagram') {
-                    var igFields = document.getElementById('instagram_fields');
-                    if (igFields) {
-                        igFields.style.display = 'block';
-                        igFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
-                    }
-                } else if (selectedPlatform === 'WhatsApp') {
-                    var waFields = document.getElementById('whatsapp_fields');
-                    if (waFields) {
-                        waFields.style.display = 'block';
-                        waFields.querySelectorAll('input').forEach(function (input) { input.disabled = false; });
-                    }
-                }
-            });
-
-            // Trigger change event to set initial state correctly on page load
-            platformSelect.dispatchEvent(new Event('change'));
-        }
 
         // --- Knowledge Base Delete ---
         document.querySelectorAll('.delete-kb-btn').forEach(function (btn) {
@@ -862,10 +768,19 @@
                     document.getElementById('editProductPrice').value = price;
                     document.getElementById('editProductDescription').value = desc;
 
-                } else if (kbType === 'text') {
+                } else if (kbType === 'text' || kbType === 'qa') {
                     genContainer.style.display = 'block';
                     prodContainer.style.display = 'none';
                     txtContentWrapper.style.display = 'block';
+                    
+                    if (kbType === 'qa') {
+                        document.querySelector('#editGenericContainer .form-label').innerText = 'Savol';
+                        document.querySelector('#editTextContentWrapper .form-label').innerHTML = 'Javob <span class="text-danger">*</span>';
+                    } else {
+                        document.querySelector('#editGenericContainer .form-label').innerText = 'Nomi (Source Name)';
+                        document.querySelector('#editTextContentWrapper .form-label').innerHTML = 'Matn kontenti <span class="text-danger">*</span>';
+                    }
+                    
                     document.getElementById('editSourceName').value = kbName;
                     document.getElementById('editContent').value = kbContent;
 

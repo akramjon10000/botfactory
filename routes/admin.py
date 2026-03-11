@@ -413,6 +413,72 @@ def send_broadcast():
     
     return redirect(url_for('admin_routes.admin'))
 
+@admin_routes_bp.route('/admin/approve-payment/<int:payment_id>', methods=['POST'])
+@login_required
+def approve_payment(payment_id):
+    if not current_user.is_admin:
+        flash("Sizda admin huquqi yo'q!", 'error')
+        return redirect(url_for('main.dashboard'))
+        
+    payment = Payment.query.get_or_404(payment_id)
+    if payment.status == 'completed':
+        flash("Bu to'lov allaqachon tasdiqlangan!", 'warning')
+        return redirect(url_for('admin_routes.admin'))
+        
+    try:
+        payment.status = 'completed'
+        
+        # Obunani faollashtirish
+        user = User.query.get(payment.user_id)
+        if user:
+            user.subscription_type = payment.subscription_type
+            user.subscription_end_date = datetime.utcnow() + timedelta(days=30)
+            
+            # User ga telegram xabar yuborish
+            try:
+                from telegram_bot import send_admin_message_to_user
+                if user.telegram_id:
+                    text = f"🎉 <b>Tabriklaymiz!</b>\n\nTo'lovingiz tasdiqlandi va <b>{payment.subscription_type.capitalize()}</b> obunangiz faollashtirildi.\nEndi yangi imkoniyatlardan bemalol foydalanishingiz mumkin."
+                    send_admin_message_to_user(user.telegram_id, text)
+            except Exception:
+                pass
+                
+        db.session.commit()
+        flash(f"To'lov tasdiqlandi. @{user.username} obunasi faollashtirildi.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Xatolik yuz berdi: {str(e)}", "error")
+        
+    return redirect(url_for('admin_routes.admin'))
+
+@admin_routes_bp.route('/admin/reject-payment/<int:payment_id>', methods=['POST'])
+@login_required
+def reject_payment(payment_id):
+    if not current_user.is_admin:
+        return redirect(url_for('main.dashboard'))
+        
+    payment = Payment.query.get_or_404(payment_id)
+    
+    try:
+        payment.status = 'failed'
+        db.session.commit()
+        
+        # Notify user maybe
+        user = User.query.get(payment.user_id)
+        try:
+            from telegram_bot import send_admin_message_to_user
+            if user and user.telegram_id:
+                text = f"❌ <b>To'lov bekor qilindi</b>\n\nAdmin sizning oxirgi to'lov hisobotingizni tasdiqlamadi."
+                send_admin_message_to_user(user.telegram_id, text)
+        except Exception:
+            pass
+            
+        flash("To'lov bekor qilindi.", "info")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Xatolik: {str(e)}", "error")
+        
+    return redirect(url_for('admin_routes.admin'))
 
 @admin_routes_bp.route('/admin/change-subscription', methods=['POST'])
 @login_required

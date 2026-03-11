@@ -280,6 +280,72 @@ def update_notification_settings():
 def subscription():
     return render_template('subscription.html')
 
+@main_bp.route('/report-payment', methods=['POST'])
+@login_required
+def report_payment():
+    try:
+        method = request.form.get('payment_method', 'Xazna')
+        subscription_type = request.form.get('subscription_type')
+        
+        amounts = {
+            'starter': 165000,
+            'basic': 290000,
+            'premium': 590000
+        }
+        
+        if not subscription_type or subscription_type not in amounts:
+            flash("Noto'g'ri tarif turi tanlandi!", 'error')
+            return redirect(url_for('main.subscription'))
+            
+        print(f"Report Payment: Method: {method}, SubType: {subscription_type}")
+        
+        # Check if user already has a pending payment
+        existing = Payment.query.filter_by(
+            user_id=current_user.id, 
+            status='pending',
+            subscription_type=subscription_type
+        ).first()
+        
+        if existing:
+            flash("Ayni paytda ushbu tarif uchun tasdiqlanmagan to'lovingiz kutilmoqda! Iltimos, admin tasdiqlashini kuting.", "warning")
+            return redirect(url_for('main.dashboard'))
+            
+        # Create pending payment record
+        payment = Payment(
+            user_id=current_user.id,
+            amount=amounts[subscription_type],
+            method=method,
+            status='pending',
+            subscription_type=subscription_type,
+            transaction_id=f'REPORT_{current_user.id}_{datetime.utcnow().strftime("%y%m%d%H%M")}'
+        )
+        db.session.add(payment)
+        
+        # Try to send admin notification
+        try:
+            from telegram_bot import send_admin_message_to_user
+            admin_users = User.query.filter_by(is_admin=True, is_active=True).all()
+            for admin in admin_users:
+                if admin.telegram_id:
+                    text = f"💰 <b>Yangi to'lov hisoboti!</b>\n\n"
+                    text += f"👤 <b>Foydalanuvchi:</b> @{current_user.username}\n"
+                    text += f"💳 <b>Tarif:</b> {subscription_type.capitalize()}\n"
+                    text += f"💵 <b>Miqdor:</b> {amounts[subscription_type]:,} so'm\n"
+                    text += f"🏦 <b>Uslub:</b> {method}\n\n"
+                    text += f"✅ Admin panel → To'lovlar orqali tasdiqlang."
+                    send_admin_message_to_user(admin.telegram_id, text)
+        except Exception as e:
+            print(f"Admin notification error: {e}")
+            
+        db.session.commit()
+        
+        flash("To'lov hisoboti yuborildi! Adminlar uni tez orada tasdiqlaydi.", "success")
+        return redirect(url_for('main.dashboard'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Xatolik yuz berdi: {str(e)}", "error")
+        return redirect(url_for('main.subscription'))
+
 
 @main_bp.route('/payment/<subscription_type>', methods=['POST'])
 @login_required
@@ -385,7 +451,7 @@ def admin_stats_api():
     # Identify bots owned by this user
     user_bot_ids = [b.id for b in Bot.query.filter_by(user_id=current_user.id).all()]
     
-    # Daily growth data
+    # Daily growth data (New Customers)
     daily_stats = db.session.query(
         func.date(BotCustomer.created_at).label('date'),
         func.count(BotCustomer.id).label('count')
@@ -396,10 +462,26 @@ def admin_stats_api():
         func.date(BotCustomer.created_at)
     ).all()
     
+    # Daily messages data (Total Messages)
+    from models import ChatHistory
+    daily_messages = db.session.query(
+        func.date(ChatHistory.created_at).label('date'),
+        func.count(ChatHistory.id).label('count')
+    ).filter(
+        ChatHistory.bot_id.in_(user_bot_ids) if user_bot_ids else False,
+        ChatHistory.created_at >= start_date
+    ).group_by(
+        func.date(ChatHistory.created_at)
+    ).all()
+    
     # Format for Chart.js
     dates = [(start_date + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)]
+    
     growth_dict = {str(d.date): d.count for d in daily_stats}
     growth_data = [growth_dict.get(date, 0) for date in dates]
+    
+    messages_dict = {str(d.date): d.count for d in daily_messages}
+    messages_data = [messages_dict.get(date, 0) for date in dates]
     
     # 2. Language Distribution
     lang_stats = db.session.query(
@@ -426,7 +508,8 @@ def admin_stats_api():
         'status': 'success',
         'growth': {
             'labels': [d[-5:] for d in dates], # Only MM-DD
-            'data': growth_data
+            'data': growth_data,
+            'messages_data': messages_data
         },
         'languages': {
             'labels': lang_labels,

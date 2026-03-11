@@ -491,87 +491,89 @@
                 </h5>
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <div class="alert bg-primary bg-opacity-10 border-0 rounded-4 text-primary mb-4 p-3 shadow-sm">
-                    <h6 class="mb-2 fw-bold text-body">Siz tanlagan tarif: <span id="selectedPlan"
-                            class="text-primary"></span></h6>
-                    <p class="mb-0 fw-medium">Narxi: <strong id="selectedAmount" class="fs-5"></strong> so'm/oy</p>
-                </div>
+            <form action="{{ url_for('main.report_payment') }}" method="POST" id="paymentReportForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="subscription_type" id="formSubscriptionType">
+                <div class="modal-body p-4 text-center">
+                    <div class="alert bg-primary bg-opacity-10 border-0 rounded-4 text-primary mb-4 p-3 shadow-sm">
+                        <h6 class="mb-2 fw-bold text-body">Siz tanlagan tarif: <span id="selectedPlan"
+                                class="text-primary"></span></h6>
+                        <p class="mb-0 fw-medium">Narxi: <strong id="selectedAmount" class="fs-5"></strong> so'm/oy</p>
+                    </div>
 
-                <h5 class="fw-bold mb-3 fs-6 text-start px-2"><i class="fas fa-wallet text-secondary me-2"></i>To'lov
-                    usulini tanlang:</h5>
+                    <h5 class="fw-bold mb-3 fs-6 text-start px-2"><i class="fas fa-wallet text-secondary me-2"></i>To'lov
+                        usulini tanlang:</h5>
 
-                <ul class="nav custom-nav-pills nav-fill mb-4 bg-secondary bg-opacity-10 p-1 rounded-pill"
-                    id="paymentTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="xazna-tab" data-bs-toggle="pill" data-bs-target="#xazna"
-                            type="button" role="tab">
-                            <i class="fas fa-qrcode me-1"></i>Xazna
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="paynet-tab" data-bs-toggle="pill" data-bs-target="#paynet"
-                            type="button" role="tab">
-                            <i class="fas fa-credit-card me-1"></i>Paycheck / Karta
-                        </button>
-                    </li>
-                </ul>
+                    <ul class="nav custom-nav-pills nav-fill mb-4 bg-secondary bg-opacity-10 p-1 rounded-pill"
+                        id="paymentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="xazna-tab" data-bs-toggle="pill" data-bs-target="#xazna"
+                                type="button" role="tab" onclick="document.getElementById('paymentMethod').value='Xazna'">
+                                <i class="fas fa-qrcode me-1"></i>Xazna
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="paynet-tab" data-bs-toggle="pill" data-bs-target="#paynet"
+                                type="button" role="tab" onclick="document.getElementById('paymentMethod').value='Paynet'">
+                                <i class="fas fa-credit-card me-1"></i>Paycheck / Karta
+                            </button>
+                        </li>
+                    </ul>
+                    <input type="hidden" name="payment_method" id="paymentMethod" value="Xazna">
 
-                <div class="tab-content" id="paymentTabsContent">
-                    <!-- Xazna -->
-                    <div class="tab-pane fade show active" id="xazna" role="tabpanel">
-                        <div
-                            class="card bg-transparent border-success border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
-                            <div class="card-body p-4 text-center">
-                                <img src="/static/images/xazna_qr.png" alt="Xazna QR Code"
-                                    class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;">
-                                <p class="text-success fw-medium small mb-3">QR kodni skanerlang yoki quyidagi tugmani
-                                    bosing</p>
-                                <a href="https://pay.xazna.uz/p2p/0ed3d14c-f661-4ff3-beda-ea2be0784abe" target="_blank"
-                                    class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-                                    <i class="fas fa-external-link-alt me-2"></i>Xazna orqali to'lash
-                                </a>
+                    <div class="tab-content" id="paymentTabsContent">
+                        <!-- Xazna -->
+                        <div class="tab-pane fade show active" id="xazna" role="tabpanel">
+                            <div
+                                class="card bg-transparent border-success border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
+                                <div class="card-body p-4 text-center">
+                                    <img src="/static/images/xazna_qr.png" alt="Xazna QR Code"
+                                        class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;" onerror="this.src='https://via.placeholder.com/150?text=Xazna+QR'">
+                                    <p class="text-success fw-medium small mb-3">QR kodni skanerlang yoki quyidagi tugmani
+                                        bosing</p>
+                                    <a href="https://pay.xazna.uz/p2p/0ed3d14c-f661-4ff3-beda-ea2be0784abe" target="_blank"
+                                        class="btn btn-success rounded-pill px-4 shadow-sm fw-bold mb-2 w-100">
+                                        <i class="fas fa-external-link-alt me-2"></i>Xazna orqali to'lash
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paynet -->
+                        <div class="tab-pane fade" id="paynet" role="tabpanel">
+                            <div
+                                class="card bg-transparent border-primary border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
+                                <div class="card-body p-4 text-center">
+                                    <img src="/static/images/paynet_qr.png" alt="Paynet QR Code"
+                                        class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;" onerror="this.src='https://via.placeholder.com/150?text=Paynet+QR'">
+                                    <p class="text-body fw-medium small mb-3">Paynet orqali to'lash uchun quyidagi tugmani
+                                        bosing:</p>
+                                    <a href="https://app.paynet.uz/?m=49156&i=4805742d-d76c-4b39-8c02-8ddf1c450f33&branchId=&actTypeId="
+                                        target="_blank" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold w-100"
+                                        style="background: linear-gradient(135deg, #6366f1, #3b82f6); border: none;">
+                                        <i class="fas fa-credit-card me-2"></i>Paynet orqali to'lash
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Paynet -->
-                    <div class="tab-pane fade" id="paynet" role="tabpanel">
-                        <div
-                            class="card bg-transparent border-primary border-opacity-25 rounded-4 shadow-sm overflow-hidden mb-3">
-                            <div class="card-body p-4 text-center">
-                                <img src="/static/images/paynet_qr.png" alt="Paynet QR Code"
-                                    class="img-fluid mb-3 rounded-3 shadow-sm" style="max-height: 180px;">
-                                <p class="text-body fw-medium small mb-3">Paynet orqali to'lash uchun quyidagi tugmani
-                                    bosing:</p>
-                                <a href="https://app.paynet.uz/?m=49156&i=4805742d-d76c-4b39-8c02-8ddf1c450f33&branchId=&actTypeId="
-                                    target="_blank" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold"
-                                    style="background: linear-gradient(135deg, #6366f1, #3b82f6); border: none;">
-                                    <i class="fas fa-credit-card me-2"></i>Paynet orqali to'lash
-                                </a>
-                            </div>
-                        </div>
+                    <div class="text-start mt-4 px-2">
+                        <h6 class="fw-bold fs-6 mb-2"><i class="fas fa-info-circle text-warning me-2"></i>Keyingi qadam:</h6>
+                        <p class="small text-muted mb-0">
+                            To'lovni amalga oshirgach, pastdagi tugmani bosing. Admin tez orada to'lovingizni tasdiqlab, obunangizni faollashtiradi.
+                        </p>
                     </div>
                 </div>
-
-                <div class="text-start mt-4 px-2">
-                    <h6 class="fw-bold fs-6 mb-2"><i class="fas fa-info-circle text-warning me-2"></i>Muhim qadam:</h6>
-                    <p class="small text-muted mb-0">
-                        To'lovni amalga oshirgach, chekni va loginingizni (<strong>{{ current_user.username }}</strong>)
-                        adminning Telegram manziliga yuborishingiz qat'iy so'raladi. Admin tez orada profilingizni
-                        yangilaydi.
-                    </p>
+                <div
+                    class="modal-footer border-top border-secondary border-opacity-10 p-3 bg-secondary bg-opacity-10 rounded-bottom-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Yopish</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
+                        style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
+                        <i class="fas fa-check-double me-2"></i>To'lov qildim, tasdiqlang
+                    </button>
                 </div>
-            </div>
-            <div
-                class="modal-footer border-top border-secondary border-opacity-10 p-3 bg-secondary bg-opacity-10 rounded-bottom-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Yopish</button>
-                <a href="https://t.me/akramjon0011" target="_blank"
-                    class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
-                    style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none;">
-                    <i class="fab fa-telegram-plane me-2"></i>Adminga yuborish
-                </a>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -596,6 +598,7 @@
 
             document.getElementById('selectedPlan').textContent = planNames[subscription] || subscription;
             document.getElementById('selectedAmount').textContent = new Intl.NumberFormat('uz-UZ').format(amount);
+            document.getElementById('formSubscriptionType').value = subscription;
         });
     });
 </script>

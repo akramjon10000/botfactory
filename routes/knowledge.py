@@ -311,6 +311,39 @@ def add_text_knowledge(bot_id):
     return redirect(url_for('bot.edit_bot', bot_id=bot_id))
 
 
+@knowledge_bp.route('/bot/<int:bot_id>/knowledge/qa', methods=['POST'])
+@login_required
+def add_qa_knowledge(bot_id):
+    bot = Bot.query.get_or_404(bot_id)
+    
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        flash('Sizda bu botga ma\'lumot qo\'shish huquqi yo\'q!', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    question = request.form.get('source_name', '').strip()
+    answer = request.form.get('content', '').strip()
+    
+    if not question or not answer:
+        flash('Savol va javob maydonlari bo\'sh bo\'lishi mumkin emas!', 'error')
+        return redirect(url_for('bot.edit_bot', bot_id=bot_id))
+    
+    try:
+        knowledge = KnowledgeBase()
+        knowledge.bot_id = bot_id
+        knowledge.content = answer
+        knowledge.content_type = 'qa'
+        knowledge.source_name = question
+        
+        db.session.add(knowledge)
+        db.session.commit()
+        
+        flash('Savol-javob muvaffaqiyatli qo\'shildi!', 'success')
+    except Exception as e:
+        flash(f'Qo\'shishda xatolik: {str(e)}', 'error')
+        
+    return redirect(url_for('bot.edit_bot', bot_id=bot_id))
+
+
 @knowledge_bp.route('/bot/<int:bot_id>/knowledge/<int:kb_id>/delete', methods=['DELETE'])
 @login_required
 def delete_knowledge(bot_id, kb_id):
@@ -362,7 +395,7 @@ def edit_knowledge(bot_id, kb_id):
             knowledge.source_name = product_name
             knowledge.content = "\\n".join(content_parts)
             
-        elif knowledge.content_type == 'text':
+        elif knowledge.content_type in ['text', 'qa']:
             new_title = request.form.get('source_name', '').strip()
             new_content = request.form.get('content', '').strip()
             

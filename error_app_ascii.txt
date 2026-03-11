@@ -1,0 +1,38 @@
+[17:56:45] INFO: Chatbot Factory AI logging system initialized successfully
+[17:56:45] INFO: Chatbot Factory AI logging system initialized successfully
+[17:56:45] INFO: Chatbot Factory AI application starting with professional logging
+[17:56:45] INFO: ???? Starting preflight database selection...
+[17:56:45] INFO: ???? No PostgreSQL URL provided - using SQLite database
+[17:56:45] INFO: ???? SQLite database configured for development
+[17:56:45] INFO: Chatbot Factory AI logging system initialized successfully
+[17:56:45] INFO: Chatbot Factory AI application starting with professional logging
+[17:56:45] INFO: ???? Starting preflight database selection...
+[17:56:45] INFO: ???? No PostgreSQL URL provided - using SQLite database
+[17:56:45] INFO: ???? SQLite database configured for development
+python : Traceback (most recent call last):
+??????:1 ????:29
++ ... env:SESSION_SECRET="test"; python app.py > error_app.txt 
+2>&1; Get-Co ...
++                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most r 
+   ecent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\user\????? ?????\app.py", line 228, in <module
+>
+    from routes import main_bp, admin_routes_bp, bot_bp, knowle
+dge_bp, webhook_bp
+  File "C:\Users\user\????? ?????\routes\__init__.py", line 2, 
+in <module>
+    from routes.main import main_bp
+  File "C:\Users\user\????? ?????\routes\main.py", line 4, in <
+module>
+    from app import db, csrf
+  File "C:\Users\user\????? ?????\app.py", line 228, in <module
+>
+    from routes import main_bp, admin_routes_bp, bot_bp, knowle
+dge_bp, webhook_bp
+ImportError: cannot import name 'main_bp' from partially initia
+lized module 'routes' (most likely due to a circular import) (C
+:\Users\user\????? ?????\routes\__init__.py)
