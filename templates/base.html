@@ -35,6 +35,61 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
+    <!-- PWA Popup Styles -->
+    <style>
+      .pwa-popup-overlay {
+        position: fixed; inset: 0; z-index: 99999;
+        background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+        display: flex; align-items: flex-end; justify-content: center;
+        opacity: 0; transition: opacity .3s ease;
+        padding: 16px;
+      }
+      .pwa-popup-overlay.pwa-popup-visible { opacity: 1; }
+      .pwa-popup-overlay.pwa-popup-visible .pwa-popup-card {
+        transform: translateY(0);
+      }
+      .pwa-popup-card {
+        background: #fff; border-radius: 20px; padding: 28px 24px 20px;
+        max-width: 380px; width: 100%; text-align: center;
+        box-shadow: 0 -4px 30px rgba(0,0,0,.15);
+        transform: translateY(100%); transition: transform .4s cubic-bezier(.22,1,.36,1);
+        position: relative;
+      }
+      [data-bs-theme="dark"] .pwa-popup-card { background: #1e293b; color: #e2e8f0; }
+      .pwa-popup-close {
+        position: absolute; top: 10px; right: 14px;
+        background: none; border: none; font-size: 1.6rem;
+        color: #94a3b8; cursor: pointer; line-height: 1;
+      }
+      .pwa-popup-close:hover { color: #ef4444; }
+      .pwa-popup-icon { margin-bottom: 12px; }
+      .pwa-popup-icon img { width: 64px; height: 64px; border-radius: 16px; }
+      .pwa-popup-icon-fallback {
+        width: 64px; height: 64px; border-radius: 16px; margin: 0 auto;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        align-items: center; justify-content: center; font-size: 2rem;
+      }
+      .pwa-popup-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; }
+      .pwa-popup-desc { font-size: .88rem; color: #64748b; margin-bottom: 18px; }
+      [data-bs-theme="dark"] .pwa-popup-desc { color: #94a3b8; }
+      .pwa-popup-actions { display: flex; gap: 10px; }
+      .pwa-popup-install {
+        flex: 1; padding: 12px; border: none; border-radius: 12px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff;
+        font-weight: 600; font-size: .95rem; cursor: pointer;
+        transition: transform .15s, box-shadow .15s;
+      }
+      .pwa-popup-install:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,.4); }
+      .pwa-popup-dismiss {
+        flex: .6; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px;
+        background: transparent; color: #64748b; font-weight: 500;
+        font-size: .95rem; cursor: pointer; transition: background .15s;
+      }
+      .pwa-popup-dismiss:hover { background: #f1f5f9; }
+      [data-bs-theme="dark"] .pwa-popup-dismiss { border-color: #334155; color: #94a3b8; }
+      [data-bs-theme="dark"] .pwa-popup-dismiss:hover { background: #334155; }
+    </style>
+
     <!-- Canonical URL for SEO -->
     <link rel="canonical" href="{{ request.base_url if request else '' }}">
     <!-- Blog RSS temporarly removed -->
@@ -374,23 +429,62 @@
             });
         }
 
-        // Install prompt
+        // PWA Install Popup — 20 soniyadan keyin ko'rinadi
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
             deferredPrompt = e;
-            showInstallButton();
+
+            // Agar foydalanuvchi 3 kun ichida yopgan bo'lsa, ko'rsatmaymiz
+            const dismissed = localStorage.getItem('pwa_popup_dismissed');
+            if (dismissed && (Date.now() - parseInt(dismissed)) < 3 * 24 * 60 * 60 * 1000) return;
+
+            // 20 soniyadan keyin popup ochiladi
+            setTimeout(() => {
+                if (deferredPrompt) showPwaPopup();
+            }, 20000);
         });
 
-        function showInstallButton() {
-            // Show custom install button if needed
-            const installBtn = document.createElement('button');
-            installBtn.id = 'pwa-install-btn';
-            installBtn.className = 'btn btn-primary btn-sm position-fixed';
-            // Shift the install button left to avoid overlap with chat FAB
-            installBtn.style.cssText = 'bottom: 24px; right: 96px; z-index: 1000;';
-            installBtn.innerHTML = '<i class="fas fa-download me-1"></i>Ilovani o\'rnatish';
-            installBtn.onclick = installApp;
-            document.body.appendChild(installBtn);
+        function showPwaPopup() {
+            // Agar allaqachon o'rnatilgan bo'lsa yoki popup mavjud bo'lsa
+            if (document.getElementById('pwa-install-popup')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'pwa-install-popup';
+            overlay.innerHTML = `
+              <div class="pwa-popup-overlay" onclick="closePwaPopup()">
+                <div class="pwa-popup-card" onclick="event.stopPropagation()">
+                  <button class="pwa-popup-close" onclick="closePwaPopup()" aria-label="Yopish">&times;</button>
+                  <div class="pwa-popup-icon">
+                    <img src="{{ url_for('static', filename='icons/icon-192x192.png') }}" alt="BotFactory AI"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="pwa-popup-icon-fallback" style="display:none;">🤖</div>
+                  </div>
+                  <h4 class="pwa-popup-title">BotFactory AI ilovasini o'rnating</h4>
+                  <p class="pwa-popup-desc">Tezkor kirish, offline rejim va bildirishnomalar uchun ilovani qurilmangizga o'rnating.</p>
+                  <div class="pwa-popup-actions">
+                    <button class="pwa-popup-install" onclick="installApp()">
+                      <i class="fas fa-download me-1"></i>O'rnatish
+                    </button>
+                    <button class="pwa-popup-dismiss" onclick="closePwaPopup()">Keyinroq</button>
+                  </div>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(overlay);
+            // Animatsiya uchun keyingi frame da class qo'shamiz
+            requestAnimationFrame(() => {
+                overlay.querySelector('.pwa-popup-overlay').classList.add('pwa-popup-visible');
+            });
+        }
+
+        function closePwaPopup() {
+            const popup = document.getElementById('pwa-install-popup');
+            if (popup) {
+                popup.querySelector('.pwa-popup-overlay').classList.remove('pwa-popup-visible');
+                setTimeout(() => popup.remove(), 300);
+            }
+            localStorage.setItem('pwa_popup_dismissed', Date.now().toString());
         }
 
         function installApp() {
@@ -401,12 +495,17 @@
                         console.log('User accepted the install prompt');
                     }
                     deferredPrompt = null;
-                    // Remove install button
-                    const installBtnEl = document.getElementById('pwa-install-btn');
-                    if (installBtnEl) installBtnEl.remove();
+                    closePwaPopup();
                 });
             }
         }
+
+        // Agar foydalanuvchi allaqachon o'rnatgan bo'lsa
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            closePwaPopup();
+            localStorage.setItem('pwa_popup_dismissed', Date.now().toString());
+        });
     </script>
 
     {% block scripts %}{% endblock %}
