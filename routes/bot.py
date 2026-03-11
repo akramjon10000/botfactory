@@ -51,6 +51,21 @@ def create_bot():
         db.session.add(bot)
         db.session.commit()
         
+        # Yangi bot haqida adminga xabar berish
+        try:
+            from telegram_bot import send_admin_message_to_user
+            from models import User
+            admin_users = User.query.filter_by(is_admin=True, is_active=True).all()
+            for admin in admin_users:
+                if admin.telegram_id:
+                    text = f"🤖 <b>Yangi bot yaratildi!</b>\n\n"
+                    text += f"👤 <b>Egasi:</b> @{current_user.username}\n"
+                    text += f"🤖 <b>Bot nomi:</b> {name}\n"
+                    text += f"📱 <b>Platforma:</b> {platform}"
+                    send_admin_message_to_user(admin.telegram_id, text)
+        except Exception as notify_error:
+            logging.error(f"Failed to send admin notification for new bot: {notify_error}")
+        
         # Platform uchun avtomatik ishga tushirish (central manager)
         if platform == 'Telegram' and telegram_token:
             try:

@@ -189,45 +189,90 @@ def get_fallback_response(language: str = "uz") -> str:
     }
     return fallback_responses.get(language, fallback_responses['uz'])
 
-def process_knowledge_base(bot_id: int) -> str:
+def _format_entry(entry):
+    """Helper to format a single knowledge base entry"""
+    if entry.content_type == 'product':
+        return f"=== MAHSULOT ===\nNomi: {entry.source_name}\nTavsif: {entry.content}\n================"
+    elif entry.content_type == 'image':
+        info = f"Rasm: {entry.filename or 'Yuklangan rasm'}"
+        if entry.source_name:
+            info += f" ({entry.source_name})"
+        return info + f" - bu mahsulot/xizmat haqidagi vizual ma'lumot."
+    else:
+        # Prefix file name if it's a file
+        if entry.content_type == 'file' and entry.source_name:
+            return f"[{entry.source_name} hujjatidan]:\n{entry.content}"
+        return entry.content
+
+def get_relevant_knowledge(entries, user_message: str, max_chars=3000) -> str:
+    """Score knowledge base entries against user message for RAG"""
+    if not user_message:
+        combined = ""
+        for e in entries:
+            combined += _format_entry(e) + "\n\n"
+        return combined[:max_chars]
+        
+    # Extract keywords from user message
+    user_words = set(word.strip().lower() for word in user_message.split() if len(word.strip()) > 2)
+    
+    scored_entries = []
+    for entry in entries:
+        content = entry.content or ""
+        source_name = entry.source_name or ""
+        content_words = set(word.strip().lower() for word in (content + " " + source_name).split())
+        
+        # Calculate overlap
+        overlap = len(user_words.intersection(content_words))
+        
+        # Boost for exact matches and multiple occurrences
+        score = overlap * 2
+        content_lower = content.lower()
+        source_lower = source_name.lower()
+        for word in user_words:
+            if word in source_lower:
+                score += 5 # high boost for title matching
+            score += content_lower.count(word)
+            
+        scored_entries.append((score, entry))
+        
+    # Sort by score highest first
+    scored_entries.sort(key=lambda x: x[0], reverse=True)
+    
+    # Priority debugging
+    top_sources = [f"{e[1].source_name} (score: {e[0]})" for e in scored_entries[:3]]
+    logging.info(f"RAG Top Matches: {', '.join(top_sources)}")
+    
+    # Take top entries until we hit max_chars
+    combined = ""
+    for score, entry in scored_entries:
+        entry_text = _format_entry(entry)
+        
+        if len(combined) + len(entry_text) > max_chars:
+            if not combined: # at least add one even if it truncates
+                combined = entry_text[:max_chars]
+            break
+        combined += entry_text + "\n\n"
+        
+    return combined.strip()
+
+def process_knowledge_base(bot_id: int, user_message: str = None) -> str:
     """
-    Process and combine knowledge base content for a bot
+    Process and retrieve relevant knowledge base content for a bot using basic RAG.
     """
     from models import KnowledgeBase
     
     try:
         knowledge_entries = KnowledgeBase.query.filter_by(bot_id=bot_id).all()
-        combined_knowledge = ""
-        
-        # Debug: log bilim bazasi mavjudligi
-        logging.info(f"DEBUG: Bot {bot_id} uchun {len(knowledge_entries)} ta bilim bazasi yozuvi topildi")
-        
-        for entry in knowledge_entries:
-            logging.info(f"DEBUG: Processing entry - Type: {entry.content_type}, Source: {entry.source_name}")
+        if not knowledge_entries:
+            return ""
             
-            if entry.content_type == 'product':
-                # For products, format them clearly for AI with detailed structure
-                product_text = f"=== MAHSULOT MA'LUMOTI ===\n{entry.content}\n=== MAHSULOT OXIRI ===\n"
-                combined_knowledge += product_text + "\n"
-                logging.info(f"DEBUG: Product added to knowledge: {entry.source_name}")
-            elif entry.content_type == 'image':
-                # For images, add description about the image
-                image_info = f"Rasm: {entry.filename or 'Yuklangan rasm'}"
-                if entry.source_name:
-                    image_info += f" ({entry.source_name})"
-                image_info += f" - bu mahsulot/xizmat haqidagi vizual ma'lumot. Foydalanuvchi ushbu rasm haqida so'rasa, unga rasm haqida ma'lumot bering."
-                combined_knowledge += f"{image_info}\n\n"
-                logging.info(f"DEBUG: Image added to knowledge: {entry.source_name or entry.filename}")
-            else:
-                # For text and file content
-                combined_knowledge += f"{entry.content}\n\n"
-                logging.info(f"DEBUG: File content added to knowledge: {entry.filename}")
+        logging.info(f"DEBUG: Processing {len(knowledge_entries)} knowledge entries for bot {bot_id}...")
+        
+        # Use RAG retrieval if message is provided
+        combined_knowledge = get_relevant_knowledge(knowledge_entries, user_message)
         
         logging.info(f"DEBUG: Combined knowledge length: {len(combined_knowledge)} characters")
-        if combined_knowledge:
-            logging.info(f"DEBUG: First 200 chars of knowledge: {combined_knowledge[:200]}...")
-        
-        return combined_knowledge.strip()
+        return combined_knowledge
     except Exception as e:
         logging.error(f"Knowledge base processing error: {str(e)}")
         return ""

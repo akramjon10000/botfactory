@@ -423,7 +423,7 @@ class TelegramBot:
                         await update.message.reply_text(f"🎤 Eshitildi: {transcribed_text}")
 
                     try:
-                        knowledge_base = process_knowledge_base(self.bot_id)
+                        knowledge_base = process_knowledge_base(self.bot_id, user_message=transcribed_text)
 
                         recent_history = ""
                         history_entries = ChatHistory.query.filter_by(
@@ -628,7 +628,7 @@ class TelegramBot:
                         history_parts.append(f"Bot: {entry.response}")
                     recent_history = "\n".join(history_parts)
 
-                knowledge_base = process_knowledge_base(self.bot_id)
+                knowledge_base = process_knowledge_base(self.bot_id, user_message=message_text)
                 logger.info("DEBUG: Knowledge base and history processed")
 
             except Exception as hist_error:

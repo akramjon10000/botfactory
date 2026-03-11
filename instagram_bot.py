@@ -218,7 +218,7 @@ class InstagramBot:
                         pass
 
                 # AI javobini olish
-                knowledge_base = process_knowledge_base(self.bot_id)
+                knowledge_base = process_knowledge_base(self.bot_id, user_message=message_text)
                 
                 owner_contact_info = ""
                 if bot.owner:
@@ -322,7 +322,7 @@ class InstagramBot:
                 # Process transcribed text
                 # Process transcribed text
                 try:
-                    knowledge_base = process_knowledge_base(self.bot_id)
+                    knowledge_base = process_knowledge_base(self.bot_id, user_message=transcribed_text)
                     
                     recent_history = ""
                     history_entries = ChatHistory.query.filter_by(

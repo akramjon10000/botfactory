@@ -127,6 +127,20 @@ def register():
             db.session.add(user)
             db.session.commit()
             
+            # Yangi foydalanuvchi haqida adminga xabar berish
+            try:
+                from telegram_bot import send_admin_message_to_user
+                admin_users = User.query.filter_by(is_admin=True, is_active=True).all()
+                for admin in admin_users:
+                    if admin.telegram_id:
+                        text = f"🚀 <b>Yangi a'zo ro'yxatdan o'tdi!</b>\n\n"
+                        text += f"👤 <b>Ism:</b> {username}\n"
+                        text += f"📧 <b>Email:</b> {email}\n"
+                        text += f"📱 <b>Tel:</b> {phone_number}"
+                        send_admin_message_to_user(admin.telegram_id, text)
+            except Exception as notify_error:
+                logging.error(f"Failed to send admin notification for new user: {notify_error}")
+            
             logging.info(f"User registration successful for: {username}")
             flash('Ro\'yxatdan o\'tish muvaffaqiyatli! Endi tizimga kirishingiz mumkin.', 'success')
             return redirect(url_for('auth.login'))
