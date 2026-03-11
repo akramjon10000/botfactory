@@ -286,6 +286,11 @@ with app.app_context():
                         ("working_hours", "VARCHAR(100)"),
                         ("miniapp_enabled", "BOOLEAN DEFAULT true"),
                         ("description", "VARCHAR(500)"),
+                        ("miniapp_theme_color", "VARCHAR(20) DEFAULT '#00d4aa'"),
+                        ("miniapp_bg_color", "VARCHAR(20) DEFAULT '#0f0f0f'"),
+                        ("miniapp_card_color", "VARCHAR(20) DEFAULT '#252525'"),
+                        ("miniapp_welcome_text", "VARCHAR(300) DEFAULT ''"),
+                        ("miniapp_currency", "VARCHAR(20) DEFAULT 'so''m'"),
                     ]
                     for col_name, col_def in columns_to_add:
                         try:
