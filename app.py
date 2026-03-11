@@ -1,4 +1,4 @@
-﻿import os
+import os
 import logging
 from datetime import datetime
 from flask import Flask, request
@@ -321,7 +321,7 @@ with app.app_context():
         
         if admin_email and admin_password:
             from models import User
-            from werkzeug.security import generate_password_hash
+            from werkzeug.security import generate_password_hash, check_password_hash
             
             admin = User.query.filter_by(email=admin_email).first()
             if not admin:
@@ -336,7 +336,16 @@ with app.app_context():
                 db.session.commit()
                 logging.info(f"Admin user created successfully for {admin_email}")
             else:
-                logging.info(f"Admin user already exists for {admin_email}")
+                # Sync password from env in case it was changed
+                new_hash = generate_password_hash(admin_password)
+                if not check_password_hash(admin.password_hash, admin_password):
+                    admin.password_hash = new_hash
+                    admin.is_admin = True
+                    admin.subscription_type = 'admin'
+                    db.session.commit()
+                    logging.info(f"Admin password synced from env for {admin_email}")
+                else:
+                    logging.info(f"Admin user already exists for {admin_email} (password unchanged)")
         else:
             logging.info("No admin credentials provided via ADMIN_EMAIL/ADMIN_PASSWORD - skipping admin user creation")
             
