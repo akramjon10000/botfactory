@@ -150,36 +150,7 @@ class TelegramBot:
             except Exception as lang_err:
                 logger.error(f"Failed to send language keyboard: {lang_err}")
 
-            # Send Mini App button if enabled
-            try:
-                if bot.miniapp_enabled:
-                    base_url = os.environ.get('BASE_URL', 'https://chatbotfactory.onrender.com')
-                    miniapp_url = f"{base_url}/api/miniapp/?bot_id={self.bot_id}"
-
-                    miniapp_keyboard = InlineKeyboardMarkup([
-                        [InlineKeyboardButton(
-                            text="📱 Mahsulotlar / Xizmatlar",
-                            web_app={"url": miniapp_url}
-                        )],
-                        [InlineKeyboardButton(
-                            text="📞 Bog'lanish",
-                            callback_data="contact_info"
-                        )]
-                    ])
-                    await update.message.reply_text(
-                        "🛒 Katalogni ko'rish uchun quyidagi tugmani bosing:",
-                        reply_markup=miniapp_keyboard
-                    )
-            except Exception as miniapp_error:
-                logger.error(f"Failed to send Mini App button: {str(miniapp_error)[:100]}")
-
-            # Send contact options inline keyboard
-            try:
-                contact_markup = self._build_contact_keyboard(bot)
-                if update.message and contact_markup:
-                    await update.message.reply_text("📞 Biz bilan bog'lanish usullari:", reply_markup=contact_markup)
-            except Exception as e:
-                logger.error(f"Failed to send contact keyboard: {str(e)[:100]}")
+            # Moved Mini App and contact keyboards to language_callback
 
     async def help_command(self, update: Update, context) -> None:
         """Handle /help command"""
@@ -287,6 +258,42 @@ class TelegramBot:
                 }
                 if query:
                     await query.edit_message_text(success_messages.get(language, success_messages['uz']))
+
+                # Send Mini App button if enabled
+                try:
+                    if bot.miniapp_enabled:
+                        import os
+                        base_url = os.environ.get('BASE_URL', 'https://chatbotfactory.onrender.com')
+                        miniapp_url = f"{base_url}/api/miniapp/?bot_id={self.bot_id}"
+
+                        texts = {
+                            'uz': {"btn1": "📱 Mahsulotlar / Xizmatlar", "btn2": "📞 Bog'lanish", "msg": "🛒 Katalogni ko'rish uchun quyidagi tugmani bosing:"},
+                            'ru': {"btn1": "📱 Товары / Услуги", "btn2": "📞 Контакты", "msg": "🛒 Нажмите кнопку ниже, чтобы посмотреть каталог:"},
+                            'en': {"btn1": "📱 Products / Services", "btn2": "📞 Contact", "msg": "🛒 Click the button below to view the catalog:"}
+                        }
+                        t = texts.get(language, texts['uz'])
+
+                        miniapp_keyboard = InlineKeyboardMarkup([
+                            [InlineKeyboardButton(text=t["btn1"], web_app={"url": miniapp_url})],
+                            [InlineKeyboardButton(text=t["btn2"], callback_data="contact_info")]
+                        ])
+                        if update.effective_chat:
+                            await context.bot.send_message(chat_id=update.effective_chat.id, text=t["msg"], reply_markup=miniapp_keyboard)
+                except Exception as miniapp_error:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Failed to send Mini App button: {str(miniapp_error)[:100]}")
+
+                # Send contact options inline keyboard
+                try:
+                    contact_markup = self._build_contact_keyboard(bot)
+                    if update.effective_chat and contact_markup:
+                        contact_msgs = {'uz': "📞 Biz bilan bog'lanish usullari:", 'ru': "📞 Способы связи с нами:", 'en': "📞 Contact us:"}
+                        await context.bot.send_message(chat_id=update.effective_chat.id, text=contact_msgs.get(language, contact_msgs['uz']), reply_markup=contact_markup)
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Failed to send contact keyboard: {str(e)[:100]}")
             else:
                 if query:
                     await query.edit_message_text("❌ Bu tilni tanlash uchun obunangizni yangilang!")
