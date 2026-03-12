@@ -16,10 +16,14 @@ logger = logging.getLogger(__name__)
 @miniapp_bp.route('/')
 def miniapp_index():
     """Serve the MiniApp index.html file directly to bypass static routing issues"""
-    from flask import send_from_directory, current_app
+    from flask import send_from_directory, current_app, make_response
     import os
     miniapp_dir = os.path.join(current_app.root_path, 'static', 'miniapp')
-    return send_from_directory(miniapp_dir, 'index.html')
+    response = make_response(send_from_directory(miniapp_dir, 'index.html'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 
 @miniapp_bp.route('/business/<int:bot_id>')
