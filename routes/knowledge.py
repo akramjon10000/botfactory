@@ -654,7 +654,7 @@ def add_contact_knowledge(bot_id):
     bot = Bot.query.get_or_404(bot_id)
     
     if bot.user_id != current_user.id and not current_user.is_admin:
-        flash('Sizda bu botga ma\\'lumot qo\\'shish huquqi yo\\'q!', 'error')
+        flash("Sizda bu botga ma'lumot qo'shish huquqi yo'q!", 'error')
         return redirect(url_for('main.dashboard'))
     
     contact_phone = request.form.get('contact_phone', '').strip()
@@ -686,14 +686,14 @@ def add_contact_knowledge(bot_id):
         knowledge.content = content
         knowledge.filename = None
         knowledge.content_type = 'contact'
-        knowledge.source_name = 'Aloqa ma\\'lumotlari'
+        knowledge.source_name = "Aloqa ma'lumotlari"
         
         db.session.add(knowledge)
         db.session.commit()
         
-        flash('Aloqa ma\\'lumotlari muvaffaqiyatli saqlandi!', 'success')
+        flash("Aloqa ma'lumotlari muvaffaqiyatli saqlandi!", 'success')
     except Exception as e:
-        flash(f'Aloqa ma\\'lumotlarini saqlashda xatolik: {str(e)}', 'error')
+        flash(f"Aloqa ma'lumotlarini saqlashda xatolik: {str(e)}", 'error')
     
     return redirect(url_for('bot.edit_bot', bot_id=bot_id))
 
