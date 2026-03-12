@@ -16,10 +16,9 @@ logger = logging.getLogger(__name__)
 @miniapp_bp.route('/')
 def miniapp_index():
     """Serve the MiniApp index.html file directly to bypass static routing issues"""
-    from flask import send_from_directory
+    from flask import send_from_directory, current_app
     import os
-    base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    miniapp_dir = os.path.join(base_dir, 'static', 'miniapp')
+    miniapp_dir = os.path.join(current_app.root_path, 'static', 'miniapp')
     return send_from_directory(miniapp_dir, 'index.html')
 
 

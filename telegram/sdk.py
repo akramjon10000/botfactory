@@ -336,7 +336,7 @@ class TelegramHTTPBot:
 
         # Handle callback queries
         if update.callback_query and 'callback' in self.handlers:
-            context = SimpleContext()
+            context = SimpleContext(None, self)
             for handler in self.handlers['callback']:
                 await handler(update, context)
 

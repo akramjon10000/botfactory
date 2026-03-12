@@ -263,7 +263,7 @@ class TelegramBot:
                 try:
                     if bot.miniapp_enabled:
                         import os
-                        base_url = os.environ.get('BASE_URL', 'https://chatbotfactory.onrender.com')
+                        base_url = os.environ.get('BASE_URL', 'https://botfactory-am64.onrender.com')
                         miniapp_url = f"{base_url}/api/miniapp/?bot_id={self.bot_id}"
 
                         texts = {
