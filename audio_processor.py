@@ -3,7 +3,7 @@ import io
 import logging
 import tempfile
 import requests
-import google.generativeai as genai
+from google import genai
 from ai import get_ai_response
 
 logger = logging.getLogger(__name__)
@@ -13,10 +13,11 @@ class AudioProcessor:
     
     def __init__(self):
         self.supported_formats = ['.ogg', '.mp3', '.wav', '.m4a', '.aac']
-        # Configure Gemini for audio
+        # Configure new google-genai client
         api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
+        self.client = None
         if api_key:
-            genai.configure(api_key=api_key)
+            self.client = genai.Client(api_key=api_key)
         
     def process_audio_message(self, audio_file_path, language='uz'):
         """
@@ -47,7 +48,7 @@ class AudioProcessor:
 
     def transcribe_audio_gemini(self, audio_file_path, language='uz'):
         """
-        Audio faylni Gemini API orqali matnga o'girish
+        Audio faylni Gemini Native Audio API orqali matnga o'girish
         
         Args:
             audio_file_path (str): Audio fayl yo'li
@@ -57,11 +58,18 @@ class AudioProcessor:
             str: Transkripsiya qilingan matn
         """
         try:
+            if not self.client:
+                api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
+                if not api_key:
+                    logger.error("Google API kalit topilmadi")
+                    return None
+                self.client = genai.Client(api_key=api_key)
+
             # Upload the audio file to Gemini
-            logger.info(f"Gemini orqali audio transkripsiya: {audio_file_path}")
+            logger.info(f"Gemini Native Audio orqali transkripsiya: {audio_file_path}")
             
-            # Upload audio file
-            audio_file = genai.upload_file(audio_file_path)
+            # Upload audio file using new SDK
+            audio_file = self.client.files.upload(file=audio_file_path)
             
             # Language names for the prompt
             lang_names = {
@@ -71,19 +79,20 @@ class AudioProcessor:
             }
             lang_name = lang_names.get(language, "o'zbek")
             
-            # Use Gemini to transcribe
-            model = genai.GenerativeModel('gemini-3.1-flash-lite-preview')
-            
             prompt = f"""Bu audio xabardagi nutqni aniq matn shaklida yoz. 
 Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma.
 Audio {lang_name} tilida bo'lishi mumkin, lekin boshqa tilda ham bo'lishi mumkin.
 Agar audio bo'sh yoki tushunarsiz bo'lsa, bo'sh string qaytar."""
             
-            response = model.generate_content([prompt, audio_file])
+            # Use native audio model via new SDK
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash-native-audio-preview-12-2025',
+                contents=[prompt, audio_file]
+            )
             
             # Clean up uploaded file
             try:
-                genai.delete_file(audio_file.name)
+                self.client.files.delete(name=audio_file.name)
             except Exception:
                 pass
             
