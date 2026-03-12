@@ -522,5 +522,10 @@ Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
                 os.unlink(temp_path)
 
     except Exception as e:
-        logger.error(f"MiniApp voice chat error: {e}")
-        return jsonify({'error': 'Ovozli chat xatolik yuz berdi'}), 500
+        import traceback
+        error_details = traceback.format_exc()
+        logger.error(f"MiniApp voice chat error: {e}\nTraceback: {error_details}")
+        return jsonify({
+            'error': 'Ovozli chat xatolik yuz berdi',
+            'details': str(e)
+        }), 500
