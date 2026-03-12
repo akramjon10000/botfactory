@@ -87,33 +87,64 @@ def get_catalog(bot_id):
 def get_contact_info(bot_id):
     """Get contact information for a bot"""
     try:
-        from models import Bot
+        from models import Bot, KnowledgeBase
         import os
+        import re
         
         bot = Bot.query.get(bot_id)
         
         if not bot:
             return jsonify({'error': 'Bot topilmadi'}), 404
         
-        # Get contact info from bot owner
+        # Default fallback variables
         phone = ''
         telegram = ''
-        address = 'Ko\'rsatilmagan'
+        address = "Ko'rsatilmagan"
         working_hours = '09:00 - 18:00'
         
-        if bot.owner:
-            phone = bot.owner.phone_number or ''
-            telegram = bot.owner.telegram_id or ''
+        # 1. First priority: Check custom Contact Info from KnowledgeBase ("Aloqa" tab)
+        kb_contact = KnowledgeBase.query.filter_by(
+            bot_id=bot_id, 
+            content_type='contact'
+        ).order_by(KnowledgeBase.created_at.desc()).first()
         
-        # Fallback to env if owner has no info
+        if kb_contact and kb_contact.content:
+            content = kb_contact.content
+            # Extract Phone
+            phone_match = re.search(r'Telefon:\s*(.+)', content)
+            if phone_match:
+                phone = phone_match.group(1).strip()
+            
+            # Extract Address
+            addr_match = re.search(r'Manzil/Lokatsiya:\s*(.+)', content)
+            if addr_match:
+                address = addr_match.group(1).strip()
+                
+            # Extract working hours
+            hours_match = re.search(r'Ish vaqti:\s*(.+)', content)
+            if hours_match:
+                working_hours = hours_match.group(1).strip()
+                
+            # Extract Socials (we'll map to Telegram string)
+            social_match = re.search(r'Ijtimoiy tarmoqlar:\s*(.+)', content)
+            if social_match:
+                telegram = social_match.group(1).strip()
+        
+        # 2. Second priority: Fallback to bot owner settings
+        if not phone and bot.owner:
+            phone = bot.owner.phone_number or ''
+            
+        if not telegram and bot.owner:
+            telegram = bot.owner.telegram_id or ''
+            
+        if hasattr(bot, 'working_hours') and bot.working_hours and working_hours == '09:00 - 18:00':
+            working_hours = bot.working_hours
+        
+        # 3. Third priority: System defaults from environment
         if not phone:
             phone = os.environ.get('SUPPORT_PHONE', '+998996448444')
         if not telegram:
             telegram = os.environ.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011')
-        
-        # Try to get working hours from bot settings
-        if hasattr(bot, 'working_hours') and bot.working_hours:
-            working_hours = bot.working_hours
         
         return jsonify({
             'phone': phone,
