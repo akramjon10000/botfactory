@@ -101,6 +101,9 @@ SALES RULES:
             limited_kb = knowledge_base[:kb_limit]
             kb_text = f"\n\n--- BILIMLAR BAZASI ---\n{limited_kb}\n----------------------\n\nAgar foydalanuvchi ma'lumot so'rasa, yuqoridagi bazadan foydalanib aniq javob bering."
             logging.info(f"DEBUG: Knowledge base length: {len(knowledge_base)}, Limited to: {len(limited_kb)}")
+        else:
+            # CRITICAL: When KB is empty, STRICTLY prevent hallucination
+            kb_text = "\n\n⚠️ MUHIM OGOHLANTIRISH: Bilimlar bazasi BO'SH! Hech qanday mahsulot, xizmat, narx yoki tavsif haqida ma'lumot yo'q. HECH QACHON o'zingdan o'ylab topma va to'qima! Mahsulot, narx, xizmat haqida ANIQ ma'lumot berma. Faqat shu javobni ber: 'Kechirasiz, hozircha ma'lumotlar bazasi to'ldirilmagan. Aniq ma'lumot olish uchun menejerimiz bilan bog'lanishingizni so'rayman.' Foydalanuvchi salom bersa, salom alik qilib, lekin mahsulot/xizmat haqida o'ylab topma."
         
         # Add chat history context if available
         history_text = ""
