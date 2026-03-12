@@ -153,7 +153,7 @@ class TelegramBot:
             # Send Mini App button if enabled
             try:
                 if bot.miniapp_enabled:
-                    base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
+                    base_url = os.environ.get('BASE_URL', 'https://chatbotfactory.onrender.com')
                     miniapp_url = f"{base_url}/static/miniapp/index.html?bot_id={self.bot_id}"
 
                     miniapp_keyboard = InlineKeyboardMarkup([
