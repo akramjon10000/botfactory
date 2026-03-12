@@ -29,6 +29,10 @@
                 <span class="tab-icon">📦</span>
                 <span>Katalog</span>
             </button>
+            <button class="tab" data-tab="chat">
+                <span class="tab-icon">🤖</span>
+                <span>AI Chat</span>
+            </button>
             <button class="tab" data-tab="cart">
                 <span class="tab-icon">🛒</span>
                 <span>Savat</span>
@@ -58,6 +62,38 @@
 
                 <div id="catalogGrid" class="catalog-grid">
                     <!-- Items will be loaded here -->
+                </div>
+            </section>
+
+            <!-- AI Chat Section -->
+            <section id="chatSection" class="section hidden">
+                <div class="chat-container">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="chat-welcome">
+                            <div class="chat-welcome-icon">🤖</div>
+                            <p>Salom! Men AI yordamchingizman. Savolingizni yozing yoki ovozli xabar yuboring.</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-wrapper">
+                            <input type="text" id="chatInput" placeholder="Xabar yozing..." autocomplete="off">
+                            <button id="chatSendBtn" class="chat-send-btn" title="Yuborish">
+                                <span>➤</span>
+                            </button>
+                        </div>
+                        <button id="voiceRecordBtn" class="voice-record-btn" title="Ovozli xabar">
+                            <span class="mic-icon">🎤</span>
+                        </button>
+                        <div id="voiceLock" class="voice-lock hidden">
+                            <span>🔒</span>
+                            <small>Premium kerak</small>
+                        </div>
+                    </div>
+                    <div id="recordingIndicator" class="recording-indicator hidden">
+                        <span class="rec-dot"></span>
+                        <span>Yozib olinmoqda...</span>
+                        <button id="stopRecordBtn" class="stop-record-btn">⏹ To'xtatish</button>
+                    </div>
                 </div>
             </section>
 

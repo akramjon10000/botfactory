@@ -274,3 +274,214 @@ def notify_order_to_owner(order):
         
     except Exception as e:
         logger.error(f"Error notifying owner: {e}")
+
+
+def _forward_chat_to_admin(bot, user_msg, ai_reply, msg_type="text"):
+    """Forward MiniApp chat messages to bot owner via Telegram for monitoring"""
+    try:
+        import requests as req
+        import os
+
+        if not bot or not bot.telegram_token:
+            return
+
+        admin_chat_id = None
+        if bot.owner and hasattr(bot.owner, 'telegram_id') and bot.owner.telegram_id:
+            admin_chat_id = bot.owner.telegram_id
+        if not admin_chat_id:
+            admin_chat_id = os.environ.get('ADMIN_TELEGRAM_ID')
+        if not admin_chat_id:
+            return
+
+        icon = "🎤" if msg_type == "voice" else "💬"
+        message = f"""{icon} MiniApp Chat | {bot.name}
+
+👤 Mijoz: {user_msg[:200]}
+🤖 AI: {ai_reply[:300]}"""
+
+        url = f"https://api.telegram.org/bot{bot.telegram_token}/sendMessage"
+        req.post(url, json={'chat_id': admin_chat_id, 'text': message}, timeout=5)
+    except Exception as e:
+        logger.error(f"Error forwarding chat to admin: {e}")
+
+
+@miniapp_bp.route('/chat', methods=['POST'])
+def miniapp_chat():
+    """MiniApp text chat endpoint — uses appropriate AI model based on subscription"""
+    try:
+        from models import Bot
+        from ai import get_ai_response, process_knowledge_base
+
+        data = request.get_json(silent=True) or {}
+        bot_id = data.get('bot_id') or request.args.get('bot_id')
+        message = (data.get('message') or '').strip()
+
+        if not bot_id or not message:
+            return jsonify({'error': 'bot_id va message kerak'}), 400
+
+        bot = Bot.query.get(int(bot_id))
+        if not bot:
+            return jsonify({'error': 'Bot topilmadi'}), 404
+
+        # Get owner subscription tier
+        owner_sub = 'free'
+        if bot.owner:
+            owner_sub = (bot.owner.subscription_type or 'free').strip().lower()
+
+        # Build knowledge base context
+        kb_text = ''
+        try:
+            kb_text = process_knowledge_base(bot.id) or ''
+        except Exception:
+            pass
+
+        # Get AI response with subscription-aware model
+        reply = get_ai_response(
+            message=message,
+            bot_name=bot.name or 'AI Assistant',
+            user_language='uz',
+            knowledge_base=kb_text,
+            chat_history='',
+            owner_contact_info='',
+            subscription_tier=owner_sub
+        )
+        reply = reply or 'Kechirasiz, hozir javob bera olmayapman.'
+
+        # Forward to admin for monitoring
+        try:
+            _forward_chat_to_admin(bot, message, reply, "text")
+        except Exception:
+            pass
+
+        return jsonify({
+            'success': True,
+            'reply': reply,
+            'is_premium': owner_sub in ('premium', 'admin')
+        })
+
+    except Exception as e:
+        logger.error(f"MiniApp chat error: {e}")
+        return jsonify({'error': 'Chat xatolik yuz berdi'}), 500
+
+
+@miniapp_bp.route('/voice-chat', methods=['POST'])
+def miniapp_voice_chat():
+    """MiniApp voice chat endpoint — Premium only, uses Gemini Native Audio"""
+    try:
+        from models import Bot
+        from ai import get_ai_response, process_knowledge_base
+        import tempfile
+        import os
+        import base64
+        import google.generativeai as genai
+
+        bot_id = request.args.get('bot_id') or request.form.get('bot_id')
+        if not bot_id:
+            return jsonify({'error': 'bot_id kerak'}), 400
+
+        bot = Bot.query.get(int(bot_id))
+        if not bot:
+            return jsonify({'error': 'Bot topilmadi'}), 404
+
+        # Check Premium subscription
+        owner_sub = 'free'
+        if bot.owner:
+            owner_sub = (bot.owner.subscription_type or 'free').strip().lower()
+
+        if owner_sub not in ('premium', 'admin'):
+            return jsonify({
+                'error': 'premium_required',
+                'message': 'Ovozli chat faqat Premium obunachilarga mavjud!'
+            }), 403
+
+        # Get audio file
+        audio_file = request.files.get('audio')
+        if not audio_file:
+            return jsonify({'error': 'Audio fayl kerak'}), 400
+
+        # Save to temp file
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as tmp:
+                audio_file.save(tmp)
+                temp_path = tmp.name
+
+            # Configure Gemini
+            api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
+            if api_key:
+                genai.configure(api_key=api_key)
+
+            # Upload audio and transcribe + get response using native audio model
+            uploaded_audio = genai.upload_file(temp_path)
+
+            model = genai.GenerativeModel('gemini-2.5-flash-preview-native-audio')
+
+            # Transcribe first
+            transcribe_prompt = """Bu audio xabardagi nutqni aniq matn shaklida yoz.
+Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
+
+            transcribe_response = model.generate_content([transcribe_prompt, uploaded_audio])
+            user_text = ''
+            if transcribe_response and transcribe_response.text:
+                user_text = transcribe_response.text.strip()
+
+            # Build knowledge and get AI text reply
+            kb_text = ''
+            try:
+                kb_text = process_knowledge_base(bot.id) or ''
+            except Exception:
+                pass
+
+            reply_text = get_ai_response(
+                message=user_text or 'Ovozli xabar yuborildi',
+                bot_name=bot.name or 'AI Assistant',
+                user_language='uz',
+                knowledge_base=kb_text,
+                chat_history='',
+                owner_contact_info='',
+                subscription_tier=owner_sub
+            )
+            reply_text = reply_text or 'Kechirasiz, tushunmadim.'
+
+            # Generate audio response using native audio model
+            audio_response_b64 = None
+            try:
+                tts_response = model.generate_content(
+                    f"Bu matnni ovozga o'gir (o'zbek tilida natural ovozda o'qi): {reply_text[:500]}"
+                )
+                # If the model returns audio data, encode it
+                if hasattr(tts_response, 'candidates') and tts_response.candidates:
+                    for part in tts_response.candidates[0].content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data:
+                            audio_response_b64 = base64.b64encode(part.inline_data.data).decode('utf-8')
+                            break
+            except Exception as tts_err:
+                logger.warning(f"TTS generation failed, returning text only: {tts_err}")
+
+            # Cleanup uploaded file
+            try:
+                genai.delete_file(uploaded_audio.name)
+            except Exception:
+                pass
+
+            # Forward to admin
+            try:
+                _forward_chat_to_admin(bot, user_text or '[ovozli xabar]', reply_text, "voice")
+            except Exception:
+                pass
+
+            return jsonify({
+                'success': True,
+                'user_text': user_text,
+                'reply': reply_text,
+                'audio_response': audio_response_b64,
+                'is_premium': True
+            })
+
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    except Exception as e:
+        logger.error(f"MiniApp voice chat error: {e}")
+        return jsonify({'error': 'Ovozli chat xatolik yuz berdi'}), 500

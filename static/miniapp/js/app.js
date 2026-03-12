@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initSearch();
     initModals();
+    initChat();
     loadData();
 });
 
@@ -489,4 +490,228 @@ function showToast(message) {
     setTimeout(() => {
         elements.toast.classList.add('hidden');
     }, 3000);
+}
+
+// ===== AI Chat Module =====
+let isPremium = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+function initChat() {
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+
+    if (!chatInput || !chatSendBtn) return;
+
+    // Send text message
+    chatSendBtn.addEventListener('click', () => sendTextMessage());
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendTextMessage();
+    });
+
+    // Voice recording
+    if (voiceRecordBtn) {
+        voiceRecordBtn.addEventListener('click', () => toggleRecording());
+    }
+    if (stopRecordBtn) {
+        stopRecordBtn.addEventListener('click', () => stopRecording());
+    }
+}
+
+function checkPremiumStatus() {
+    // This will be called after business data loads
+    // Premium check is done via the chat API response
+}
+
+function updateVoiceUI() {
+    const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+    const voiceLock = document.getElementById('voiceLock');
+    if (!voiceRecordBtn || !voiceLock) return;
+
+    if (isPremium) {
+        voiceRecordBtn.classList.remove('hidden');
+        voiceLock.classList.add('hidden');
+    } else {
+        voiceRecordBtn.classList.add('hidden');
+        voiceLock.classList.remove('hidden');
+    }
+}
+
+function addChatBubble(text, type, audioB64) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    // Remove welcome message
+    const welcome = chatMessages.querySelector('.chat-welcome');
+    if (welcome) welcome.remove();
+
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${type}`;
+
+    const label = document.createElement('span');
+    label.className = 'bubble-label';
+    label.textContent = type === 'user' ? 'Siz' : '🤖 AI';
+    bubble.appendChild(label);
+
+    const textEl = document.createElement('div');
+    textEl.textContent = text;
+    bubble.appendChild(textEl);
+
+    // Audio player for bot responses
+    if (audioB64 && type === 'bot') {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = `data:audio/mp3;base64,${audioB64}`;
+        bubble.appendChild(audio);
+        // Auto-play
+        setTimeout(() => audio.play().catch(() => {}), 300);
+    }
+
+    chatMessages.appendChild(bubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    const typing = document.createElement('div');
+    typing.className = 'chat-typing';
+    typing.id = 'typingIndicator';
+    typing.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+    chatMessages.appendChild(typing);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+async function sendTextMessage() {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput) return;
+
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    chatInput.value = '';
+    addChatBubble(message, 'user');
+    showTypingIndicator();
+
+    try {
+        const baseUrl = window.location.origin;
+        const response = await fetch(`${baseUrl}/api/miniapp/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bot_id: botId, message: message })
+        });
+
+        hideTypingIndicator();
+        const data = await response.json();
+
+        if (data.success) {
+            addChatBubble(data.reply, 'bot');
+            if (data.is_premium !== undefined) {
+                isPremium = data.is_premium;
+                updateVoiceUI();
+            }
+        } else {
+            addChatBubble(data.error || 'Xatolik yuz berdi', 'bot');
+        }
+    } catch (err) {
+        hideTypingIndicator();
+        addChatBubble('Tarmoq xatosi. Qayta urinib ko\'ring.', 'bot');
+    }
+}
+
+async function toggleRecording() {
+    if (isRecording) {
+        stopRecording();
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            await sendVoiceMessage(audioBlob);
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+
+        const voiceBtn = document.getElementById('voiceRecordBtn');
+        const recIndicator = document.getElementById('recordingIndicator');
+        if (voiceBtn) voiceBtn.classList.add('recording');
+        if (recIndicator) recIndicator.classList.remove('hidden');
+    } catch (err) {
+        showToast('Mikrofon ruxsati berilmadi');
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+    isRecording = false;
+
+    const voiceBtn = document.getElementById('voiceRecordBtn');
+    const recIndicator = document.getElementById('recordingIndicator');
+    if (voiceBtn) voiceBtn.classList.remove('recording');
+    if (recIndicator) recIndicator.classList.add('hidden');
+}
+
+async function sendVoiceMessage(audioBlob) {
+    addChatBubble('🎤 Ovozli xabar yuborildi', 'user');
+    showTypingIndicator();
+
+    try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'voice.webm');
+
+        const baseUrl = window.location.origin;
+        const response = await fetch(`${baseUrl}/api/miniapp/voice-chat?bot_id=${botId}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        hideTypingIndicator();
+        const data = await response.json();
+
+        if (response.status === 403) {
+            addChatBubble('🔒 ' + (data.message || 'Ovozli chat faqat Premium obunachilarga mavjud!'), 'bot');
+            isPremium = false;
+            updateVoiceUI();
+            return;
+        }
+
+        if (data.success) {
+            if (data.user_text) {
+                // Show what was transcribed
+                const userBubble = document.querySelector('.chat-bubble.user:last-of-type');
+                if (userBubble) {
+                    const textDiv = userBubble.querySelector('div');
+                    if (textDiv) textDiv.textContent = `🎤 "${data.user_text}"`;
+                }
+            }
+            addChatBubble(data.reply, 'bot', data.audio_response);
+        } else {
+            addChatBubble(data.error || 'Xatolik yuz berdi', 'bot');
+        }
+    } catch (err) {
+        hideTypingIndicator();
+        addChatBubble('Tarmoq xatosi. Qayta urinib ko\'ring.', 'bot');
+    }
 }

@@ -247,6 +247,7 @@ app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')
 app.register_blueprint(marketing_bp, url_prefix='/marketing')
 app.register_blueprint(bot_status_bp, url_prefix='/admin')
 app.register_blueprint(miniapp_bp, url_prefix='/api/miniapp')
+csrf.exempt(miniapp_bp)  # MiniApp API is called from Telegram WebApp, no CSRF tokens
 
 @login_manager.user_loader
 def load_user(user_id):
