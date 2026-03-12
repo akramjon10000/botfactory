@@ -116,6 +116,7 @@ class Bot(db.Model):
     miniapp_card_color = db.Column(db.String(20), default='#252525')
     miniapp_welcome_text = db.Column(db.String(300), default='')
     miniapp_currency = db.Column(db.String(20), default="so'm")
+    custom_welcome_message = db.Column(Text, default='')
     
     # Relationships
     knowledge_base = db.relationship('KnowledgeBase', backref='bot', lazy=True, cascade='all, delete-orphan')

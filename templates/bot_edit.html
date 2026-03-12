@@ -189,6 +189,22 @@
                         </div>
                     </div>
 
+                    <!-- Custom Welcome Message -->
+                    <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
+                        <i class="fas fa-comment-dots me-2 text-info"></i>Xush kelibsiz xabari
+                    </h5>
+                    <div class="mb-4">
+                        <label for="custom_welcome_message" class="form-label small fw-medium text-body">
+                            <i class="fas fa-pen-fancy me-1 text-secondary"></i>Telegram /start buyrug'idagi xabar
+                        </label>
+                        <textarea class="form-control bg-transparent text-body" id="custom_welcome_message"
+                            name="custom_welcome_message" rows="4"
+                            placeholder="🤖 Salom! Men sizning chatbotingizman!&#10;📝 Menga savolingizni yozing...">{{ bot.custom_welcome_message or '' }}</textarea>
+                        <div class="form-text small mt-1">
+                            Bo'sh qoldirsangiz standart xabar chiqadi. Emoji va \n ishlatishingiz mumkin.
+                        </div>
+                    </div>
+
                     <!-- MiniApp Customization (Premium Only) -->
                     {% set owner_sub = (current_user.subscription_type or '')|lower|trim %}
                     <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
@@ -768,6 +784,154 @@
         </div>
     </div>
 </div>
+
+<!-- Orders Management Card (Premium Only) -->
+{% if owner_sub in ['premium', 'admin'] %}
+<div class="card border-0 shadow-lg rounded-4 overflow-hidden feature-card mt-4">
+    <div class="card-header bg-transparent border-bottom p-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3">
+                    <i class="fas fa-shopping-cart fs-4 text-success"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">📦 Buyurtmalar</h5>
+                    <p class="text-muted small mb-0">MiniApp orqali kelgan buyurtmalar</p>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-success rounded-pill" onclick="loadOrders()">
+                <i class="fas fa-sync-alt me-1"></i>Yangilash
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div id="ordersLoading" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+            <p class="small text-muted mt-2">Yuklanmoqda...</p>
+        </div>
+        <div id="ordersEmpty" class="text-center py-4 d-none">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Hali buyurtmalar yo'q</p>
+        </div>
+        <div id="ordersTable" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small fw-bold">#</th>
+                            <th class="small fw-bold">Sana</th>
+                            <th class="small fw-bold">Mijoz</th>
+                            <th class="small fw-bold">Mahsulotlar</th>
+                            <th class="small fw-bold">Jami</th>
+                            <th class="small fw-bold">Status</th>
+                            <th class="small fw-bold">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+const STATUS_LABELS = {
+    'pending': {text: '🕐 Yangi', cls: 'bg-warning text-dark'},
+    'confirmed': {text: '✅ Qabul', cls: 'bg-info text-white'},
+    'preparing': {text: '👨‍🍳 Tayyor.', cls: 'bg-primary text-white'},
+    'delivered': {text: '📦 Yetkazildi', cls: 'bg-success text-white'},
+    'cancelled': {text: '❌ Bekor', cls: 'bg-danger text-white'}
+};
+
+function loadOrders() {
+    const botId = {{ bot.id }};
+    const loading = document.getElementById('ordersLoading');
+    const empty = document.getElementById('ordersEmpty');
+    const table = document.getElementById('ordersTable');
+    const body = document.getElementById('ordersBody');
+    
+    if (!loading) return;
+    loading.classList.remove('d-none');
+    empty.classList.add('d-none');
+    table.classList.add('d-none');
+
+    fetch(`/api/orders/bot/${botId}/orders`)
+        .then(r => r.json())
+        .then(orders => {
+            loading.classList.add('d-none');
+            if (!orders.length) {
+                empty.classList.remove('d-none');
+                return;
+            }
+            table.classList.remove('d-none');
+            body.innerHTML = orders.map(o => {
+                const items = o.items.map(i => `${i.name} x${i.quantity}`).join(', ');
+                const st = STATUS_LABELS[o.status] || STATUS_LABELS['pending'];
+                const btns = buildStatusButtons(o.id, o.status, botId);
+                return `<tr>
+                    <td class="small fw-bold">${o.id}</td>
+                    <td class="small">${o.created_at}</td>
+                    <td>
+                        <div class="small fw-bold">${o.customer_name}</div>
+                        <div class="small text-muted">${o.customer_phone}</div>
+                    </td>
+                    <td class="small" style="max-width:200px">${items}</td>
+                    <td class="small fw-bold">${Number(o.total_amount).toLocaleString()} so'm</td>
+                    <td><span class="badge ${st.cls} rounded-pill">${st.text}</span></td>
+                    <td>${btns}</td>
+                </tr>`;
+            }).join('');
+        })
+        .catch(err => {
+            loading.classList.add('d-none');
+            console.error('Orders load error:', err);
+        });
+}
+
+function buildStatusButtons(orderId, currentStatus, botId) {
+    const nextStatus = {
+        'pending': ['confirmed', 'cancelled'],
+        'confirmed': ['preparing', 'cancelled'],
+        'preparing': ['delivered', 'cancelled'],
+        'delivered': [],
+        'cancelled': []
+    };
+    const actions = nextStatus[currentStatus] || [];
+    if (!actions.length) return '<span class="text-muted small">—</span>';
+    return actions.map(s => {
+        const label = STATUS_LABELS[s];
+        const btnClass = s === 'cancelled' ? 'btn-outline-danger' : 'btn-outline-success';
+        return `<button class="btn btn-sm ${btnClass} rounded-pill me-1 mb-1" onclick="changeOrderStatus(${botId}, ${orderId}, '${s}')">${label.text}</button>`;
+    }).join('');
+}
+
+function changeOrderStatus(botId, orderId, newStatus) {
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+    fetch(`/api/orders/bot/${botId}/orders/${orderId}/status`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({status: newStatus})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            loadOrders();
+        } else {
+            alert(data.error || 'Xatolik yuz berdi');
+        }
+    })
+    .catch(err => alert('Tarmoq xatosi'));
+}
+
+// Auto-load orders when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('ordersLoading')) {
+        loadOrders();
+    }
+});
+</script>
 
 <!-- Edit Knowledge Modal -->
 <div class="modal fade glass-modal" id="editKnowledgeModal" tabindex="-1">

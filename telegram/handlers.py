@@ -121,9 +121,13 @@ class TelegramBot:
                 except Exception:
                     pass
 
-            welcome_message = f"🤖 Salom! Men {bot_name} chatbot!\n\n"
-            welcome_message += "📝 Menga savolingizni yozing va men sizga yordam beraman.\n"
-            welcome_message += "❓ Yordam uchun /help buyrug'ini ishlating."
+            # Use custom welcome message if set, otherwise default
+            if hasattr(bot, 'custom_welcome_message') and bot.custom_welcome_message:
+                welcome_message = bot.custom_welcome_message
+            else:
+                welcome_message = f"🤖 Salom! Men {bot_name} chatbot!\n\n"
+                welcome_message += "📝 Menga savolingizni yozing va men sizga yordam beraman.\n"
+                welcome_message += "❓ Yordam uchun /help buyrug'ini ishlating."
 
             if update.message:
                 await update.message.reply_text(welcome_message)

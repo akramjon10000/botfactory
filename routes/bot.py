@@ -137,6 +137,11 @@ def edit_bot(bot_id):
             current_user.notification_channel = notification_channel.strip() if notification_channel.strip() else None
         current_user.notifications_enabled = notifications_enabled
         
+        # Custom welcome message
+        custom_welcome = request.form.get('custom_welcome_message')
+        if custom_welcome is not None:
+            bot.custom_welcome_message = custom_welcome.strip()
+        
         # Agar Telegram bot token o'zgargan bo'lsa, qayta ishga tushirish (central manager)
         if bot.platform == 'Telegram' and bot.telegram_token:
             try:
