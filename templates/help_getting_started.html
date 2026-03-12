@@ -2,7 +2,7 @@
 {% block title %}Qo'llanma — Bosqichma-bosqich boshlash | BotFactory AI{% endblock %}
 {% block og_title %}Boshlash qo'llanmasi — BotFactory AI{% endblock %}
 {% block og_description %}Foydalanuvchilar uchun bosqichma-bosqich qo'llanma: ro'yxatdan o'tish, bot yaratish,
-Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
+Telegram sozlash, bilimlar bazasi, MiniApp va ovozli chat.{% endblock %}
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -42,15 +42,17 @@ Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
           <h3 class="h5"><i class="fas fa-robot me-2"></i>2. Bot yaratish</h3>
           <ol class="ps-3">
             <li><a href="{{ url_for('main.dashboard') }}">Boshqaruv paneli</a>ga o'ting.</li>
-            <li>"Yangi bot yaratish" tugmasini bosing (faqat Telegram qo'llab-quvvatlanadi).</li>
-            <li>Kerakli maydonlarni to'ldiring (nomi, maqsad, tokenlar va h.k.).</li>
+            <li>"Yangi bot yaratish" tugmasini bosing.</li>
+            <li>Bot nomini kiriting va Telegram Bot tokenini qo'shing.</li>
           </ol>
-          <p class="mb-0 text-muted">Telegram uchun token BotFather'dan olinadi. Instagram/WhatsApp hozircha 🔒 Tez kunda.
-          </p>
+          <div class="alert alert-light border mb-0">
+            <i class="fas fa-info-circle text-primary me-1"></i>
+            Hozirda faqat <strong>Telegram</strong> platformasi qo'llab-quvvatlanadi. Boshqa platformalar kelajakda qo'shiladi.
+          </div>
           <figure class="mt-3 text-center">
             <img class="img-fluid rounded shadow-sm" src="{{ url_for('static', filename='images/help/dashboard_real.png') }}"
-              alt="Tariflar va qadamlar" style="max-width: 700px; border: 1px solid #dee2e6;">
-            <figcaption class="text-muted small mt-2">3-rasm. Tariflar va ishlash bosqichlari</figcaption>
+              alt="Boshqaruv paneli" style="max-width: 700px; border: 1px solid #dee2e6;">
+            <figcaption class="text-muted small mt-2">3-rasm. Boshqaruv paneli va botlaringiz</figcaption>
           </figure>
         </div>
       </div>
@@ -59,9 +61,10 @@ Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
         <div class="card-body">
           <h3 class="h5"><i class="fab fa-telegram me-2"></i>3. Telegram sozlash (tez start)</h3>
           <ol class="ps-3">
-            <li>@BotFather → <code>/newbot</code>. Tokenni oling.</li>
-            <li>Dashboard’da Telegram bot qatoriga tokenni kiriting va “Start” bosing.</li>
-            <li>Botga <code>/start</code> yozing — javob keldi, demak u ishlayapti.</li>
+            <li><a href="https://t.me/BotFather" target="_blank">@BotFather</a> ga kiring → <code>/newbot</code> buyrug'ini yuboring.</li>
+            <li>Bot uchun nom va username tanlang (masalan: <i>doys_bot</i>).</li>
+            <li>BotFather bergan tokenni nusxalab, bot yaratish sahifasiga kiriting.</li>
+            <li>Botga <code>/start</code> yozing — javob keldi, demak u ishlayapti!</li>
           </ol>
           <div class="alert alert-info mb-0"><strong>Eslatma:</strong> Biz polling + deduplikatsiya ishlatamiz. Markaziy
             <code>bot_manager</code> orqali start/stop boshqariladi.
@@ -71,62 +74,105 @@ Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h3 class="h5"><i class="fab fa-instagram me-2"></i>4. Instagram sozlash</h3>
+          <h3 class="h5"><i class="fas fa-brain me-2"></i>4. Bilimlar bazasi (Knowledge Base)</h3>
+          <p>Botingizni aqlli qilish uchun bilim bazasiga ma'lumotlarni qo'shing. Bot tahrir sahifasida 5 ta tab mavjud:</p>
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-4">
+              <div class="border rounded-3 p-2 text-center">
+                <i class="fas fa-file-upload text-primary mb-1"></i>
+                <div class="small fw-bold">📁 Fayl</div>
+                <div class="text-muted" style="font-size: 0.75rem;">.txt, .csv, .docx, .xlsx</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="border rounded-3 p-2 text-center">
+                <i class="fas fa-align-left text-success mb-1"></i>
+                <div class="small fw-bold">📝 Matn</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Erkin matn yozish</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="border rounded-3 p-2 text-center">
+                <i class="fas fa-question-circle text-warning mb-1"></i>
+                <div class="small fw-bold">❓ Q&A</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Savol-javob juftliklari</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="border rounded-3 p-2 text-center">
+                <i class="fas fa-box text-info mb-1"></i>
+                <div class="small fw-bold">📦 Mahsulot</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Nom, narx, tavsif, rasm</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="border rounded-3 p-2 text-center">
+                <i class="fas fa-phone-alt text-danger mb-1"></i>
+                <div class="small fw-bold">📞 Aloqa</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Telefon, manzil, ish vaqti</div>
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-success mb-0">
+            <i class="fas fa-lightbulb me-1"></i>
+            AI chatbot dialoglar paytida bilim bazasidagi ma'lumotlardan avtomatik foydalanadi.
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h3 class="h5"><i class="fas fa-store me-2"></i>5. MiniApp (Telegram Web App)</h3>
+          <p>Har bir bot uchun avtomatik ravishda Telegram Web App yaratiladi. MiniApp quyidagilarni o'z ichiga oladi:</p>
           <ul class="ps-3">
-            <li>Business/Creator hisob + Facebook Page bog'langan bo'lishi kerak.</li>
-            <li>Long‑lived Page Access Token andoza.</li>
-            <li>Webhook URL: Admin → Instagram bot → <code>/instagram/webhook/&lt;bot_id&gt;</code> ga subscribe qiling.
-            </li>
+            <li><strong>📦 Katalog</strong> — mahsulotlar/xizmatlar ro'yxati (qidiruv va saralash bilan)</li>
+            <li><strong>🤖 AI Chat</strong> — sun'iy intellekt yordamchisi (matnli va ovozli)</li>
+            <li><strong>🛒 Savat</strong> — buyurtma berish tizimi</li>
+            <li><strong>📞 Aloqa</strong> — biznes kontakt ma'lumotlari</li>
           </ul>
-          <p class="mb-1">Muammo bo'lsa, diagnostikadan foydalaning:</p>
-          <code>/admin/api/instagram/diagnostics/&lt;bot_id&gt;</code>
+          <div class="alert alert-light border mb-0">
+            <i class="fas fa-palette me-1 text-primary"></i>
+            MiniApp ranglarini (aksent, fon, kartochka) bot tahrir sahifasidagi "MiniApp Tashqi Ko'rinishi" bo'limidan sozlash mumkin.
+          </div>
         </div>
       </div>
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h3 class="h5"><i class="fab fa-whatsapp me-2"></i>5. WhatsApp sozlash</h3>
+          <h3 class="h5"><i class="fas fa-microphone me-2"></i>6. Ovozli chat (Premium)</h3>
+          <p>Premium foydalanuvchilar uchun ovozli chat xususiyati mavjud:</p>
           <ul class="ps-3">
-            <li>Meta WA Business: <strong>Access Token</strong> + <strong>Phone Number ID</strong>.</li>
-            <li>Webhook verify token mos bo'lsin (GET verify).</li>
+            <li>MiniApp'da 🎤 tugmani bosib ovozli xabar yuboring.</li>
+            <li>AI ovozni matnga o'girib, bilim bazasidan javob topadi.</li>
+            <li><strong>Gemini Native Audio</strong> modeli orqali yuqori sifatli transkripsiya.</li>
           </ul>
-          <p class="mb-0 text-muted">Admin paneldan WA botini “Start” qilib, test xabar yuboring.</p>
+          <div class="alert alert-warning mb-0">
+            <i class="fas fa-crown me-1"></i>
+            Bu xususiyat faqat <strong>Premium</strong> obunachilarga mavjud. Obunani boshqaruv panelidan yangilang.
+          </div>
         </div>
       </div>
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h3 class="h5"><i class="fas fa-paper-plane me-2"></i>6. Xabar yuborish (individual/broadcast)</h3>
+          <h3 class="h5"><i class="fas fa-paper-plane me-2"></i>7. Xabar yuborish (individual/broadcast)</h3>
           <ol class="ps-3">
-            <li>Dashboard → bot yonidagi “Xabar yuborish” bo'limiga kiring.</li>
-            <li>Mijozni tanlang yoki “Barchaga yuborish” ni belgilang.</li>
-            <li>Matnni kiriting va “Yuborish” tugmasini bosing.</li>
-          </ol>
-          <p class="mb-0 text-muted">Instagram’da 24 soat oynasi amal qiladi: foydalanuvchi yozganidan keyin 24 soat
-            ichida javob yuborish mumkin.</p>
-        </div>
-      </div>
-
-      <div class="card shadow-sm mb-3">
-        <div class="card-body">
-          <h3 class="h5"><i class="fas fa-book me-2"></i>7. Bilim bazasi (knowledge base)</h3>
-          <ol class="ps-3">
-            <li>Bot tahrir sahifasida bilim bazasi faylini (.txt/.csv/.docx) yuklang.</li>
-            <li>“Saqlash”dan so'ng bilim bazasini qayta ishlash tugmasini bosing (agar mavjud bo'lsa).</li>
-            <li>Dialoglarda bilim bazasi ma'lumotlaridan foydalaniladi.</li>
+            <li>Dashboard → bot yonidagi "Xabar yuborish" bo'limiga kiring.</li>
+            <li>Mijozni tanlang yoki "Barchaga yuborish" ni belgilang.</li>
+            <li>Matnni kiriting va "Yuborish" tugmasini bosing.</li>
           </ol>
         </div>
       </div>
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h3 class="h5"><i class="fas fa-stethoscope me-2"></i>8. Diagnostika va muammolar</h3>
-          <ul class="ps-3 mb-0">
-            <li><strong>Instagram token:</strong> <code>/admin/api/instagram/diagnostics/&lt;bot_id&gt;</code></li>
-            <li><strong>Telegram ikki marta javob:</strong> deduplikatsiya yoqilgan.</li>
-            <li><strong>Webhook verify:</strong> <code>hub.verify_token</code> va <code>hub.challenge</code> ni
-              tekshiring.</li>
+          <h3 class="h5"><i class="fas fa-eye me-2"></i>8. Suhbat kuzatuvi (Monitoring)</h3>
+          <ul class="ps-3">
+            <li>Bot yaratishda yoki tahrirlashda <strong>"Suhbat xabarnomalarini yoqish"</strong> ni belgilang.</li>
+            <li><strong>Admin Chat ID</strong> — sizning shaxsiy Telegram ID raqamingiz.</li>
+            <li><strong>Bildirishnoma kanali</strong> — shaxsiy kanal yoki guruh.</li>
           </ul>
+          <p class="mb-0 text-muted">Mijozlar botga yozganda, barcha suhbatlar sizning Telegram'ingizga yoki ko'rsatilgan kanal/guruhga yuboriladi.</p>
         </div>
       </div>
 
@@ -134,8 +180,9 @@ Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
         <div class="card-body">
           <h3 class="h5"><i class="fas fa-shield-alt me-2"></i>9. Xavfsizlik</h3>
           <ul class="ps-3 mb-0">
-            <li>Tokenlarni ommaga chiqarmang, ENV yoki DB’da saqlang.</li>
-            <li>Admin panelga faqat ishonchli foydalanuvchilar kiradi.</li>
+            <li>Tokenlaringiz shifrlangan holda xavfsiz saqlanadi.</li>
+            <li>Admin panelga faqat ro'yxatdan o'tgan foydalanuvchilar kiradi.</li>
+            <li>API kalitlari server tomonida himoyalangan.</li>
           </ul>
         </div>
       </div>
@@ -145,23 +192,36 @@ Telegram/Instagram/WhatsApp sozlash, xabar yuborish, diagnostika.{% endblock %}
           <h3 class="h5"><i class="fas fa-life-ring me-2"></i>10. Yordam kerakmi?</h3>
           <p class="mb-2">Savol va muammolaringiz bo'lsa, quyidagi kanallardan biriga murojaat qiling:</p>
           <ul class="ps-3 mb-0">
-            <li><a href="{{ config['SUPPORT_TELEGRAM'] }}" target="_blank" rel="noopener">Telegram</a></li>
-            <li><a href="tel:{{ config['SUPPORT_PHONE'] }}">Qo'ng'iroq</a></li>
+            <li><a href="{{ config['SUPPORT_TELEGRAM'] }}" target="_blank" rel="noopener"><i class="fab fa-telegram me-1"></i>Telegram orqali yozish</a></li>
+            <li><a href="tel:{{ config['SUPPORT_PHONE'] }}"><i class="fas fa-phone me-1"></i>Qo'ng'iroq qilish</a></li>
           </ul>
         </div>
       </div>
     </div>
 
     <div class="col-lg-4">
-      <div class="card shadow-sm">
+      <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h5 class="card-title">Tezkor linklar</h5>
+          <h5 class="card-title"><i class="fas fa-link me-1"></i>Tezkor linklar</h5>
           <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action" href="{{ url_for('main.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>
+              Boshqaruv paneli</a>
+            <a class="list-group-item list-group-item-action" href="{{ url_for('bot.create_bot') }}"><i class="fas fa-plus-circle me-1"></i>
+              Yangi bot yaratish</a>
             <a class="list-group-item list-group-item-action" href="/sitemap.xml"><i class="fas fa-sitemap me-1"></i>
               Sitemap</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('main.dashboard') }}"><i
-                class="fas fa-tachometer-alt me-1"></i> Boshqaruv paneli</a>
           </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm" style="background: linear-gradient(135deg, #1e3a5f, #1a365d);">
+        <div class="card-body text-center p-4">
+          <i class="fas fa-gem fs-1 mb-3" style="color: #60a5fa;"></i>
+          <h5 class="fw-bold" style="color: #ffffff;">Premium ga o'ting</h5>
+          <p class="small mb-3" style="color: rgba(255,255,255,0.7);">Ovozli chat, kengaytirilgan AI, cheksiz bilim bazasi va boshqa imkoniyatlardan foydalaning.</p>
+          <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+            <i class="fas fa-crown me-1"></i>Yangilash
+          </a>
         </div>
       </div>
     </div>
