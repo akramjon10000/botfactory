@@ -678,7 +678,7 @@ def add_contact_knowledge(bot_id):
     if contact_socials:
         content_parts.append(f"Ijtimoiy tarmoqlar: {contact_socials}")
     
-    content = "\\n".join(content_parts)
+    content = "\n".join(content_parts)
     
     try:
         knowledge = KnowledgeBase()
