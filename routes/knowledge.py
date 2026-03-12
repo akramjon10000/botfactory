@@ -388,12 +388,12 @@ def edit_knowledge(bot_id, kb_id):
             if product_description: content_parts.append(f"Tavsif: {product_description}")
             
             # Preserve existing image if any
-            image_url_line = [line for line in knowledge.content.split('\\n') if line.startswith('Rasm:')]
+            image_url_line = [line for line in knowledge.content.split('\n') if line.startswith('Rasm:')]
             if image_url_line:
                 content_parts.append(image_url_line[0])
                 
             knowledge.source_name = product_name
-            knowledge.content = "\\n".join(content_parts)
+            knowledge.content = "\n".join(content_parts)
             
         elif knowledge.content_type in ['text', 'qa']:
             new_title = request.form.get('source_name', '').strip()
