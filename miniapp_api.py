@@ -186,7 +186,19 @@ def create_order():
         order.customer_name = data['customer_name']
         order.customer_phone = data['customer_phone']
         order.customer_address = data.get('customer_address', '')
-        order.note = data.get('note', '')
+        
+        note_text = data.get('note', '')
+        booking_datetime = data.get('booking_datetime')
+        if booking_datetime:
+            try:
+                dt_obj = datetime.strptime(booking_datetime, '%Y-%m-%dT%H:%M')
+                formatted_dt = dt_obj.strftime('%d.%m.%Y %H:%M')
+                order.note = f"Sana va vaqt: {formatted_dt}\n{note_text}".strip()
+            except Exception:
+                order.note = f"Sana va vaqt: {booking_datetime}\n{note_text}".strip()
+        else:
+            order.note = note_text
+            
         order.items = json.dumps(data['items'], ensure_ascii=False)
         order.total_amount = data.get('total', 0)
         order.telegram_user_id = data.get('telegram_user_id')

@@ -171,6 +171,10 @@ def edit_bot(bot_id):
         # MiniApp Customization (Premium/Admin only)
         owner_sub = (current_user.subscription_type or '').strip().lower()
         if owner_sub in ['premium', 'admin']:
+            business_type = request.form.get('business_type')
+            if business_type in ['product', 'service']:
+                bot.business_type = business_type
+                
             miniapp_theme = request.form.get('miniapp_theme_color')
             miniapp_bg = request.form.get('miniapp_bg_color')
             miniapp_card = request.form.get('miniapp_card_color')

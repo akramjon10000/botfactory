@@ -55,6 +55,13 @@ function initElements() {
     elements.contactTelegram = document.getElementById('contactTelegram');
     elements.callButton = document.getElementById('callButton');
     elements.telegramButton = document.getElementById('telegramButton');
+    
+    // New dynamic elements
+    elements.tabLabelCatalog = document.getElementById('tabKatalogText');
+    elements.tabLabelCart = document.getElementById('tabSavatText');
+    elements.emptyCartText = document.getElementById('cartEmptyText');
+    elements.bookingDateGroup = document.getElementById('bookingDateGroup');
+    elements.bookingDateTime = document.getElementById('bookingDateTime');
 }
 
 function initTelegram() {
@@ -416,6 +423,7 @@ async function submitOrder(e) {
         customer_name: document.getElementById('customerName').value,
         customer_phone: document.getElementById('customerPhone').value,
         customer_address: document.getElementById('customerAddress').value,
+        booking_datetime: elements.bookingDateTime ? elements.bookingDateTime.value : null,
         note: document.getElementById('orderNote').value,
         items: state.cart.map(item => ({
             id: item.id,

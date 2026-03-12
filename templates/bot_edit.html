@@ -212,6 +212,38 @@
                         </div>
                         {% endif %}
                         <div class="card-body p-4">
+                            <div class="mb-4 p-3 rounded-4 shadow-sm" style="background: var(--bs-body-bg); border: 1px solid rgba(var(--bs-primary-rgb), 0.1);">
+                                <label class="fw-bold text-body mb-3">
+                                    <i class="fas fa-briefcase me-2 text-primary"></i>Biznes Turini Tanlang
+                                </label>
+                                <div class="row g-3">
+                                    <!-- Mahsulotlar (Do'kon) -->
+                                    <div class="col-md-6">
+                                        <div class="position-relative">
+                                            <input class="form-check-input position-absolute top-50 start-0 ms-3 mt-0 translate-middle-y" 
+                                                type="radio" name="business_type" id="business_product" value="product"
+                                                {% if bot.business_type == 'product' or not bot.business_type %}checked{% endif %}>
+                                            <label class="form-check-label w-100 p-3 ps-5 border rounded-3 text-body" for="business_product" style="cursor: pointer; transition: all 0.2s;">
+                                                <div class="fw-bold mb-1"><i class="fas fa-shopping-bag text-info me-2"></i>E-commerce (Do'kon)</div>
+                                                <small class="text-muted d-block lh-sm">Katalog, Savat va Yetkazip berish (Tovarlar sotish).</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- Xizmatlar (Band qilish) -->
+                                    <div class="col-md-6">
+                                        <div class="position-relative">
+                                            <input class="form-check-input position-absolute top-50 start-0 ms-3 mt-0 translate-middle-y" 
+                                                type="radio" name="business_type" id="business_service" value="service"
+                                                {% if bot.business_type == 'service' %}checked{% endif %}>
+                                            <label class="form-check-label w-100 p-3 ps-5 border rounded-3 text-body" for="business_service" style="cursor: pointer; transition: all 0.2s;">
+                                                <div class="fw-bold mb-1"><i class="fas fa-calendar-alt text-success me-2"></i>Xizmatlar (Yozilish)</div>
+                                                <small class="text-muted d-block lh-sm">Xizmatlar ro'yxati, Band qilish (Sana va vaqt tanlash).</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-medium text-body">
