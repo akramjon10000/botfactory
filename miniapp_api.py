@@ -446,12 +446,13 @@ def miniapp_voice_chat():
             if api_key:
                 genai.configure(api_key=api_key)
 
-            # Upload audio and transcribe + get response using native audio model
+            # Upload audio and transcribe using standard Gemini model
+            # Note: gemini-2.5-flash supports audio input for transcription
             uploaded_audio = genai.upload_file(temp_path)
 
-            model = genai.GenerativeModel('gemini-2.5-flash-native-audio-preview-12-2025')
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
-            # Transcribe first
+            # Transcribe audio to text
             transcribe_prompt = """Bu audio xabardagi nutqni aniq matn shaklida yoz.
 Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
 
@@ -478,20 +479,8 @@ Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
             )
             reply_text = reply_text or 'Kechirasiz, tushunmadim.'
 
-            # Generate audio response using native audio model
+            # Audio response placeholder (TTS requires native audio model + new SDK)
             audio_response_b64 = None
-            try:
-                tts_response = model.generate_content(
-                    f"Bu matnni ovozga o'gir (o'zbek tilida natural ovozda o'qi): {reply_text[:500]}"
-                )
-                # If the model returns audio data, encode it
-                if hasattr(tts_response, 'candidates') and tts_response.candidates:
-                    for part in tts_response.candidates[0].content.parts:
-                        if hasattr(part, 'inline_data') and part.inline_data:
-                            audio_response_b64 = base64.b64encode(part.inline_data.data).decode('utf-8')
-                            break
-            except Exception as tts_err:
-                logger.warning(f"TTS generation failed, returning text only: {tts_err}")
 
             # Cleanup uploaded file
             try:
