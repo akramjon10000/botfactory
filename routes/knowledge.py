@@ -647,6 +647,57 @@ def upload_bulk_products(bot_id):
     return redirect(url_for('bot.edit_bot', bot_id=bot_id))
 
 
+@knowledge_bp.route('/bot/<int:bot_id>/knowledge/contact', methods=['POST'])
+@login_required
+def add_contact_knowledge(bot_id):
+    """Aloqa ma'lumotlarini qo'shish"""
+    bot = Bot.query.get_or_404(bot_id)
+    
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        flash('Sizda bu botga ma\\'lumot qo\\'shish huquqi yo\\'q!', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    contact_phone = request.form.get('contact_phone', '').strip()
+    contact_address = request.form.get('contact_address', '').strip()
+    contact_hours = request.form.get('contact_hours', '').strip()
+    contact_socials = request.form.get('contact_socials', '').strip()
+    
+    if not contact_phone:
+        flash('Telefon raqam kiritilishi shart!', 'error')
+        return redirect(url_for('bot.edit_bot', bot_id=bot_id))
+    
+    content_parts = ["Biz bilan bog'lanish uchun aloqa ma'lumotlarimiz:"]
+    content_parts.append(f"Telefon: {contact_phone}")
+    
+    if contact_address:
+        content_parts.append(f"Manzil/Lokatsiya: {contact_address}")
+    
+    if contact_hours:
+        content_parts.append(f"Ish vaqti: {contact_hours}")
+    
+    if contact_socials:
+        content_parts.append(f"Ijtimoiy tarmoqlar: {contact_socials}")
+    
+    content = "\\n".join(content_parts)
+    
+    try:
+        knowledge = KnowledgeBase()
+        knowledge.bot_id = bot_id
+        knowledge.content = content
+        knowledge.filename = None
+        knowledge.content_type = 'contact'
+        knowledge.source_name = 'Aloqa ma\\'lumotlari'
+        
+        db.session.add(knowledge)
+        db.session.commit()
+        
+        flash('Aloqa ma\\'lumotlari muvaffaqiyatli saqlandi!', 'success')
+    except Exception as e:
+        flash(f'Aloqa ma\\'lumotlarini saqlashda xatolik: {str(e)}', 'error')
+    
+    return redirect(url_for('bot.edit_bot', bot_id=bot_id))
+
+
 @knowledge_bp.route('/template/products.xlsx')
 def download_template():
     """Excel namuna fayl yuklash"""

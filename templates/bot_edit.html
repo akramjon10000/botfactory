@@ -374,6 +374,12 @@
                             <i class="fas fa-shopping-bag me-1"></i>Mahsulot
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contact-tab" data-bs-toggle="pill"
+                            data-bs-target="#contact-content" type="button" role="tab">
+                            <i class="fas fa-address-book me-1"></i>Aloqa
+                        </button>
+                    </li>
                 </ul>
 
                 <!-- Tab content -->
@@ -561,6 +567,43 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Contact (Aloqa) Tab -->
+                    <div class="tab-pane fade" id="contact-content" role="tabpanel">
+                        <form method="POST" action="{{ url_for('knowledge.add_contact_knowledge', bot_id=bot.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="mb-3">
+                                <label for="contact_phone" class="form-label fw-medium text-body small">Telefon raqam <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control bg-transparent" id="contact_phone"
+                                    name="contact_phone" placeholder="Masalan: +998 90 123 45 67" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contact_address" class="form-label fw-medium text-body small">Manzil (Lokatsiya)</label>
+                                <input type="text" class="form-control bg-transparent" id="contact_address"
+                                    name="contact_address" placeholder="Toshkent shahar, Yunusobod tumani...">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contact_hours" class="form-label fw-medium text-body small">Ish vaqti</label>
+                                <input type="text" class="form-control bg-transparent" id="contact_hours"
+                                    name="contact_hours" placeholder="Masalan: Dush-Juma, 09:00 - 18:00">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contact_socials" class="form-label fw-medium text-body small">Ijtimoiy tarmoqlar</label>
+                                <textarea class="form-control bg-transparent" id="contact_socials" name="contact_socials" rows="2"
+                                    placeholder="Telegram: @username, Instagram: @username"></textarea>
+                            </div>
+
+                            <button type="submit"
+                                class="btn btn-warning w-100 rounded-pill py-2 fw-bold shadow-sm hover-lift text-dark"
+                                style="border: none;">
+                                <i class="fas fa-save me-2"></i>Aloqa ma'lumotlarini saqlash
+                            </button>
+                        </form>
                     </div>
                 </div>
 
