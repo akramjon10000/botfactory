@@ -309,6 +309,24 @@ class TelegramBot:
             return
         query = update.callback_query
         data = query.data or ""
+        if data == "contact_info":
+            await query.answer()
+            try:
+                get_ai_response, process_knowledge_base, User, Bot, ChatHistory, db, app = get_dependencies()
+                with app.app_context():
+                    from models import BotCustomer
+                    bot = Bot.query.get(self.bot_id)
+                    customer = BotCustomer.query.filter_by(bot_id=bot.id, platform='telegram', platform_user_id=str(query.from_user.id)).first()
+                    language = customer.language if customer else 'uz'
+                    
+                    contact_markup = self._build_contact_keyboard(bot)
+                    if contact_markup and update.effective_chat:
+                        contact_msgs = {'uz': "📞 Biz bilan bog'lanish usullari:", 'ru': "📞 Способы связи с нами:", 'en': "📞 Contact us:"}
+                        await context.bot.send_message(chat_id=update.effective_chat.id, text=contact_msgs.get(language, contact_msgs['uz']), reply_markup=contact_markup)
+            except Exception as e:
+                logger.error(f"Failed to send contact info on button click: {str(e)}")
+            return
+
         if data != "contact_operator":
             return
         await query.answer()
