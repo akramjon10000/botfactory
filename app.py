@@ -234,6 +234,7 @@ from marketing import marketing_bp
 from bot_status import bot_status_bp
 from miniapp_api import miniapp_bp
 from routes.orders import orders_bp
+from routes.crm import crm_bp
 
 app.register_blueprint(main_bp)
 # app.register_blueprint(blog_bp)
@@ -249,6 +250,7 @@ app.register_blueprint(marketing_bp, url_prefix='/marketing')
 app.register_blueprint(bot_status_bp, url_prefix='/admin')
 app.register_blueprint(miniapp_bp, url_prefix='/api/miniapp')
 app.register_blueprint(orders_bp, url_prefix='/api/orders')
+app.register_blueprint(crm_bp, url_prefix='/api/crm')
 csrf.exempt(miniapp_bp)  # MiniApp API is called from Telegram WebApp, no CSRF tokens
 
 @login_manager.user_loader

@@ -834,6 +834,53 @@
         </div>
     </div>
 </div>
+
+<!-- CRM Customers Card (Premium Only) -->
+<div class="card border-0 shadow-lg rounded-4 overflow-hidden feature-card mt-4">
+    <div class="card-header bg-transparent border-bottom p-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                    <i class="fas fa-users fs-4 text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">👥 Mijozlar Bazasi (CRM)</h5>
+                    <p class="text-muted small mb-0">Botdan foydalanganlar va xaridorlar tarixi</p>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadCustomers()">
+                <i class="fas fa-sync-alt me-1"></i>Yangilash
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div id="crmLoading" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <p class="small text-muted mt-2">Mijozlar yuklanmoqda...</p>
+        </div>
+        <div id="crmEmpty" class="text-center py-4 d-none">
+            <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Hali mijozlar yo'q</p>
+        </div>
+        <div id="crmTable" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small fw-bold">Mijoz</th>
+                            <th class="small fw-bold">Kontakt / Til</th>
+                            <th class="small fw-bold text-center">Xabarlar</th>
+                            <th class="small fw-bold text-center">Xaridlar summasi</th>
+                            <th class="small fw-bold text-center">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="crmBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 <script>
@@ -930,7 +977,102 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('ordersLoading')) {
         loadOrders();
     }
+    if (document.getElementById('crmLoading')) {
+        loadCustomers();
+    }
 });
+
+let currentCustomersData = [];
+
+function loadCustomers() {
+    const botId = {{ bot.id }};
+    const crmLoadingDiv = document.getElementById('crmLoading');
+    const crmEmptyDiv = document.getElementById('crmEmpty');
+    const crmTableDiv = document.getElementById('crmTable');
+    const crmBodyTbody = document.getElementById('crmBody');
+    
+    if (!crmLoadingDiv) return;
+    crmLoadingDiv.classList.remove('d-none');
+    crmEmptyDiv.classList.add('d-none');
+    crmTableDiv.classList.add('d-none');
+
+    fetch(`/api/crm/bot/${botId}/customers`)
+        .then(r => r.json())
+        .then(customers => {
+            currentCustomersData = customers;
+            crmLoadingDiv.classList.add('d-none');
+            if (!customers || !customers.length) {
+                crmEmptyDiv.classList.remove('d-none');
+                return;
+            }
+            crmTableDiv.classList.remove('d-none');
+            
+            crmBodyTbody.innerHTML = customers.map((c, index) => {
+                const nameStr = c.name + (c.username ? ` <span class="text-muted small">@${c.username}</span>` : '');
+                
+                let sourceBadge = '';
+                if (c.source === 'telegram') {
+                    sourceBadge = `<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small"><i class="fab fa-telegram me-1"></i>Bot</span>`;
+                } else {
+                    sourceBadge = `<span class="badge bg-info bg-opacity-10 text-info rounded-pill small"><i class="fas fa-store me-1"></i>MiniApp</span>`;
+                }
+
+                return `<tr>
+                    <td>
+                        <div class="fw-bold">${nameStr}</div>
+                        <div class="small mt-1">${sourceBadge}</div>
+                    </td>
+                    <td>
+                        <div class="small text-muted">ID: ${c.telegram_id || 'Noma\'lum'}</div>
+                        <div class="small">Til: ${c.language.toUpperCase()}</div>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary rounded-pill">${c.message_count}</span>
+                        <div class="small text-muted mt-1" style="font-size: 0.70rem;">Oxirgi: ${c.last_interaction || '-'}</div>
+                    </td>
+                    <td class="text-center">
+                        <div class="fw-bold text-success">${Number(c.total_spent).toLocaleString()} so'm</div>
+                        <div class="small text-muted">${c.order_count} ta xarid</div>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="showCustomerHistory(${index})">
+                            <i class="fas fa-history"></i> Tarix
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        })
+        .catch(err => {
+            loading.classList.add('d-none');
+            console.error('CRM load error:', err);
+        });
+}
+
+function showCustomerHistory(index) {
+    const c = currentCustomersData[index];
+    if (!c) return;
+    
+    document.getElementById('historyCustomerName').innerHTML = c.name + (c.username ? ` (@${c.username})` : '');
+    const tbody = document.getElementById('historyTableBody');
+    
+    if (!c.orders_history || c.orders_history.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Bu mijozda hech qanday xarid yo\'q</td></tr>';
+    } else {
+        tbody.innerHTML = c.orders_history.map(o => {
+            const st = STATUS_LABELS[o.status] || STATUS_LABELS['pending'];
+            return `<tr>
+                <td class="small fw-bold">#${o.id}</td>
+                <td class="small">${o.date}</td>
+                <td class="small" style="max-width:200px;">${o.items_summary}</td>
+                <td class="small fw-bold text-end">${Number(o.total).toLocaleString()} so'm</td>
+                <td class="text-center"><span class="badge ${st.cls} rounded-pill" style="font-size:0.65rem;">${st.text}</span></td>
+            </tr>`;
+        }).join('');
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('customerHistoryModal'));
+    modal.show();
+}
 </script>
 
 <!-- Edit Knowledge Modal -->
@@ -996,6 +1138,43 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+</div>
+
+<!-- Customer History Modal -->
+<div class="modal fade glass-modal" id="customerHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-history text-primary fs-4 align-middle me-2"></i> Miijoz Xaridlari: <span id="historyCustomerName" class="text-body fw-normal"></span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-start">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="small fw-bold">#</th>
+                                <th class="small fw-bold">Sana</th>
+                                <th class="small fw-bold">Mahsulotlar</th>
+                                <th class="small fw-bold text-end">Jami Summa</th>
+                                <th class="small fw-bold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-10 py-3 px-4 bg-secondary bg-opacity-10 rounded-bottom-4">
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Yopish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <input type="hidden" id="currentBotId" value="{{ bot.id }}">
 {% endblock %}
 
