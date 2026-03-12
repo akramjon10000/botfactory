@@ -259,9 +259,10 @@ class TelegramBot:
                 if query:
                     await query.edit_message_text(success_messages.get(language, success_messages['uz']))
 
-                # Send Mini App button if enabled
+                # Send Mini App button if enabled and Premium/Admin
                 try:
-                    if bot.miniapp_enabled:
+                    owner_sub = (bot.owner.subscription_type or 'free').lower().strip()
+                    if bot.miniapp_enabled and owner_sub in ['premium', 'admin']:
                         import os
                         base_url = os.environ.get('BASE_URL', 'https://botfactory-am64.onrender.com')
                         miniapp_url = f"{base_url}/api/miniapp/?bot_id={self.bot_id}"

@@ -35,6 +35,10 @@ def get_business_info(bot_id):
         
         if not bot:
             return jsonify({'error': 'Bot topilmadi'}), 404
+            
+        owner_sub = (bot.owner.subscription_type or 'free').lower().strip()
+        if owner_sub not in ['premium', 'admin']:
+            return jsonify({'error': 'Ushbu xususiyat faqat Premium ta\'rifida mavjud'}), 403
         
         return jsonify({
             'id': bot.id,
@@ -61,7 +65,15 @@ def get_business_info(bot_id):
 def get_catalog(bot_id):
     """Get products/services catalog for a bot"""
     try:
-        from models import KnowledgeBase
+        from models import KnowledgeBase, Bot
+        
+        bot = Bot.query.get(bot_id)
+        if not bot:
+            return jsonify([])
+            
+        owner_sub = (bot.owner.subscription_type or 'free').lower().strip()
+        if owner_sub not in ['premium', 'admin']:
+            return jsonify({'error': 'Premium yoziluvi talab qilinadi'}), 403
         
         # Get all product entries from knowledge base
         products = KnowledgeBase.query.filter_by(
