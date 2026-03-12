@@ -418,7 +418,7 @@ def miniapp_voice_chat():
             # Upload audio and transcribe + get response using native audio model
             uploaded_audio = genai.upload_file(temp_path)
 
-            model = genai.GenerativeModel('gemini-2.5-flash-preview-native-audio')
+            model = genai.GenerativeModel('gemini-2.5-flash-native-audio-preview-12-2025')
 
             # Transcribe first
             transcribe_prompt = """Bu audio xabardagi nutqni aniq matn shaklida yoz.
