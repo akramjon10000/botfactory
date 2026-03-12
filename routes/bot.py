@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from app import db
 from bot_manager import bot_manager
 from models import Bot
+import cloudinary.uploader
 
 bot_bp = Blueprint('bot', __name__)
 
@@ -186,6 +187,20 @@ def edit_bot(bot_id):
                 bot.miniapp_welcome_text = miniapp_welcome.strip()[:300]
             if miniapp_currency:
                 bot.miniapp_currency = miniapp_currency.strip()[:20]
+                
+            # Handle Logo Upload
+            if 'business_logo' in request.files:
+                logo_file = request.files['business_logo']
+                if logo_file and logo_file.filename != '':
+                    try:
+                        upload_result = cloudinary.uploader.upload(
+                            logo_file,
+                            folder="botfactory/logos"
+                        )
+                        bot.business_logo = upload_result.get('secure_url')
+                    except Exception as e:
+                        logging.error(f"Failed to upload MiniApp logo to Cloudinary: {e}")
+                        flash("Logoni yuklashda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring.", "warning")
         
         db.session.commit()
         flash('Bot ma\'lumotlari yangilandi!', 'success')
