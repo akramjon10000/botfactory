@@ -401,14 +401,14 @@ def miniapp_chat():
 
 @miniapp_bp.route('/voice-chat', methods=['POST'])
 def miniapp_voice_chat():
-    """MiniApp voice chat endpoint — Premium only, uses Gemini Native Audio"""
+    """MiniApp voice chat endpoint — Premium only, uses Gemini Native Audio via new google-genai SDK"""
     try:
         from models import Bot
         from ai import get_ai_response, process_knowledge_base
         import tempfile
         import os
         import base64
-        import google.generativeai as genai
+        from google import genai
 
         bot_id = request.args.get('bot_id') or request.form.get('bot_id')
         if not bot_id:
@@ -441,22 +441,24 @@ def miniapp_voice_chat():
                 audio_file.save(tmp)
                 temp_path = tmp.name
 
-            # Configure Gemini
+            # Configure new google-genai client
             api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
-            if api_key:
-                genai.configure(api_key=api_key)
+            if not api_key:
+                return jsonify({'error': 'API kalit topilmadi'}), 500
 
-            # Upload audio and transcribe using standard Gemini model
-            # Note: gemini-2.5-flash supports audio input for transcription
-            uploaded_audio = genai.upload_file(temp_path)
+            client = genai.Client(api_key=api_key)
 
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            # Upload audio file using new SDK
+            uploaded_audio = client.files.upload(file=temp_path)
 
-            # Transcribe audio to text
+            # Transcribe using native audio model
             transcribe_prompt = """Bu audio xabardagi nutqni aniq matn shaklida yoz.
 Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
 
-            transcribe_response = model.generate_content([transcribe_prompt, uploaded_audio])
+            transcribe_response = client.models.generate_content(
+                model='gemini-2.5-flash-native-audio-preview-12-2025',
+                contents=[transcribe_prompt, uploaded_audio]
+            )
             user_text = ''
             if transcribe_response and transcribe_response.text:
                 user_text = transcribe_response.text.strip()
@@ -479,12 +481,25 @@ Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
             )
             reply_text = reply_text or 'Kechirasiz, tushunmadim.'
 
-            # Audio response placeholder (TTS requires native audio model + new SDK)
+            # Try to generate audio response using native audio model (TTS)
             audio_response_b64 = None
+            try:
+                tts_response = client.models.generate_content(
+                    model='gemini-2.5-flash-native-audio-preview-12-2025',
+                    contents=f"Bu matnni ovozga o'gir (o'zbek tilida natural ovozda o'qi): {reply_text[:500]}"
+                )
+                # Check if response contains audio data
+                if hasattr(tts_response, 'candidates') and tts_response.candidates:
+                    for part in tts_response.candidates[0].content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data:
+                            audio_response_b64 = base64.b64encode(part.inline_data.data).decode('utf-8')
+                            break
+            except Exception as tts_err:
+                logger.warning(f"TTS generation failed, returning text only: {tts_err}")
 
             # Cleanup uploaded file
             try:
-                genai.delete_file(uploaded_audio.name)
+                client.files.delete(name=uploaded_audio.name)
             except Exception:
                 pass
 
