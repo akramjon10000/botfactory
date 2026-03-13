@@ -332,6 +332,7 @@ with app.app_context():
                         ("miniapp_card_color", "VARCHAR(20) DEFAULT '#252525'"),
                         ("miniapp_welcome_text", "VARCHAR(300) DEFAULT ''"),
                         ("miniapp_currency", "VARCHAR(20) DEFAULT 'so''m'"),
+                        ("custom_welcome_message", "TEXT DEFAULT ''"),
                     ]
                     for col_name, col_def in columns_to_add:
                         try:
@@ -356,8 +357,45 @@ with app.app_context():
                             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                     """))
+                    
+                    # Create bot_customer table if not exists
+                    conn.execute(text("""
+                        CREATE TABLE IF NOT EXISTS bot_customer (
+                            id SERIAL PRIMARY KEY,
+                            bot_id INTEGER NOT NULL REFERENCES bot(id),
+                            platform VARCHAR(20) DEFAULT 'telegram',
+                            platform_user_id VARCHAR(100) NOT NULL,
+                            first_name VARCHAR(100),
+                            last_name VARCHAR(100),
+                            username VARCHAR(100),
+                            phone_number VARCHAR(20),
+                            language VARCHAR(2) DEFAULT 'uz',
+                            is_active BOOLEAN DEFAULT true,
+                            last_interaction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            message_count INTEGER DEFAULT 0,
+                            first_interaction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE (bot_id, platform, platform_user_id)
+                        )
+                    """))
+                    
+                    # Create bot_message table if not exists
+                    conn.execute(text("""
+                        CREATE TABLE IF NOT EXISTS bot_message (
+                            id SERIAL PRIMARY KEY,
+                            bot_id INTEGER NOT NULL REFERENCES bot(id),
+                            sender_id INTEGER NOT NULL REFERENCES "user"(id),
+                            message_text TEXT NOT NULL,
+                            message_type VARCHAR(20) DEFAULT 'individual',
+                            target_customers TEXT,
+                            sent_count INTEGER DEFAULT 0,
+                            status VARCHAR(20) DEFAULT 'pending',
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            sent_at TIMESTAMP
+                        )
+                    """))
+                    
                     conn.commit()
-                    logger.info("Mini App database migration completed")
+                    logger.info("Database migration completed (Bot columns + tables)")
         except Exception as migration_error:
             logger.warning(f"Mini App migration skipped: {migration_error}")
         
