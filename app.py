@@ -277,6 +277,42 @@ with app.app_context():
         db.create_all()
         logger.info("Database schema up to date")
         
+        # Auto-migrate new User columns if missing
+        try:
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                if 'postgresql' in str(db.engine.url):
+                    # For PostgreSQL
+                    user_cols = [
+                        ("admin_chat_id", "VARCHAR(50)"),
+                        ("notification_channel", "VARCHAR(100)"),
+                        ("notifications_enabled", "BOOLEAN DEFAULT false")
+                    ]
+                    for col_name, col_def in user_cols:
+                        try:
+                            conn.execute(text(f"ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS {col_name} {col_def}"))
+                            conn.commit()
+                        except Exception as e:
+                            # Rolling back in case of error to keep transaction viable
+                            conn.execute(text("ROLLBACK"))
+                            pass
+                else:
+                    # For SQLite
+                    user_cols = [
+                        ("admin_chat_id", "VARCHAR(50)", "ALTER TABLE user ADD COLUMN admin_chat_id VARCHAR(50)"),
+                        ("notification_channel", "VARCHAR(100)", "ALTER TABLE user ADD COLUMN notification_channel VARCHAR(100)"),
+                        ("notifications_enabled", "BOOLEAN", "ALTER TABLE user ADD COLUMN notifications_enabled BOOLEAN DEFAULT 0")
+                    ]
+                    for col_name, col_type, query in user_cols:
+                        try:
+                            # Avoid throwing hard error if exists
+                            conn.execute(text(query))
+                            conn.commit()
+                        except Exception:
+                            pass
+        except Exception as e:
+            logger.warning(f"User table migration skipped: {e}")
+
         # Auto-migrate Mini App columns if missing (for existing databases)
         try:
             from sqlalchemy import text

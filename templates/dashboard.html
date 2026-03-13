@@ -260,7 +260,13 @@
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="text-muted fw-medium">{{ bot.created_at.strftime('%d.%m.%Y') }}</td>
+                                <td class="text-muted fw-medium">
+                                    {% if bot.created_at %}
+                                        {{ bot.created_at.strftime('%d.%m.%Y') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2">
                                         {% if bot.is_active %}
