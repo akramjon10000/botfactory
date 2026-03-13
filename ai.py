@@ -86,24 +86,53 @@ SALES RULES:
         
         system_prompt = language_prompts.get(user_language, language_prompts['uz'])
 
-        # Inject platform contact info so bot can answer contact-related questions precisely
-        if owner_contact_info:
-            system_prompt += f"\n\nMuhim kontaktlar (Ushbu do'kon/kompaniya egasi bilan bog'lanish):\n{owner_contact_info}\n"
-            system_prompt += "\nAgar foydalanuvchi menejer, ma'mur, telefon yoki telegram haqida so'rasa, faqatgina ushbu kontaktlarni aniq ko'rsating."
-
-        # Base prompt protection
-        base_prompt = system_prompt
-        
         # Add knowledge base context if available (optimized)
         kb_text = ""
         if knowledge_base:
-            kb_limit = 3000  # Increased slightly since we are not merging directly into system_prompt initially
+            kb_limit = 3000
             limited_kb = knowledge_base[:kb_limit]
             kb_text = f"\n\n--- BILIMLAR BAZASI ---\n{limited_kb}\n----------------------\n\nAgar foydalanuvchi ma'lumot so'rasa, yuqoridagi bazadan foydalanib aniq javob bering."
             logging.info(f"DEBUG: Knowledge base length: {len(knowledge_base)}, Limited to: {len(limited_kb)}")
+            
+            # Use full sales prompt when KB has content
+            base_prompt = system_prompt
         else:
-            # CRITICAL: When KB is empty, STRICTLY prevent hallucination
-            kb_text = "\n\n⚠️ MUHIM OGOHLANTIRISH: Bilimlar bazasi BO'SH! Hech qanday mahsulot, xizmat, narx yoki tavsif haqida ma'lumot yo'q. HECH QACHON o'zingdan o'ylab topma va to'qima! Mahsulot, narx, xizmat haqida ANIQ ma'lumot berma. Faqat shu javobni ber: 'Kechirasiz, hozircha ma'lumotlar bazasi to'ldirilmagan. Aniq ma'lumot olish uchun menejerimiz bilan bog'lanishingizni so'rayman.' Foydalanuvchi salom bersa, salom alik qilib, lekin mahsulot/xizmat haqida o'ylab topma."
+            # CRITICAL: When KB is empty, COMPLETELY REPLACE the system prompt
+            # The sales-focused prompt causes hallucination when there's no data
+            empty_kb_prompts = {
+                'uz': f"""Sen {bot_name} nomli AI yordamchisan.
+
+MUHIM QOIDALAR:
+1. Bilimlar bazasi HALI TO'LDIRILMAGAN. Hech qanday mahsulot, xizmat, narx, tavsif yoki kompaniya haqida ma'lumot YO'Q.
+2. HECH QACHON o'zingdan mahsulot, xizmat, narx yoki kompaniya ma'lumotlarini O'YLAB TOPMA va TO'QIMA.
+3. Foydalanuvchi salom bersa — salom alik qil va tushuntir: "Hozircha bilimlar bazasi to'ldirilmagan."
+4. Foydalanuvchi mahsulot, narx yoki xizmat so'rasa — "Kechirasiz, hozircha ma'lumotlar bazasi to'ldirilmagan. Aniq ma'lumot olish uchun menejerimiz bilan bog'lanishingizni so'rayman." de.
+5. Markdown belgilari (**, *, `) ISHLATMA — oddiy matn yoz.
+6. Kompaniyaga aloqasi YO'Q savollarga (tibbiyot, ob-havo va h.k.): "Kechirasiz, men faqat kompaniya haqida ma'lumot bera olaman, lekin hozircha bazasi to'ldirilmagan." de.""",
+                'ru': f"""Ты AI помощник по имени {bot_name}.
+
+ВАЖНЫЕ ПРАВИЛА:
+1. База знаний ЕЩЁ НЕ ЗАПОЛНЕНА. Нет информации о товарах, услугах, ценах или компании.
+2. НИКОГДА не выдумывай информацию о товарах, услугах или ценах.
+3. На все вопросы о продуктах отвечай: "Извините, база данных ещё не заполнена. Для точной информации свяжитесь с менеджером."
+4. Без markdown (**, *, `).""",
+                'en': f"""You are an AI assistant named {bot_name}.
+
+CRITICAL RULES:
+1. The knowledge base is NOT YET FILLED. There is NO information about products, services, prices, or the company.
+2. NEVER fabricate information about products, services, or prices.
+3. For product questions, respond: "I'm sorry, the knowledge base hasn't been set up yet. Please contact the manager for accurate information."
+4. No markdown (**, *, `)."""
+            }
+            base_prompt = empty_kb_prompts.get(user_language, empty_kb_prompts['uz'])
+            kb_text = ""
+            logging.info(f"DEBUG: Knowledge base is EMPTY for bot '{bot_name}', using strict no-hallucination prompt")
+        
+        # Inject owner contact info ONLY if the bot owner actually has contact details set
+        # Do NOT inject platform admin phone number as the bot owner's contact
+        if owner_contact_info and 'Mavjud emas' not in owner_contact_info:
+            base_prompt += f"\n\nMuhim kontaktlar (Ushbu do'kon/kompaniya egasi bilan bog'lanish):\n{owner_contact_info}\n"
+            base_prompt += "\nAgar foydalanuvchi menejer, ma'mur, telefon yoki telegram haqida so'rasa, faqatgina ushbu kontaktlarni aniq ko'rsating."
         
         # Add chat history context if available
         history_text = ""
