@@ -288,6 +288,13 @@ def bot_ai_insights(bot_id):
     if bot.user_id != current_user.id and not current_user.is_admin:
         return jsonify({'success': False, 'message': 'Huquqingiz yo\'q'}), 403
         
+    owner_sub = (bot.owner.subscription_type or '').lower().strip()
+    if owner_sub not in ['premium', 'admin']:
+        return jsonify({
+            'success': False, 
+            'message': '<div class="alert alert-warning mb-0"><i class="fas fa-crown text-warning me-2"></i><b>Premium Xususiyat:</b> Sun\'iy intellekt orqali mijozlar talabini tahlil qilish uchun Premium obunaga o\'ting.</div>'
+        }), 403
+        
     try:
         from models import ChatHistory
         import google.generativeai as genai

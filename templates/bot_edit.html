@@ -192,15 +192,30 @@
                     <!-- AI Analytics (AI Insights) -->
                     <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
                         <i class="fas fa-magic me-2 text-primary" style="animation: pulse-animation 2s infinite;"></i>Suhbatlar Tahlili (AI)
+                        {% if owner_sub not in ['premium', 'admin'] %}
+                        <span class="badge bg-warning text-dark ms-2"><i class="fas fa-lock me-1"></i>Premium</span>
+                        {% endif %}
                     </h5>
-                    <div class="card border border-primary border-opacity-25 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(14, 165, 233, 0.4) !important;">
+                    <div class="card border border-primary border-opacity-25 shadow-sm rounded-4 mb-4 position-relative" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(14, 165, 233, 0.4) !important;">
+                        {% if owner_sub not in ['premium', 'admin'] %}
+                        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:10;display:flex;align-items:center;justify-content:center;border-radius:1rem;">
+                            <div class="text-center text-white p-4">
+                                <i class="fas fa-crown fa-3x mb-3 text-warning"></i>
+                                <h5>Premium Xususiyat</h5>
+                                <p class="small mb-3">AI Chat Analitikasidan foydalanish va mijozlar talabini bilish uchun Premium obunaga o'ting.</p>
+                                <a href="{{ url_for('main.subscription') }}" class="btn btn-warning btn-sm rounded-pill fw-bold">
+                                    <i class="fas fa-arrow-up me-1"></i>Obunani yangilash
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
                         <div class="card-body p-4 text-center">
                             <i class="fas fa-brain fa-3x text-primary mb-3 opacity-75"></i>
                             <h6 class="fw-bold">Mijozlaringiz nima xohlayotganini bilib oling!</h6>
                             <p class="small text-muted mb-4">
                                 Sun'iy intellekt so'nggi suhbatlarni tahlil qilib, xaridorlaringizning eng ko'p beradigan savollari, istaklari va savdoni oshirish bo'yicha maslahatlar beradi.
                             </p>
-                            <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" id="generateInsightsBtn" onclick="fetchAIInsights()">
+                            <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" id="generateInsightsBtn" onclick="fetchAIInsights()" {% if owner_sub not in ['premium', 'admin'] %}disabled{% endif %}>
                                 <i class="fas fa-bolt me-2 text-warning"></i>Tahlil qilib berish
                             </button>
                             
