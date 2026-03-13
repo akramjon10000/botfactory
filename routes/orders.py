@@ -19,7 +19,7 @@ def get_orders(bot_id):
     from models import Bot, MiniAppOrder
     
     bot = Bot.query.get_or_404(bot_id)
-    if bot.user_id != current_user.id and current_user.role != 'admin':
+    if bot.user_id != current_user.id and not current_user.is_admin:
         abort(403)
     
     orders = MiniAppOrder.query.filter_by(bot_id=bot_id).order_by(
@@ -57,7 +57,7 @@ def update_order_status(bot_id, order_id):
     from app import db
     
     bot = Bot.query.get_or_404(bot_id)
-    if bot.user_id != current_user.id and current_user.role != 'admin':
+    if bot.user_id != current_user.id and not current_user.is_admin:
         abort(403)
     
     order = MiniAppOrder.query.get_or_404(order_id)

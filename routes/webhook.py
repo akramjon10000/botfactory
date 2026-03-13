@@ -93,13 +93,13 @@ def setup_webhook(bot_id):
 def get_webhook_url(bot_id):
     """Webhook URL ni aniqlash"""
     if os.environ.get('RENDER') or 'render' in request.headers.get('Host', '').lower():
-        return f"https://chatbotfactory.onrender.com/webhook/telegram/{bot_id}"
+        return f"https://botfactory-am64.onrender.com/webhook/telegram/{bot_id}"
     elif request.headers.get('Host'):
         host = request.headers.get('Host')
         scheme = 'https' if request.headers.get('X-Forwarded-Proto') == 'https' else 'http'
         return f"{scheme}://{host}/webhook/telegram/{bot_id}"
     else:
-        return f"https://chatbotfactory.onrender.com/webhook/telegram/{bot_id}"
+        return f"https://botfactory-am64.onrender.com/webhook/telegram/{bot_id}"
 
 
 def set_telegram_webhook(bot_token, webhook_url):

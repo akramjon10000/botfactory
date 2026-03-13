@@ -17,7 +17,7 @@ def get_customers(bot_id):
     
     bot = Bot.query.get_or_404(bot_id)
     # Check access rights: owner or admin
-    if bot.user_id != current_user.id and current_user.role != 'admin':
+    if bot.user_id != current_user.id and not current_user.is_admin:
         abort(403)
         
     # Check premium sub requirement
