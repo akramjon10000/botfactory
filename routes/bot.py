@@ -279,6 +279,60 @@ def stop_bot(bot_id):
     return redirect(url_for('main.dashboard'))
 
 
+@bot_bp.route('/bot/<int:bot_id>/ai-insights', methods=['GET'])
+@login_required
+def bot_ai_insights(bot_id):
+    """AI Chat Analytics - insights from recent chats"""
+    bot = Bot.query.get_or_404(bot_id)
+    
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Huquqingiz yo\'q'}), 403
+        
+    try:
+        from models import ChatHistory
+        import google.generativeai as genai
+        import os
+        
+        # Get last 50 chats
+        chats = ChatHistory.query.filter_by(bot_id=bot_id).order_by(ChatHistory.created_at.desc()).limit(50).all()
+        
+        if len(chats) < 5:
+            return jsonify({
+                'success': False, 
+                'message': '<div class="alert alert-warning">Tahlil qilish uchun yetarli suhbat tarixi yo\'q. Kamida 5 ta suhbat bo\'lishi kerak.</div>'
+            })
+            
+        chat_text = "\n".join([f"Mijoz: {c.message}\nBot: {c.response}" for c in reversed(chats)])
+        
+        prompt = f"""Quyida Telegram bot va mijozlar o'rtasidagi so'nggi suhbatlar tarixi keltirilgan.
+Suhbatlarni tahlil qilib, quyidagi ma'lumotlarni aniq va qisqa (o'zbek tilida) chiqarib ber:
+1. 🎯 Mijozlar asosan qaysi mahsulot/xizmatlarga qiziqmoqda?
+2. ❓ Eng ko'p tushadigan savol yoki e'tiroz nima?
+3. 💡 Savdoni oshirish uchun sening maslahating.
+
+Javobingni HTML formatda qaytar (hech qanday ```html teglari va markdown formatsiz, to'g'ridan to'g'ri HTML qaytar). Fikrlar chiroyli va tushunarli bo'lsin.
+
+SUHBATLAR:
+{chat_text}"""
+
+        api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_API_KEY2")
+        genai.configure(api_key=api_key)
+        
+        # Using a fast and capable model
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(prompt)
+        
+        # Clean markdown if AI accidentally adds it
+        cleaned_html = response.text.replace('```html', '').replace('```', '').strip()
+        
+        return jsonify({
+            'success': True,
+            'insights': cleaned_html
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'<div class="alert alert-danger">Tahlil qilishda xatolik: {str(e)}</div>'})
+
+
 @bot_bp.route('/bot/<int:bot_id>/delete', methods=['POST'])
 @login_required
 def delete_bot(bot_id):

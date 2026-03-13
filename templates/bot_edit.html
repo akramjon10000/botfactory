@@ -189,6 +189,68 @@
                         </div>
                     </div>
 
+                    <!-- AI Analytics (AI Insights) -->
+                    <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
+                        <i class="fas fa-magic me-2 text-primary" style="animation: pulse-animation 2s infinite;"></i>Suhbatlar Tahlili (AI)
+                    </h5>
+                    <div class="card border border-primary border-opacity-25 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(14, 165, 233, 0.4) !important;">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-brain fa-3x text-primary mb-3 opacity-75"></i>
+                            <h6 class="fw-bold">Mijozlaringiz nima xohlayotganini bilib oling!</h6>
+                            <p class="small text-muted mb-4">
+                                Sun'iy intellekt so'nggi suhbatlarni tahlil qilib, xaridorlaringizning eng ko'p beradigan savollari, istaklari va savdoni oshirish bo'yicha maslahatlar beradi.
+                            </p>
+                            <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" id="generateInsightsBtn" onclick="fetchAIInsights()">
+                                <i class="fas fa-bolt me-2 text-warning"></i>Tahlil qilib berish
+                            </button>
+                            
+                            <div id="aiInsightsLoader" class="d-none mt-4 text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="small mt-2 text-primary fw-bold">Suhbatlar o'qilmoqda va tahlil qilinmoqda...</p>
+                            </div>
+
+                            <div id="aiInsightsContainer" class="d-none mt-4 text-start p-3 p-md-4 rounded-3 shadow-sm" style="background-color: var(--bs-body-bg); border: 1px solid rgba(var(--bs-primary-rgb), 0.2); font-size: 0.95rem;">
+                                <!-- AI Content will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Script for AI Insights -->
+                    <script>
+                        function fetchAIInsights() {
+                            const btn = document.getElementById('generateInsightsBtn');
+                            const loader = document.getElementById('aiInsightsLoader');
+                            const container = document.getElementById('aiInsightsContainer');
+                            
+                            btn.classList.add('d-none');
+                            loader.classList.remove('d-none');
+                            container.classList.add('d-none');
+                            
+                            fetch("{{ url_for('bot.bot_ai_insights', bot_id=bot.id) }}")
+                                .then(response => response.json())
+                                .then(data => {
+                                    loader.classList.add('d-none');
+                                    btn.classList.remove('d-none');
+                                    btn.innerHTML = '<i class="fas fa-redo me-2"></i>Qayta tahlil qilish';
+                                    
+                                    container.classList.remove('d-none');
+                                    if(data.success) {
+                                        container.innerHTML = data.insights;
+                                    } else {
+                                        container.innerHTML = data.message;
+                                    }
+                                })
+                                .catch(error => {
+                                    loader.classList.add('d-none');
+                                    btn.classList.remove('d-none');
+                                    container.classList.remove('d-none');
+                                    container.innerHTML = '<div class="alert alert-danger mb-0">Xatolik: Tarmoq aloqasi mavjud emas yoki server javob bermadi.</div>';
+                                });
+                        }
+                    </script>
+
                     <!-- Custom Welcome Message -->
                     <h5 class="fw-bold mb-3 border-bottom pb-2 mt-5">
                         <i class="fas fa-comment-dots me-2 text-info"></i>Xush kelibsiz xabari
