@@ -43,12 +43,56 @@
                     <input type="hidden" name="platform" value="Telegram">
 
                     <hr class="mb-5 border-opacity-25">
+                    
+                    <!-- 2. Shablon tanlash -->
+                    <h5 class="fw-bold mb-4 d-flex align-items-center">
+                        <span class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
+                            style="width: 35px; height: 35px; font-size: 1rem;">2</span>
+                        Sohani tanlang (Shablon)
+                    </h5>
+                    
+                    <style>
+                        .template-card {
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            border: 2px solid #e9ecef;
+                            height: 100%;
+                        }
+                        .template-card:hover {
+                            border-color: #0ea5e9;
+                            background-color: #f0f9ff;
+                        }
+                        .template-radio:checked + .template-card {
+                            border-color: #0ea5e9;
+                            background-color: #e0f2fe;
+                            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2) !important;
+                        }
+                    </style>
+                    
+                    <div class="row g-3 mb-5">
+                        {% for t_id, t_data in templates.items() %}
+                        <div class="col-md-6">
+                            <input type="radio" name="template_id" value="{{ t_id }}" id="template_{{ t_id }}" class="btn-check template-radio" {% if t_id == 'none' %}checked{% endif %}>
+                            <label class="card template-card rounded-4 p-3 shadow-sm" for="template_{{ t_id }}">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                        <i class="{{ t_data.icon }} fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ t_data.name }}</h6>
+                                </div>
+                                <p class="text-muted small mb-0">{{ t_data.description }}</p>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
 
-                    <!-- 2. Ulanish -->
+                    <hr class="mb-5 border-opacity-25">
+
+                    <!-- 3. Ulanish -->
                     <h5 class="fw-bold mb-4 d-flex align-items-center">
                         <span
                             class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
-                            style="width: 35px; height: 35px; font-size: 1rem;">2</span>
+                            style="width: 35px; height: 35px; font-size: 1rem;">3</span>
                         Tokenga ulanish
                     </h5>
 
@@ -72,11 +116,11 @@
 
                     <hr class="mb-5 border-opacity-25">
 
-                    <!-- 3. Suhbat kuzatuvi -->
+                    <!-- 4. Suhbat kuzatuvi -->
                     <h5 class="fw-bold mb-4 d-flex align-items-center">
                         <span
                             class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
-                            style="width: 35px; height: 35px; font-size: 1rem;">3</span>
+                            style="width: 35px; height: 35px; font-size: 1rem;">4</span>
                         Suhbat monitoringi (Ixtiyoriy)
                     </h5>
 

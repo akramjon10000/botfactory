@@ -4,8 +4,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app import db
 from bot_manager import bot_manager
-from models import Bot
+from models import Bot, KnowledgeBase
 import cloudinary.uploader
+from routes.templates_data import TEMPLATES
 
 bot_bp = Blueprint('bot', __name__)
 
@@ -38,6 +39,8 @@ def create_bot():
         bot.whatsapp_token = whatsapp_token
         bot.whatsapp_phone_id = whatsapp_phone_id
         
+        template_id = request.form.get('template_id', 'none')
+        
         # Suhbat kuzatuvi sozlamalarini saqlash
         admin_chat_id = request.form.get('admin_chat_id')
         notification_channel = request.form.get('notification_channel')
@@ -50,6 +53,19 @@ def create_bot():
         current_user.notifications_enabled = notifications_enabled
         
         db.session.add(bot)
+        db.session.flush() # Boting ID sini olish uchun flush qilamiz
+        
+        # Add template data if selected
+        if template_id and template_id in TEMPLATES and template_id != 'none':
+            for entry in TEMPLATES[template_id]['entries']:
+                kb = KnowledgeBase(
+                    bot_id=bot.id,
+                    content_type=entry['type'],
+                    source_name=entry['source'],
+                    content=entry['content']
+                )
+                db.session.add(kb)
+        
         db.session.commit()
         
         # Yangi bot haqida adminga xabar berish
@@ -106,7 +122,7 @@ def create_bot():
         
         return redirect(url_for('main.dashboard'))
     
-    return render_template('bot_create.html')
+    return render_template('bot_create.html', templates=TEMPLATES)
 
 
 @bot_bp.route('/bot/<int:bot_id>/edit', methods=['GET', 'POST'])
