@@ -797,3 +797,47 @@ def download_sample_excel():
     except Exception as e:
         flash(f'Namuna fayl yaratishda xatolik: {str(e)}', 'error')
         return redirect(url_for('main.dashboard'))
+
+
+@knowledge_bp.route('/bot/<int:bot_id>/knowledge/export', methods=['GET'])
+@login_required
+def export_knowledge(bot_id):
+    """Barcha bilimlar bazasini Excel formatida yuklab olish"""
+    bot = Bot.query.get_or_404(bot_id)
+    
+    if bot.user_id != current_user.id and not current_user.is_admin:
+        flash('Ruxsat yo\'q!', 'error')
+        return redirect(url_for('main.dashboard'))
+        
+    try:
+        kb_items = KnowledgeBase.query.filter_by(bot_id=bot.id).all()
+        
+        data = []
+        for item in kb_items:
+            data.append({
+                'ID': item.id,
+                'Turi': item.content_type,
+                'Manba': item.source_name or 'Noma\'lum',
+                'Matn (Content)': str(item.content or '')
+            })
+            
+        df = pd.DataFrame(data)
+        
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Bilimlar_Bazasi')
+            
+        output.seek(0)
+        
+        filename = f"{bot.name.replace(' ', '_')}_Bilimlar_Bazasi.xlsx"
+        
+        return send_file(
+            output,
+            download_name=filename,
+            as_attachment=True,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        logging.error(f"Excel export error: {e}")
+        flash(f'Eksport qilishda xatolik yuz berdi: {str(e)}', 'error')
+        return redirect(url_for('bot.edit_bot', bot_id=bot_id))

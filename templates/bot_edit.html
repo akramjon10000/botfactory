@@ -740,8 +740,12 @@
                     <h6 class="fw-bold mb-3 text-body d-flex justify-content-between align-items-center">
                         <span class="badge bg-secondary rounded-pill px-3">{{ bot.knowledge_base|length }} ta
                             Element</span>
-                        <span class="small text-muted fw-normal"><i class="fas fa-database me-1"></i>Saqlangan
-                            baza</span>
+                        <div>
+                            <span class="small text-muted fw-normal me-3 d-none d-sm-inline"><i class="fas fa-database me-1"></i>Saqlangan baza</span>
+                            <a href="{{ url_for('knowledge.export_knowledge', bot_id=bot.id) }}" class="btn btn-sm btn-outline-success rounded-pill fw-bold" title="Barcha ma'lumotlarni Excel formatida yuklab olish">
+                                <i class="fas fa-file-excel me-1"></i>Eksport (Excel)
+                            </a>
+                        </div>
                     </h6>
 
                     <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;" class="custom-scrollbar">
