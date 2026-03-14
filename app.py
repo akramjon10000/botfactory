@@ -46,6 +46,19 @@ csrf = CSRFProtect(app)
 app.config['SUPPORT_TELEGRAM'] = os.environ.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011')
 app.config['SUPPORT_PHONE'] = os.environ.get('SUPPORT_PHONE', '+998996448444')
 
+
+def should_start_bot_manager():
+    """Decide whether this process should own Telegram polling."""
+    if os.environ.get("TESTING") == "1":
+        return False
+
+    start_flag = os.environ.get("START_BOT_MANAGER")
+    if start_flag is not None:
+        return start_flag == "1"
+
+    # Default to starting polling in the main web service.
+    return True
+
 def test_database_connection(database_url, timeout=10):
     """Test database connectivity before Flask-SQLAlchemy initialization"""
     try:
@@ -453,8 +466,11 @@ with app.app_context():
                 raise
     
     # Initialize Bot Manager - Start all active bots polling in background
-    if os.environ.get("TESTING") == "1":
-        logger.info("TESTING=1 detected, skipping bot manager initialization")
+    if not should_start_bot_manager():
+        if os.environ.get("TESTING") == "1":
+            logger.info("TESTING=1 detected, skipping bot manager initialization")
+        else:
+            logger.info("Bot manager startup disabled for this process")
     else:
         try:
             logger.info("🤖 Initializing BotFactory AI Bot Manager...")
