@@ -118,7 +118,9 @@ STRICT RULES:
             'gemini-3.1-flash-lite-preview',
             'gemini-3.1-flash-lite-preview',
         ]
-        # Premium/Admin users get access to native audio model for text too
+        # Premium/Admin users get access to best models
+        # NOTE: gemini-3.1-flash-live-preview faqat Live API (streaming) bilan ishlaydi,
+        # generate_content() bilan emas. Text javoblar uchun quyidagi modellar ishlatiladi.
         if subscription_tier in ('premium', 'admin'):
             models = [
                 'gemini-2.5-flash-preview-native-audio',
