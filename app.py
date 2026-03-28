@@ -206,9 +206,6 @@ migrate = Migrate(app, db)
 from extensions import sock
 sock.init_app(app)
 
-from extensions import sock
-sock.init_app(app)
-
 # Configure Swagger for API Documentation
 swagger_config = {
     "headers": [],
@@ -253,8 +250,6 @@ from bot_status import bot_status_bp
 from miniapp_api import miniapp_bp
 from routes.orders import orders_bp
 from routes.crm import crm_bp
-import routes.live_audio
-
 import routes.live_audio
 
 app.register_blueprint(main_bp)
