@@ -1,6 +1,7 @@
 import os
 import asyncio
 import logging
+import traceback
 from flask import request
 from extensions import sock
 from google import genai
@@ -48,54 +49,123 @@ def live_audio_ws(ws, bot_id):
                 "system_instruction": {"parts": [{"text": system_instruction}]}
             }
             
+            # Sessiya tugashini boshqarish uchun event
+            session_active = asyncio.Event()
+            session_active.set()
+            
             try:
                 async with client.aio.live.connect(model="gemini-3.1-flash-live-preview", config=config) as session:
-                    logger.info(f"Connected to Gemini Live API for bot {bot_id}")
+                    logger.info(f"[LIVE] Connected to Gemini Live API for bot {bot_id}")
                     
                     # Task 1: Receive from Frontend and send to Gemini
                     async def ws_to_gemini():
+                        chunks_sent = 0
                         try:
-                            while True:
+                            while session_active.is_set():
                                 data = await asyncio.to_thread(ws.receive)
                                 if data is None:
+                                    logger.info(f"[LIVE] ws_to_gemini: received None, frontend disconnected")
+                                    session_active.clear()
                                     break
                                 
                                 # Matn kelsa — e'tibor bermaymiz (VAD avtomatik boshqaradi)
                                 if isinstance(data, str):
+                                    logger.debug(f"[LIVE] ws_to_gemini: got text message: {data[:50]}")
                                     continue
                                 
                                 # Audio bytes kelsa — types.Blob orqali yuboramiz
                                 if isinstance(data, bytes) and len(data) > 0:
-                                    await session.send_realtime_input(
-                                        audio=types.Blob(
-                                            data=data,
-                                            mime_type="audio/pcm;rate=16000"
+                                    try:
+                                        await session.send_realtime_input(
+                                            audio=types.Blob(
+                                                data=data,
+                                                mime_type="audio/pcm;rate=16000"
+                                            )
                                         )
-                                    )
+                                        chunks_sent += 1
+                                        if chunks_sent % 50 == 0:
+                                            logger.info(f"[LIVE] ws_to_gemini: sent {chunks_sent} audio chunks to Gemini")
+                                    except Exception as send_err:
+                                        logger.error(f"[LIVE] ws_to_gemini: send_realtime_input error: {send_err}")
+                                        # Bitta chunk xatosi butun sessiyani tugatmasin
+                                        continue
+                                        
                         except Exception as e:
-                            logger.info(f"ws_to_gemini ended: {e}")
+                            logger.info(f"[LIVE] ws_to_gemini ended after {chunks_sent} chunks: {e}")
+                        finally:
+                            session_active.clear()
+                            logger.info(f"[LIVE] ws_to_gemini: total chunks sent = {chunks_sent}")
                     
                     # Task 2: Receive from Gemini and send to Frontend
                     async def gemini_to_ws():
+                        responses_received = 0
+                        audio_chunks_received = 0
                         try:
-                            async for response in session.receive():
-                                # Audio javoblarni tekshirish
-                                server_content = getattr(response, 'server_content', None)
-                                if server_content:
-                                    model_turn = getattr(server_content, 'model_turn', None)
-                                    if model_turn and model_turn.parts:
-                                        for part in model_turn.parts:
-                                            inline_data = getattr(part, 'inline_data', None)
-                                            if inline_data and inline_data.data:
-                                                await asyncio.to_thread(ws.send, inline_data.data)
+                            while session_active.is_set():
+                                # Har bir responseni alohida qabul qilish
+                                async for response in session.receive():
+                                    if not session_active.is_set():
+                                        break
+                                    
+                                    responses_received += 1
+                                    
+                                    # Audio javoblarni tekshirish
+                                    server_content = getattr(response, 'server_content', None)
+                                    if server_content:
+                                        # Turn complete signalini tekshirish
+                                        turn_complete = getattr(server_content, 'turn_complete', False)
+                                        if turn_complete:
+                                            logger.info(f"[LIVE] gemini_to_ws: turn complete (response #{responses_received}, audio chunks: {audio_chunks_received})")
+                                            # Turn tugadi, lekin sessiya davom etadi!
+                                            continue
+                                        
+                                        model_turn = getattr(server_content, 'model_turn', None)
+                                        if model_turn and model_turn.parts:
+                                            for part in model_turn.parts:
+                                                inline_data = getattr(part, 'inline_data', None)
+                                                if inline_data and inline_data.data:
+                                                    try:
+                                                        await asyncio.to_thread(ws.send, inline_data.data)
+                                                        audio_chunks_received += 1
+                                                    except Exception as ws_err:
+                                                        logger.error(f"[LIVE] gemini_to_ws: ws.send error: {ws_err}")
+                                                        session_active.clear()
+                                                        return
+                                    
+                                    # Boshqa turdagi javoblarni log qilish
+                                    data_obj = getattr(response, 'data', None)
+                                    if data_obj:
+                                        logger.info(f"[LIVE] gemini_to_ws: got data response type")
+                                
+                                # async for loop tugadi — bu oddiy holat, Gemini sessiyani yopdi
+                                logger.info(f"[LIVE] gemini_to_ws: session.receive() iterator ended")
+                                break
+                                
                         except Exception as e:
-                            logger.error(f"gemini_to_ws ended: {e}")
+                            logger.error(f"[LIVE] gemini_to_ws ended: {e}")
+                            logger.error(f"[LIVE] gemini_to_ws traceback: {traceback.format_exc()}")
+                        finally:
+                            session_active.clear()
+                            logger.info(f"[LIVE] gemini_to_ws: total responses={responses_received}, audio_chunks={audio_chunks_received}")
 
                     # Ikkala taskni parallel ishga tushirish
-                    await asyncio.gather(ws_to_gemini(), gemini_to_ws())
+                    logger.info(f"[LIVE] Starting gather for bot {bot_id}")
+                    results = await asyncio.gather(
+                        ws_to_gemini(), 
+                        gemini_to_ws(),
+                        return_exceptions=True
+                    )
+                    
+                    # Xatolarni log qilish
+                    for i, result in enumerate(results):
+                        if isinstance(result, Exception):
+                            logger.error(f"[LIVE] Task {i} raised exception: {result}")
+                    
+                    logger.info(f"[LIVE] Both tasks completed for bot {bot_id}")
 
             except Exception as e:
-                logger.error(f"Gemini Live session error: {e}")
+                logger.error(f"[LIVE] Gemini Live session error: {e}")
+                logger.error(f"[LIVE] Session traceback: {traceback.format_exc()}")
                 try:
                     await asyncio.to_thread(ws.send, "Error: Connection failed")
                 except:
@@ -104,7 +174,6 @@ def live_audio_ws(ws, bot_id):
         asyncio.run(run_live_session())
         
     except Exception as e:
-        logger.error(f"WebSocket route error: {e}")
+        logger.error(f"[LIVE] WebSocket route error: {e}")
     finally:
-        logger.info(f"WebSocket closed for bot {bot_id}")
-
+        logger.info(f"[LIVE] WebSocket closed for bot {bot_id}")
