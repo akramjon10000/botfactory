@@ -102,10 +102,12 @@ class TelegramHTTPBot:
 
     def add_handler(self, handler):
         if isinstance(handler, tuple):
-            cmd_type, func = handler
+            cmd_type = handler[0]
+            func = handler[1]
+            pattern = handler[2] if len(handler) > 2 else None
             if cmd_type not in self.handlers:
                 self.handlers[cmd_type] = []
-            self.handlers[cmd_type].append(func)
+            self.handlers[cmd_type].append((func, pattern))
 
     def send_message(self, chat_id, text, reply_markup=None):
         url = f"{self.base_url}/sendMessage"
@@ -308,11 +310,12 @@ class TelegramHTTPBot:
                     self.args = parts
 
         # Handle voice messages first
+        # Handle voice messages first
         if update.message and (update.message.voice or update.message.audio):
             context = SimpleContext(None, self)
             if 'voice' in self.handlers:
-                for handler in self.handlers['voice']:
-                    await handler(update, context)
+                for func, pattern in self.handlers['voice']:
+                    await func(update, context)
         # Handle text commands and messages
         elif update.message and update.message.text:
             text = update.message.text
@@ -321,24 +324,32 @@ class TelegramHTTPBot:
             if text.startswith('/'):
                 cmd = text.split()[0][1:]
                 if 'start' in self.handlers and cmd == 'start':
-                    for handler in self.handlers['start']:
-                        await handler(update, context)
+                    for func, pattern in self.handlers['start']:
+                        await func(update, context)
                 elif 'help' in self.handlers and cmd == 'help':
-                    for handler in self.handlers['help']:
-                        await handler(update, context)
+                    for func, pattern in self.handlers['help']:
+                        await func(update, context)
                 elif 'language' in self.handlers and cmd == 'language':
-                    for handler in self.handlers['language']:
-                        await handler(update, context)
+                    for func, pattern in self.handlers['language']:
+                        await func(update, context)
             else:
                 if 'message' in self.handlers:
-                    for handler in self.handlers['message']:
-                        await handler(update, context)
+                    for func, pattern in self.handlers['message']:
+                        await func(update, context)
 
         # Handle callback queries
         if update.callback_query and 'callback' in self.handlers:
+            import re
             context = SimpleContext(None, self)
-            for handler in self.handlers['callback']:
-                await handler(update, context)
+            cb_data = update.callback_query.data or ""
+            for func, pattern in self.handlers['callback']:
+                if pattern:
+                    if re.search(pattern, cb_data):
+                        await func(update, context)
+                        break
+                else:
+                    await func(update, context)
+                    break
 
 
 # ---------------------------------------------------------------------------
@@ -417,8 +428,8 @@ def CommandHandler(command, func):
 def MessageHandler(filters_obj, func):
     return ('message', func)
 
-def CallbackQueryHandler(func):
-    return ('callback', func)
+def CallbackQueryHandler(func, pattern=None):
+    return ('callback', func, pattern)
 
 def VoiceHandler(func):
     return ('voice', func)
