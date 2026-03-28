@@ -63,7 +63,7 @@ def live_audio_ws(ws, bot_id):
                                 
                                 # Ignore text messages for now (like initial handshakes)
                                 if isinstance(data, bytes):
-                                    await session.send(input={"data": data, "mime_type": "audio/pcm;rate=16000"}, end_of_turn=False)
+                                    await session.send_realtime_input(audio={"data": data, "mime_type": "audio/pcm;rate=16000"})
                                 elif isinstance(data, str):
                                     if data == "END_OF_TURN":
                                         await session.send(input="", end_of_turn=True)

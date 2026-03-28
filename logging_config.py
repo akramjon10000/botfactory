@@ -78,7 +78,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
     'loggers': {
         '': {  # Root logger
             'level': 'DEBUG',
-            'handlers': ['console', 'file', 'error_file']
+            'handlers': ['console']
         },
         'werkzeug': {
             'level': 'WARNING',
@@ -92,7 +92,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
         },
         'apscheduler': {
             'level': 'INFO',
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'propagate': False
         }
     }
