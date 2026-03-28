@@ -231,7 +231,8 @@ def edit_bot(bot_id):
         flash('Bot ma\'lumotlari yangilandi!', 'success')
         return redirect(url_for('main.dashboard'))
     
-    return render_template('bot_edit.html', bot=bot)
+    owner_sub = (current_user.subscription_type or '').strip().lower()
+    return render_template('bot_edit.html', bot=bot, owner_sub=owner_sub)
 
 
 @bot_bp.route('/bot/<int:bot_id>/start', methods=['POST'])
