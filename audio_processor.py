@@ -85,10 +85,22 @@ Audio {lang_name} tilida bo'lishi mumkin, lekin boshqa tilda ham bo'lishi mumkin
 Agar audio bo'sh yoki tushunarsiz bo'lsa, bo'sh string qaytar."""
             
             # Use native audio model via new SDK
-            response = self.client.models.generate_content(
-                model='gemini-2.5-flash-native-audio-preview-12-2025',
-                contents=[prompt, audio_file]
-            )
+            audio_models = [
+                'gemini-2.5-flash-preview-native-audio',
+                'gemini-3.1-flash-lite-preview',
+            ]
+            response = None
+            for model_name in audio_models:
+                try:
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=[prompt, audio_file]
+                    )
+                    if response and response.text:
+                        break
+                except Exception as model_err:
+                    logger.warning(f"Audio model {model_name} failed: {model_err}")
+                    continue
             
             # Clean up uploaded file
             try:

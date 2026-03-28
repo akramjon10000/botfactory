@@ -475,17 +475,28 @@ def miniapp_voice_chat():
             # Upload audio file using new SDK
             uploaded_audio = client.files.upload(file=temp_path)
 
-            # Transcribe using native audio model
+            # Transcribe using native audio model (with fallback)
             transcribe_prompt = """Bu audio xabardagi nutqni aniq matn shaklida yoz.
 Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
 
-            transcribe_response = client.models.generate_content(
-                model='gemini-2.5-flash-native-audio-preview-12-2025',
-                contents=[transcribe_prompt, uploaded_audio]
-            )
+            audio_models = [
+                'gemini-2.5-flash-preview-native-audio',
+                'gemini-3.1-flash-lite-preview',
+            ]
             user_text = ''
-            if transcribe_response and transcribe_response.text:
-                user_text = transcribe_response.text.strip()
+            for audio_model in audio_models:
+                try:
+                    transcribe_response = client.models.generate_content(
+                        model=audio_model,
+                        contents=[transcribe_prompt, uploaded_audio]
+                    )
+                    if transcribe_response and transcribe_response.text:
+                        user_text = transcribe_response.text.strip()
+                        logger.info(f"Voice transcription success with model: {audio_model}")
+                        break
+                except Exception as model_err:
+                    logger.warning(f"Voice model {audio_model} failed: {model_err}")
+                    continue
 
             # Build knowledge and get AI text reply
             kb_text = ''
@@ -509,7 +520,7 @@ Faqat gapirilgan so'zlarni yoz, boshqa hech narsa qo'shma."""
             audio_response_b64 = None
             try:
                 tts_response = client.models.generate_content(
-                    model='gemini-2.5-flash-native-audio-preview-12-2025',
+                    model='gemini-2.5-flash-preview-native-audio',
                     contents=f"Bu matnni ovozga o'gir (o'zbek tilida natural ovozda o'qi): {reply_text[:500]}"
                 )
                 # Check if response contains audio data
