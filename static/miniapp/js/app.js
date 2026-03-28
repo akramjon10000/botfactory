@@ -299,7 +299,13 @@ function renderContact(contact) {
 
     // Telegram contact
     if (contact.telegram) {
-        const tgId = contact.telegram.replace('@', '');
+        let tgId = contact.telegram.trim();
+        // Handle full URL format: https://t.me/username
+        if (tgId.includes('t.me/')) {
+            tgId = tgId.split('t.me/').pop();
+        }
+        // Remove @ if present
+        tgId = tgId.replace('@', '');
         elements.contactTelegram.textContent = `@${tgId}`;
         elements.telegramButton.href = `https://t.me/${tgId}`;
     } else {
