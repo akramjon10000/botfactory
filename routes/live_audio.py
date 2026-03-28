@@ -63,118 +63,121 @@ Qisqa gapir — 1-2 gap yetarli."""
                 ),
             )
             
-            try:
-                async with client.aio.live.connect(
-                    model="gemini-3.1-flash-live-preview", 
-                    config=config
-                ) as session:
-                    logger.info(f"[LIVE] Connected to Gemini Live API for bot {bot_id}")
-                    
-                    async def send_audio():
-                        """Frontenddan audio olib Gemini ga yuboradi"""
-                        chunks = 0
-                        try:
-                            while True:
-                                data = await asyncio.to_thread(ws.receive)
-                                if data is None:
-                                    logger.info("[LIVE] send_audio: frontend disconnected (None)")
-                                    break
-                                
-                                if isinstance(data, str):
-                                    logger.debug(f"[LIVE] send_audio: text msg ignored: {data[:30]}")
-                                    continue
-                                
-                                if isinstance(data, bytes) and len(data) > 0:
-                                    await session.send_realtime_input(
-                                        audio=types.Blob(
-                                            data=data,
-                                            mime_type="audio/pcm;rate=16000"
-                                        )
-                                    )
-                                    chunks += 1
-                                    if chunks % 100 == 0:
-                                        logger.info(f"[LIVE] send_audio: {chunks} chunks sent")
-                        except Exception as e:
-                            logger.error(f"[LIVE] send_audio error after {chunks} chunks: {e}")
-                    
-                    async def receive_audio():
-                        """Geminidan javob olib frontendga yuboradi"""
-                        turns = 0
-                        audio_chunks = 0
-                        try:
-                            # session.receive() butun sessiya davomida iterate qilinadi
-                            # BU FAQAT BIR MARTA CHAQIRILADI!
-                            async for response in session.receive():
-                                # server_content bor-yo'qligini tekshirish
-                                if response.server_content:
-                                    sc = response.server_content
-                                    
-                                    # Model audio javob bermoqda
-                                    if sc.model_turn and sc.model_turn.parts:
-                                        for part in sc.model_turn.parts:
-                                            if part.inline_data and part.inline_data.data:
-                                                try:
-                                                    await asyncio.to_thread(ws.send, part.inline_data.data)
-                                                    audio_chunks += 1
-                                                except Exception as e:
-                                                    logger.error(f"[LIVE] receive_audio: ws.send failed: {e}")
-                                                    return
-                                    
-                                    # Turn tugadi — davom etamiz, sessiya yopilmaydi!
-                                    if sc.turn_complete:
-                                        turns += 1
-                                        logger.info(f"[LIVE] receive_audio: turn #{turns} complete, total audio chunks: {audio_chunks}")
-                                        # DAVOM ETAMIZ - keyingi turn ni kutamiz
-                                        
-                                    # Interrupted - model gapirayotganda foydalanuvchi gapirib yubordi
-                                    interrupted = getattr(sc, 'interrupted', False)
-                                    if interrupted:
-                                        logger.info(f"[LIVE] receive_audio: model interrupted by user")
-                                        
-                        except Exception as e:
-                            logger.error(f"[LIVE] receive_audio error: {e}")
-                            logger.error(f"[LIVE] receive_audio traceback: {traceback.format_exc()}")
-                        finally:
-                            logger.info(f"[LIVE] receive_audio ended: turns={turns}, audio_chunks={audio_chunks}")
-
-                    # Ikkala taskni parallel ishga tushirish
-                    logger.info(f"[LIVE] Starting parallel tasks for bot {bot_id}")
-                    
-                    send_task = asyncio.create_task(send_audio())
-                    receive_task = asyncio.create_task(receive_audio())
-                    
-                    # Birinchi tugagan task — ikkinchisini ham to'xtatamiz
-                    done, pending = await asyncio.wait(
-                        [send_task, receive_task],
-                        return_when=asyncio.FIRST_COMPLETED
-                    )
-                    
-                    # Qolgan taskni cancel qilamiz
-                    for task in pending:
-                        task.cancel()
-                        try:
-                            await task
-                        except asyncio.CancelledError:
-                            pass
-                    
-                    # Xatolarni tekshirish
-                    for task in done:
-                        if task.exception():
-                            logger.error(f"[LIVE] Task exception: {task.exception()}")
-                    
-                    logger.info(f"[LIVE] Session ended for bot {bot_id}")
-
-            except Exception as e:
-                logger.error(f"[LIVE] Session connection error: {e}")
-                logger.error(f"[LIVE] Session traceback: {traceback.format_exc()}")
+            client_connected = True
+            reconnect_count = 0
+            
+            while client_connected:
                 try:
-                    await asyncio.to_thread(ws.send, "Error: Connection failed")
-                except:
-                    pass
+                    async with client.aio.live.connect(
+                        model="gemini-3.1-flash-live-preview", 
+                        config=config
+                    ) as session:
+                        logger.info(f"[LIVE] Connected to Gemini API (reconnects: {reconnect_count}) for bot {bot_id}")
+                        reconnect_count += 1
+                        
+                        async def send_audio():
+                            nonlocal client_connected
+                            chunks = 0
+                            try:
+                                while client_connected:
+                                    try:
+                                        data = await asyncio.to_thread(ws.receive)
+                                        if data is None:
+                                            logger.info("[LIVE] send_audio: frontend disconnected (None)")
+                                            client_connected = False
+                                            break
+                                            
+                                        if isinstance(data, str):
+                                            continue
+                                            
+                                        if isinstance(data, bytes) and len(data) > 0:
+                                            try:
+                                                await session.send_realtime_input(
+                                                    audio=types.Blob(
+                                                        data=data,
+                                                        mime_type="audio/pcm;rate=16000"
+                                                    )
+                                                )
+                                                chunks += 1
+                                            except Exception as send_err:
+                                                # Ignore single chunk errors, log at debug so it doesn't crash the loop!
+                                                logger.debug(f"[LIVE] API chunk send error: {send_err}")
+                                    except Exception as ws_err:
+                                        # Likely simple_websocket.ConnectionClosed from user leaving
+                                        logger.info(f"[LIVE] send_audio closed: {ws_err}")
+                                        client_connected = False
+                                        break
+                            finally:
+                                logger.info(f"[LIVE] send_audio exit, chunks={chunks}")
+                        
+                        async def receive_audio():
+                            nonlocal client_connected
+                            turns = 0
+                            try:
+                                async for response in session.receive():
+                                    if not client_connected:
+                                        break
+                                        
+                                    if response.server_content:
+                                        sc = response.server_content
+                                        if sc.model_turn and sc.model_turn.parts:
+                                            for part in sc.model_turn.parts:
+                                                if part.inline_data and part.inline_data.data:
+                                                    try:
+                                                        await asyncio.to_thread(ws.send, part.inline_data.data)
+                                                    except Exception as ws_err:
+                                                        logger.error(f"[LIVE] receive_audio ws.send failed: {ws_err}")
+                                                        client_connected = False
+                                                        return
+                                        
+                                        if sc.turn_complete:
+                                            turns += 1
+                                            
+                                        if getattr(sc, 'interrupted', False):
+                                            logger.info(f"[LIVE] model interrupted")
+                            except Exception as e:
+                                logger.error(f"[LIVE] receive_audio error: {e}")
+                            finally:
+                                logger.info(f"[LIVE] receive_audio exit, turns={turns}")
+
+                        send_task = asyncio.create_task(send_audio())
+                        receive_task = asyncio.create_task(receive_audio())
+                        
+                        done, pending = await asyncio.wait(
+                            [send_task, receive_task],
+                            return_when=asyncio.FIRST_COMPLETED
+                        )
+                        
+                        # Cleanup pending task
+                        for task in pending:
+                            task.cancel()
+                            try:
+                                await task
+                            except asyncio.CancelledError:
+                                pass
+                                
+                        # Check if user quit
+                        if send_task in done:
+                            client_connected = False
+                            
+                        if not client_connected:
+                            logger.info("[LIVE] Client disconnected completely, ending loop.")
+                            break
+                        else:
+                            # User is still connected, but Gemini dropped the connection! 
+                            # Continue the while loop to instantly reconnect to Gemini.
+                            logger.info("[LIVE] Gemini session ended unexpectedly, AUTO-RECONNECTING...")
+                            
+                except Exception as e:
+                    logger.error(f"[LIVE] Gemini connection error, retrying in 1s: {e}")
+                    if client_connected:
+                        await asyncio.sleep(1)
+                    else:
+                        break
 
         asyncio.run(run_live_session())
         
     except Exception as e:
         logger.error(f"[LIVE] WebSocket route error: {e}")
     finally:
-        logger.info(f"[LIVE] WebSocket closed for bot {bot_id}")
+        logger.info(f"[LIVE] WebSocket finally closed for bot {bot_id}")
