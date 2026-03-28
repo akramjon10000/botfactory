@@ -152,11 +152,8 @@ def get_contact_info(bot_id):
         if hasattr(bot, 'working_hours') and bot.working_hours and working_hours == '09:00 - 18:00':
             working_hours = bot.working_hours
         
-        # 3. Third priority: System defaults from environment
-        if not phone:
-            phone = os.environ.get('SUPPORT_PHONE', '+998996448444')
-        if not telegram:
-            telegram = os.environ.get('SUPPORT_TELEGRAM', 'https://t.me/akramjon0011')
+        # 3. No system defaults - each bot owner should set their own contact info
+        # phone and telegram remain empty if not configured by bot owner
         
         return jsonify({
             'phone': phone,
@@ -168,7 +165,7 @@ def get_contact_info(bot_id):
     except Exception as e:
         logger.error(f"Error getting contact info: {e}")
         return jsonify({
-            'phone': '+998996448444',
+            'phone': '',
             'address': 'Ko\'rsatilmagan',
             'working_hours': '09:00 - 18:00'
         })
