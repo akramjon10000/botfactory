@@ -4,6 +4,7 @@ import logging
 from flask import request
 from extensions import sock
 from google import genai
+from google.genai import types
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,6 @@ def live_audio_ws(ws, bot_id):
             }
             
             try:
-                # Disable SSL verification issues if any, or just connect
                 async with client.aio.live.connect(model="gemini-3.1-flash-live-preview", config=config) as session:
                     logger.info(f"Connected to Gemini Live API for bot {bot_id}")
                     
@@ -56,51 +56,55 @@ def live_audio_ws(ws, bot_id):
                     async def ws_to_gemini():
                         try:
                             while True:
-                                # Blocking receive executed in a thread
                                 data = await asyncio.to_thread(ws.receive)
                                 if data is None:
                                     break
                                 
-                                # Ignore text messages for now (like initial handshakes)
+                                # Matn kelsa — e'tibor bermaymiz (VAD avtomatik boshqaradi)
                                 if isinstance(data, str):
-                                    if data == "END_OF_TURN":
-                                        await session.send(end_of_turn=True)
                                     continue
                                 
-                                if isinstance(data, bytes):
-                                    await session.send(input={"data": data, "mime_type": "audio/pcm;rate=16000"})
+                                # Audio bytes kelsa — types.Blob orqali yuboramiz
+                                if isinstance(data, bytes) and len(data) > 0:
+                                    await session.send_realtime_input(
+                                        audio=types.Blob(
+                                            data=data,
+                                            mime_type="audio/pcm;rate=16000"
+                                        )
+                                    )
                         except Exception as e:
-                            logger.info(f"WebSocket receive error or closed: {e}")
+                            logger.info(f"ws_to_gemini ended: {e}")
                     
                     # Task 2: Receive from Gemini and send to Frontend
                     async def gemini_to_ws():
                         try:
                             async for response in session.receive():
-                                server_content = response.server_content
-                                if server_content and server_content.model_turn:
-                                    for part in server_content.model_turn.parts:
-                                        # Check if it has audio data
-                                        if hasattr(part, 'inline_data') and part.inline_data and part.inline_data.data: # type: ignore
-                                            # Send binary audio chunk to frontend
-                                            await asyncio.to_thread(ws.send, part.inline_data.data) # type: ignore
+                                # Audio javoblarni tekshirish
+                                server_content = getattr(response, 'server_content', None)
+                                if server_content:
+                                    model_turn = getattr(server_content, 'model_turn', None)
+                                    if model_turn and model_turn.parts:
+                                        for part in model_turn.parts:
+                                            inline_data = getattr(part, 'inline_data', None)
+                                            if inline_data and inline_data.data:
+                                                await asyncio.to_thread(ws.send, inline_data.data)
                         except Exception as e:
-                            logger.error(f"Gemini receive error: {e}")
+                            logger.error(f"gemini_to_ws ended: {e}")
 
-                    # Run both tasks concurrently
+                    # Ikkala taskni parallel ishga tushirish
                     await asyncio.gather(ws_to_gemini(), gemini_to_ws())
 
             except Exception as e:
                 logger.error(f"Gemini Live session error: {e}")
-                # Inform frontend of closure
                 try:
                     await asyncio.to_thread(ws.send, "Error: Connection failed")
                 except:
                     pass
 
-        # Execute the asyncio event loop
         asyncio.run(run_live_session())
         
     except Exception as e:
         logger.error(f"WebSocket route error: {e}")
     finally:
         logger.info(f"WebSocket closed for bot {bot_id}")
+
