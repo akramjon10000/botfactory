@@ -20,7 +20,7 @@ redis==5.0.7
 APScheduler==3.11.0
 bcrypt==4.3.0
 python-docx==1.2.0
-python-telegram-bot==20.7
+python-telegram-bot>=21.0
 python-dotenv==1.0.1
 cloudinary==1.36.0
 flask-sock
