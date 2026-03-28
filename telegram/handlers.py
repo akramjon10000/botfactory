@@ -42,8 +42,8 @@ class TelegramBot:
         self.application.add_handler(CommandHandler("help", self.help_command))
         self.application.add_handler(CommandHandler("language", self.language_command))
         self.application.add_handler(CommandHandler("ping", self.ping_command))
-        self.application.add_handler(CallbackQueryHandler(self.language_callback))
-        self.application.add_handler(CallbackQueryHandler(self.contact_callback))
+        self.application.add_handler(CallbackQueryHandler(self.language_callback, pattern=r'^(lang_|lang_locked$)'))
+        self.application.add_handler(CallbackQueryHandler(self.contact_callback, pattern=r'^contact_'))
         self.application.add_handler(VoiceHandler(self.handle_voice_message))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
 
