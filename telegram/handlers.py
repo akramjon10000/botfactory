@@ -371,6 +371,14 @@ class TelegramBot:
                 [InlineKeyboardButton("📞 Qo'ng'iroq qilish", url=f"tel:{phone_number}")],
                 [InlineKeyboardButton("👨‍💼 Operator bilan bog'lanish", callback_data="contact_operator")]
             ]
+            
+            if bot_obj and getattr(bot_obj, 'miniapp_enabled', False):
+                owner_sub = (bot_obj.owner.subscription_type or 'free').lower().strip() if bot_obj.owner else 'free'
+                if owner_sub in ['premium', 'admin']:
+                    base_url = os.environ.get('BASE_URL', 'https://botfactory-am64.onrender.com')
+                    miniapp_url = f"{base_url}/api/miniapp/?bot_id={bot_obj.id}&tab=chat"
+                    keyboard.insert(0, [InlineKeyboardButton("🤖 AI Chat", web_app={"url": miniapp_url})])
+                    
             return InlineKeyboardMarkup(keyboard)
         except Exception as e:
             logger.error(f"Failed to build contact keyboard: {str(e)[:100]}")

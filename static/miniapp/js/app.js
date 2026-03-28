@@ -100,6 +100,14 @@ function initTabs() {
             switchTab(tabName);
         });
     });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab');
+    if (initialTab) {
+        setTimeout(() => {
+            try { switchTab(initialTab); } catch(e){}
+        }, 50);
+    }
 }
 
 function switchTab(tabName) {
