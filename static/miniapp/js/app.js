@@ -535,12 +535,11 @@ function initChat() {
         const val = e.target.value.trim();
         const voiceLock = document.getElementById('voiceLock');
         if (val.length > 0) {
-            chatSendBtn.classList.remove('hidden');
             liveCallBtn.classList.add('hidden');
             if (voiceLock) voiceLock.classList.add('hidden');
         } else {
-            chatSendBtn.classList.add('hidden');
-            updateVoiceUI();
+            liveCallBtn.classList.remove('hidden');
+            if (typeof updateVoiceUI === 'function') updateVoiceUI();
         }
     });
 }
