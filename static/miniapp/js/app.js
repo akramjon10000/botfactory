@@ -525,7 +525,23 @@ function initChat() {
     // Send text message
     chatSendBtn.addEventListener('click', () => sendTextMessage());
     chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendTextMessage();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendTextMessage();
+        }
+    });
+
+    chatInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        const voiceLock = document.getElementById('voiceLock');
+        if (val.length > 0) {
+            chatSendBtn.classList.remove('hidden');
+            liveCallBtn.classList.add('hidden');
+            if (voiceLock) voiceLock.classList.add('hidden');
+        } else {
+            chatSendBtn.classList.add('hidden');
+            updateVoiceUI();
+        }
     });
 }
 
@@ -607,6 +623,10 @@ async function sendTextMessage() {
     if (!message) return;
 
     chatInput.value = '';
+    const chatSendB = document.getElementById('chatSendBtn');
+    if (chatSendB) chatSendB.classList.add('hidden');
+    updateVoiceUI();
+    
     addChatBubble(message, 'user');
     showTypingIndicator();
 
