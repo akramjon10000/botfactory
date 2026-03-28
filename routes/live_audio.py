@@ -30,17 +30,30 @@ def live_audio_ws(ws, bot_id):
 
         client = genai.Client(api_key=api_key)
         
-        # System instructions from bot's Knowledge Base
-        system_instruction = ""
-        from models import KnowledgeBase
-        kb_entries = KnowledgeBase.query.filter_by(bot_id=bot_id).all()
-        if kb_entries:
-            for kb in kb_entries:
-                if kb.content_type == 'text':
-                    system_instruction += f"{kb.content}\n\n"
+        # System instructions from bot's Knowledge Base (barcha turlarni yuklash)
+        from ai import process_knowledge_base
+        knowledge_text = process_knowledge_base(bot_id)
         
-        if not system_instruction:
-            system_instruction = "Sen foydali yordamchisan. Mijozlarga qisqa, aniq va yoqimli ovozda javob ber."
+        bot_name = bot.name or "AI Yordamchi"
+        
+        if knowledge_text:
+            system_instruction = f"""Sen {bot_name} nomli AI sotuvchi-konsultantsan. Ovoz orqali mijozlarga yordam berasan.
+
+QOIDALAR:
+1. QISQA va ANIQ gapir! Har bir javob 2-3 gapdan iborat bo'lsin.
+2. Faqat BILIMLAR BAZASIDAGI ma'lumotlarga tayanib javob ber. Bazada yo'q narsani O'YLAB TOPMA.
+3. Bazada ma'lumot topa olmasang: "Aniq ma'lumot uchun menejerimizga murojaat qiling" de.
+4. Narx so'ralsa — faqat bazadagi aniq narxni ayt.
+5. Yoqimli, do'stona va professional ovozda gapir.
+
+--- BILIMLAR BAZASI ---
+{knowledge_text}
+-----------------------
+Yuqoridagi bazadan foydalanib qisqa va aniq javob ber."""
+        else:
+            system_instruction = f"""Sen {bot_name} AI yordamchisan. Bilimlar bazasi hali to'ldirilmagan.
+Salom bersa — qisqa salomlash. Har qanday savol uchun: "Kechirasiz, hozircha ma'lumotlar bazasi to'ldirilmagan. Menejerimiz bilan bog'laning." de.
+Qisqa gapir — 1-2 gap yetarli."""
 
         async def run_live_session():
             config = types.LiveConnectConfig(
