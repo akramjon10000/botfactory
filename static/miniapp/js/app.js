@@ -298,6 +298,15 @@ function renderContact(contact) {
 
     if (contact.phone) {
         elements.callButton.href = `tel:${contact.phone}`;
+        elements.callButton.onclick = (e) => {
+            e.preventDefault();
+            if (tg && typeof tg.openLink === 'function') {
+                try { tg.openLink(`tel:${contact.phone}`); }
+                catch(err) { window.location.href = `tel:${contact.phone}`; }
+            } else {
+                window.location.href = `tel:${contact.phone}`;
+            }
+        };
     }
 
     // Telegram contact
