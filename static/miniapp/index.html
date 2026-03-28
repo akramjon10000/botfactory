@@ -84,6 +84,9 @@
                         <button id="voiceRecordBtn" class="voice-record-btn" title="Ovozli xabar">
                             <span class="mic-icon">🎤</span>
                         </button>
+                        <button id="liveCallInitBtn" class="live-call-init-btn" title="AI Qo'ng'iroq" style="background: none; border: none; font-size: 24px; padding: 10px; cursor: pointer;">
+                            📞
+                        </button>
                         <div id="voiceLock" class="voice-lock hidden">
                             <span>🔒</span>
                             <small>Premium kerak</small>
@@ -231,7 +234,31 @@
             </div>
         </div>
 
-        <!-- Loading Overlay -->
+    <!-- Live Call Modal -->
+    <div id="liveCallModal" class="modal hidden">
+        <div class="modal-content live-call-content">
+            <h2 class="live-title">📱 Jonli AI Qo'ng'iroq</h2>
+            <div class="live-status-text" id="liveStatusText">Bog'lanish uchun pastdagi tugmani bosing</div>
+            <div class="live-waves" id="liveWaves">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <div class="live-controls">
+                <button id="startLiveCallBtn" class="btn btn-accent live-btn">
+                    📞 Qo'ng'iroqni boshlash
+                </button>
+                <button id="endLiveCallBtn" class="btn btn-danger live-btn hidden">
+                    📞 Qo'ng'iroqni tugatish
+                </button>
+            </div>
+            <button id="closeLiveCallModal" class="close-btn live-close-btn">&times;</button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
         <div id="loading" class="loading-overlay hidden">
             <div class="spinner"></div>
         </div>
@@ -241,6 +268,7 @@
     </div>
 
     <script src="/static/miniapp/js/app.js?v=1.2"></script>
+    <script src="/static/miniapp/js/live-call.js?v=1.0"></script>
 </body>
 
 </html>
