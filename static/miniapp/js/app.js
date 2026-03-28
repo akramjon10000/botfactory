@@ -191,6 +191,9 @@ async function loadData() {
         const businessRes = await fetch(`/api/miniapp/business/${botId}`);
         if (businessRes.ok) {
             state.business = await businessRes.json();
+            // Business endpoint ensures the bot is premium/admin, so we lock/unlock here:
+            isPremium = true;
+            updateVoiceUI();
             renderBusiness();
         }
 
