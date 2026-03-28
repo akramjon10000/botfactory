@@ -515,8 +515,7 @@ let isRecording = false;
 function initChat() {
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
-    const voiceRecordBtn = document.getElementById('voiceRecordBtn');
-    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    const liveCallBtn = document.getElementById('liveCallInitBtn');
 
     if (!chatInput || !chatSendBtn) return;
 
@@ -525,14 +524,6 @@ function initChat() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendTextMessage();
     });
-
-    // Voice recording
-    if (voiceRecordBtn) {
-        voiceRecordBtn.addEventListener('click', () => toggleRecording());
-    }
-    if (stopRecordBtn) {
-        stopRecordBtn.addEventListener('click', () => stopRecording());
-    }
 }
 
 function checkPremiumStatus() {
@@ -541,15 +532,15 @@ function checkPremiumStatus() {
 }
 
 function updateVoiceUI() {
-    const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+    const liveCallBtn = document.getElementById('liveCallInitBtn');
     const voiceLock = document.getElementById('voiceLock');
-    if (!voiceRecordBtn || !voiceLock) return;
+    if (!liveCallBtn || !voiceLock) return;
 
     if (isPremium) {
-        voiceRecordBtn.classList.remove('hidden');
+        liveCallBtn.classList.remove('hidden');
         voiceLock.classList.add('hidden');
     } else {
-        voiceRecordBtn.classList.add('hidden');
+        liveCallBtn.classList.add('hidden');
         voiceLock.classList.remove('hidden');
     }
 }
