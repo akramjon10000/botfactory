@@ -62,14 +62,13 @@ def live_audio_ws(ws, bot_id):
                                     break
                                 
                                 # Ignore text messages for now (like initial handshakes)
-                                if isinstance(data, bytes):
-                                    await session.send_realtime_input(audio={"data": data, "mime_type": "audio/pcm;rate=16000"})
-                                elif isinstance(data, str):
+                                if isinstance(data, str):
                                     if data == "END_OF_TURN":
-                                        await session.send(input="", end_of_turn=True)
-                                    else:
-                                        # You can handle text if needed
-                                        pass
+                                        await session.send(end_of_turn=True)
+                                    continue
+                                
+                                if isinstance(data, bytes):
+                                    await session.send(input={"data": data, "mime_type": "audio/pcm;rate=16000"})
                         except Exception as e:
                             logger.info(f"WebSocket receive error or closed: {e}")
                     
