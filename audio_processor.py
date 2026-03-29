@@ -14,7 +14,7 @@ class AudioProcessor:
     def __init__(self):
         self.supported_formats = ['.ogg', '.mp3', '.wav', '.m4a', '.aac']
         # Configure new google-genai client
-        api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
+        api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY3') or os.getenv('GOOGLE_API_KEY2')
         self.client = None
         if api_key:
             self.client = genai.Client(api_key=api_key)
@@ -58,20 +58,12 @@ class AudioProcessor:
             str: Transkripsiya qilingan matn
         """
         try:
-            if not self.client:
-                api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
-                if not api_key:
-                    logger.error("Google API kalit topilmadi")
-                    return None
-                self.client = genai.Client(api_key=api_key)
-
-            # Upload the audio file to Gemini
-            logger.info(f"Gemini Native Audio orqali transkripsiya: {audio_file_path}")
+            api_keys = [
+                os.getenv('GOOGLE_API_KEY'),
+                os.getenv('GOOGLE_API_KEY3'),
+                os.getenv('GOOGLE_API_KEY2')
+            ]
             
-            # Upload audio file using new SDK
-            audio_file = self.client.files.upload(file=audio_file_path)
-            
-            # Language names for the prompt
             lang_names = {
                 'uz': "o'zbek",
                 'ru': 'rus',
@@ -89,24 +81,45 @@ Agar audio bo'sh yoki tushunarsiz bo'lsa, bo'sh string qaytar."""
                 'gemini-2.5-flash-preview-native-audio',
                 'gemini-3.1-flash-lite-preview',
             ]
-            response = None
-            for model_name in audio_models:
-                try:
-                    response = self.client.models.generate_content(
-                        model=model_name,
-                        contents=[prompt, audio_file]
-                    )
-                    if response and response.text:
-                        break
-                except Exception as model_err:
-                    logger.warning(f"Audio model {model_name} failed: {model_err}")
-                    continue
             
-            # Clean up uploaded file
-            try:
-                self.client.files.delete(name=audio_file.name)
-            except Exception:
-                pass
+            response = None
+            
+            for api_key in api_keys:
+                if not api_key:
+                    continue
+                
+                try:
+                    # Always create a fresh client to easily switch api keys
+                    temp_client = genai.Client(api_key=api_key)
+                    logger.info(f"Gemini Native Audio orqali transkripsiya: {audio_file_path}")
+                    
+                    audio_file = temp_client.files.upload(file=audio_file_path)
+                    
+                    for model_name in audio_models:
+                        try:
+                            response = temp_client.models.generate_content(
+                                model=model_name,
+                                contents=[prompt, audio_file]
+                            )
+                            if response and response.text:
+                                break
+                        except Exception as model_err:
+                            logger.warning(f"Audio model {model_name} failed: {model_err}")
+                            continue
+                            
+                    # Clean up uploaded file
+                    try:
+                        temp_client.files.delete(name=audio_file.name)
+                    except Exception:
+                        pass
+                        
+                    if response and response.text:
+                        self.client = temp_client # Save working client for later use if needed
+                        break
+                        
+                except Exception as client_err:
+                    logger.warning(f"Audio Client failed on key layout: {client_err}")
+                    continue
             
             if response and response.text:
                 transcript = response.text.strip()

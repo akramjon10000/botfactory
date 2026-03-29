@@ -112,6 +112,7 @@ STRICT RULES:
         # Multi-API key and model fallback support
         api_keys = [
             os.environ.get("GOOGLE_API_KEY"),
+            os.environ.get("GOOGLE_API_KEY3"),
             os.environ.get("GOOGLE_API_KEY2"),
         ]
         models = [

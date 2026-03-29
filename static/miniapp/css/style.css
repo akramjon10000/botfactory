@@ -97,13 +97,19 @@ body {
 /* ===== Navigation Tabs ===== */
 .tabs {
     display: flex;
-    padding: 8px 16px;
-    gap: 8px;
-    background: var(--bg-secondary);
+    padding: 10px 16px;
+    gap: 12px;
+    background: rgba(var(--bg-secondary-rgb, 26, 26, 26), 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.light-theme .tabs {
+    background: rgba(255, 255, 255, 0.85);
 }
 
 .tab {
@@ -111,22 +117,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 12px 8px;
+    gap: 6px;
+    padding: 12px 6px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
+    font-weight: 600;
+    border-radius: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
 }
 
 .tab.active {
-    background: var(--accent);
-    color: #000;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.35);
+    transform: translateY(-2px);
+}
+.tab.active .tab-icon {
+    transform: scale(1.1);
+    transition: transform 0.3s;
 }
 
 .tab-icon {
@@ -232,20 +244,22 @@ body {
 
 .catalog-item {
     background: var(--bg-card);
-    border-radius: var(--radius);
+    border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(128, 128, 128, 0.15);
+    border: 1px solid rgba(128, 128, 128, 0.08);
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
-    box-shadow: 0 4px 6px var(--shadow);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
 }
 
 .catalog-item:active {
-    transform: scale(0.96);
+    transform: scale(0.94);
 }
 
 .catalog-item:hover {
-    box-shadow: 0 8px 24px var(--shadow);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 212, 170, 0.3);
 }
 
 /* Staggered animation for catalog items */
@@ -475,15 +489,17 @@ body {
 }
 
 .btn-accent {
-    background: var(--accent);
-    color: var(--tg-theme-button-text-color, #ffffff);
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #fff;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 212, 170, 0.35);
+    border: none;
+    letter-spacing: 0.5px;
 }
 
 .btn-accent:active {
-    transform: scale(0.96);
-    background: var(--accent-hover);
+    transform: scale(0.92);
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.25);
 }
 
 .btn-full {
@@ -798,13 +814,15 @@ body {
 }
 
 .chat-bubble {
-    max-width: 80%;
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: 14px;
-    line-height: 1.5;
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
     word-wrap: break-word;
-    animation: bubbleIn 0.3s ease-out;
+    animation: bubbleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 @keyframes bubbleIn {
@@ -814,7 +832,7 @@ body {
 
 .chat-bubble.user {
     align-self: flex-end;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
     color: #fff;
     border-bottom-right-radius: 4px;
 }
@@ -871,11 +889,19 @@ body {
 /* Chat Input */
 .chat-input-area {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 8px;
-    padding: 12px 16px;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    background: rgba(30,30,30, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(128, 128, 128, 0.1);
+    position: sticky;
+    bottom: 0px;
+}
+
+.light-theme .chat-input-area {
+    background: rgba(255,255,255, 0.85);
 }
 
 .chat-input-wrapper {
@@ -962,8 +988,7 @@ body {
 }
 
 .voice-lock small {
-    font-size: 9px;
-    white-space: nowrap;
+    display: none;
 }
 
 .recording-indicator {
@@ -1055,5 +1080,48 @@ body {
          f o n t - s i z e :   1 6 p x ; 
          p a d d i n g :   1 5 p x ; 
  } 
-  
  
+ 
+ 
+.chat-input-wrapper input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 10px 16px;
+    font-size: 15px;
+    font-family: inherit;
+}
+
+.chat-input-wrapper input::placeholder {
+    color: var(--text-secondary);
+}
+
+.chat-send-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-right: 4px;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 212, 170, 0.2);
+}
+
+.chat-send-btn:active { 
+    transform: scale(0.9);
+    box-shadow: 0 2px 5px rgba(0, 212, 170, 0.3);
+}
+
+/* Ensure smooth hide for lock */
+.voice-lock.hidden, .chat-send-btn.hidden, .voice-record-btn.hidden {
+    display: none !important;
+}

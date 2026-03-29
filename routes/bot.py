@@ -323,7 +323,7 @@ Javobingni HTML formatda qaytar (hech qanday ```html teglari va markdown formats
 SUHBATLAR:
 {chat_text}"""
 
-        api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_API_KEY2")
+        api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_API_KEY3") or os.environ.get("GOOGLE_API_KEY2")
         genai.configure(api_key=api_key)
         
         # Using a fast and capable model

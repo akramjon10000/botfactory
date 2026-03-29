@@ -551,10 +551,13 @@ function initChat() {
     chatInput.addEventListener('input', (e) => {
         const val = e.target.value.trim();
         const voiceLock = document.getElementById('voiceLock');
+        const sendBtn = document.getElementById('chatSendBtn');
         if (val.length > 0) {
             liveCallBtn.classList.add('hidden');
             if (voiceLock) voiceLock.classList.add('hidden');
+            if (sendBtn) sendBtn.classList.remove('hidden');
         } else {
+            if (sendBtn) sendBtn.classList.add('hidden');
             liveCallBtn.classList.remove('hidden');
             if (typeof updateVoiceUI === 'function') updateVoiceUI();
         }
@@ -668,7 +671,8 @@ async function sendTextMessage() {
         }
     } catch (err) {
         hideTypingIndicator();
-        addChatBubble('Tarmoq xatosi. Qayta urinib ko\'ring.', 'bot');
+        console.error("Chat Error:", err);
+        addChatBubble('Kechirasiz, server bilan bog\'lanishda kichik uzilish yuz berdi. Iltimos, qayta urinib ko\'ring.', 'bot');
     }
 }
 
@@ -756,6 +760,7 @@ async function sendVoiceMessage(audioBlob) {
         }
     } catch (err) {
         hideTypingIndicator();
-        addChatBubble('Tarmoq xatosi. Qayta urinib ko\'ring.', 'bot');
+        console.error("Voice Chat Error:", err);
+        addChatBubble('Kechirasiz, server bilan bog\'lanishda kichik uzilish. Iltimos, keyinroq qayta urinib ko\'ring.', 'bot');
     }
 }

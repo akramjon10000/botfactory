@@ -321,12 +321,23 @@ def notify_order_to_owner(order):
 📝 Izoh: {note_text}
 """
         
-        # Send via Telegram API
+        # Send to Admin (Owner)
         url = f"https://api.telegram.org/bot{bot.telegram_token}/sendMessage"
         requests.post(url, json={
             'chat_id': admin_chat_id,
             'text': message
         })
+        
+        # Send receipt to Customer
+        if order.telegram_user_id:
+            customer_message = f"Tabriklaymiz, sizning buyurtmangiz muvaffaqiyatli qabul qilindi!\n\nBuyurtma #{order.id}:\n\n{items_text}\n\nJami: {order.total_amount:,} so'm.\nTez orada siz bilan bog'lanamiz!"
+            try:
+                requests.post(url, json={
+                    'chat_id': order.telegram_user_id,
+                    'text': customer_message
+                }, timeout=5)
+            except Exception as e:
+                logger.error(f"[MiniApp Order] Failed to notify customer {order.telegram_user_id}: {e}")
         
     except Exception as e:
         logger.error(f"Error notifying owner: {e}")
@@ -463,7 +474,7 @@ def miniapp_voice_chat():
                 temp_path = tmp.name
 
             # Configure new google-genai client
-            api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY2')
+            api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GOOGLE_API_KEY3') or os.getenv('GOOGLE_API_KEY2')
             if not api_key:
                 return jsonify({'error': 'API kalit topilmadi'}), 500
 
